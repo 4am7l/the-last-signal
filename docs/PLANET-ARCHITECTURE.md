@@ -31,3 +31,30 @@ The local terrain is 24 km across with planetary curvature, deterministic illust
 
 ## Validation
 `npm run build` passes TypeScript and production bundling. Mathematical checks cover longitude/latitude orientation, coordinate-to-UV agreement and mission quaternion alignment. Assets are bundled locally (no NASA/CORS requests at runtime). Browser preview was attempted, but the environment reports WebGL renderer disabled and cannot create a context; GPU appearance, shaders, touch performance and mobile rendering have NOT been visually verified. Production build warns about the large existing Three.js chunk; models and Space remain lazy-loaded.
+
+## Lunar detail and physical scale (2026-11-10)
+
+- `lunarTerrain.ts` centralizes mean spherical radii: Moon 1,737,400 m,
+  Earth 6,371,000 m, Mars 3,389,500 m. The Moon renderer uses 300 scene
+  units per lunar radius, including metre-scaled equipment and rocks.
+  Earth now has the correct 3.667:1 radius ratio in the lunar scene.
+  Interplanetary separation is still deliberately compressed for browsing.
+- The continuous sphere combines 160 logarithmic near-site rings with
+  320 uniformly spaced far rings and 320 sectors. This removes sparse
+  far-side triangles while preserving local detail around Apollo.
+- Crater bowls/rims, sub-metre rocks, local undulations, and filtered dust
+  shading are deterministic visual reconstruction, not surveyed features.
+  Local relief fades by 1.6 km and leaves the equipment footprint clear.
+- Global mountains and large craters follow the existing NASA-derived JPEG.
+  Its current 2.1-unit display height range is **not calibrated elevation**.
+  Attempts to download NASA's 16-bit TIFF files returned HTTP 503. Do not
+  describe the displayed mountain heights as measured physical elevations.
+  A future calibrated import should decode uint16 heights as `pixel / 2 -
+  10000` metres relative to 1,737,400 m, per the NASA CGI Moon Kit.
+- Earth has blue sun-facing limb scattering plus a thin surface haze, with
+  a dim night limb. The shaders support the renderer's logarithmic depth.
+  This is a visual atmosphere approximation, not a full atmospheric solver.
+- Sources: https://svs.gsfc.nasa.gov/4720/ and
+  https://science.nasa.gov/moon/by-the-numbers/ .
+- Validation: production build, coordinate tests, and lunar geometry/scale
+  tests. Visual WebGL QA remains unavailable in the current preview browser.

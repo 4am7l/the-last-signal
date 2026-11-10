@@ -5,7 +5,31 @@ import * as T from 'three';
 import type {Mission} from './data';
 // Equirectangular maps: Greenwich at u=.5, east-positive longitude.
 export function point(lat:number,lon:number,r=300){const a=T.MathUtils.degToRad(lat),b=T.MathUtils.degToRad(lon);return new T.Vector3(r*Math.cos(a)*Math.cos(b),r*Math.sin(a),-r*Math.cos(a)*Math.sin(b))}
-function Atmosphere({r,earth}:{r:number;earth:boolean}){const uniforms=useMemo(()=>({tint:{value:new T.Color(earth?'#538ee7':'#bf7953')},strength:{value:earth?.65:.24}}),[earth]);return <mesh scale={1.018}><sphereGeometry args={[r,64,48]}/><shaderMaterial transparent depthWrite={false} side={T.BackSide} blending={T.AdditiveBlending} uniforms={uniforms} vertexShader={`varying vec3 n;varying vec3 v;void main(){vec4 p=modelViewMatrix*vec4(position,1.);n=normalize(normalMatrix*normal);v=normalize(-p.xyz);gl_Position=projectionMatrix*p;}`} fragmentShader={`varying vec3 n;varying vec3 v;uniform vec3 tint;uniform float strength;void main(){float rim=pow(max(0.,1.-abs(dot(normalize(n),normalize(v)))),3.);gl_FragColor=vec4(tint,rim*strength);}`}/></mesh>}
+function Atmosphere({r,earth}:{r:number;earth:boolean}){
+ const uniforms=useMemo(()=>({tint:{value:new T.Color(earth?'#3189ff':'#bf7953')},sunDirection:{value:new T.Vector3(200,300,500).normalize()},strength:{value:earth?.8:.24}}),[earth]);
+ const vertexShader=`
+ #include <common>
+ #include <logdepthbuf_pars_vertex>
+ varying vec3 worldNormal; varying vec3 worldView;
+ void main(){vec4 world=modelMatrix*vec4(position,1.);worldNormal=normalize(mat3(modelMatrix)*normal);worldView=cameraPosition-world.xyz;gl_Position=projectionMatrix*viewMatrix*world;
+ #include <logdepthbuf_vertex>
+ }`;
+ const fragmentShader=`
+ #include <common>
+ #include <logdepthbuf_pars_fragment>
+ varying vec3 worldNormal; varying vec3 worldView;
+ uniform vec3 tint; uniform vec3 sunDirection; uniform float strength;
+ void main(){
+ #include <logdepthbuf_fragment>
+ vec3 n=normalize(worldNormal);float facing=abs(dot(n,normalize(worldView)));
+ float daylight=smoothstep(-.22,.35,dot(n,sunDirection));
+ float rim=pow(1.-facing,3.);float alpha=rim*strength*(.035+.965*daylight);
+ gl_FragColor=vec4(tint,alpha);
+ #include <tonemapping_fragment>
+ #include <colorspace_fragment>
+ }`;
+ return <group>{(earth?[{scale:1+100/6371,side:T.BackSide},{scale:1.0015,side:T.FrontSide}]:[{scale:1.018,side:T.BackSide}]).map((layer,i)=><mesh key={i} scale={layer.scale} renderOrder={2}><sphereGeometry args={[r,96,64]}/><shaderMaterial transparent depthWrite={false} side={layer.side} uniforms={uniforms} vertexShader={vertexShader} fragmentShader={fragmentShader}/></mesh>)}</group>;
+}
 function Clouds({r}:{r:number}){const texture=useLoader(T.TextureLoader,'/earth-clouds.png'),ref=useRef<T.Mesh>(null);useFrame((_,dt)=>{if(ref.current&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches)ref.current.rotation.y+=dt*.008});return <mesh ref={ref}><sphereGeometry args={[r*1.006,64,48]}/><meshStandardMaterial map={texture} transparent opacity={.65} depthWrite={false} roughness={1}/></mesh>}
 function Surface({body}:{body:string}){const map=useLoader(T.TextureLoader,`/${body}.jpg`);const {gl}=useThree();useEffect(()=>{map.colorSpace=T.SRGBColorSpace;map.anisotropy=Math.min(8,gl.capabilities.getMaxAnisotropy());map.needsUpdate=true},[map,gl]);return <meshStandardMaterial map={map} roughness={1}/>}
 function LunarSurface(){const [map,height]=useLoader(T.TextureLoader,['/moon.jpg','/moon-height.jpg']);map.colorSpace=T.SRGBColorSpace;return <meshStandardMaterial map={map} bumpMap={height} bumpScale={1.1} displacementMap={height} displacementScale={2.1} displacementBias={-1} roughness={1}/>}
