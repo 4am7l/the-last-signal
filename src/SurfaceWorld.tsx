@@ -8,7 +8,7 @@ import {usePlanetTexture} from './usePlanetTexture';
 import {missions} from './data';
 import {dimensions} from './journey';
 import {SUN_DIRECTION,SCENE_SUN_DIRECTION} from './solar';
-import {marsRelief,mountains,surfaceDetail,cameraTuning,systemLayout,RADII_KM} from './sceneMath';
+import {marsRelief,mountains,surfaceDetail,noise3,cameraTuning,systemLayout,RADII_KM} from './sceneMath';
 import {Model,type Space} from './Space';
 import {MOON_RENDER_RADIUS as R,MOON_RADIUS_METRES,EARTH_RADIUS_METRES,MARS_RADIUS_METRES,localRelief,ringAngle} from './lunarTerrain';
 // One continuous sphere, with logarithmically spaced rings resolving the landing site.
@@ -28,7 +28,12 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
    const at=(a:number,b:number)=>pixels[(Math.min(c.height-1,b)*c.width+(a%c.width+c.width)%c.width)*4]/255;
    return {u,v:1-v,h:moon?(T.MathUtils.lerp(T.MathUtils.lerp(at(ix,iy),at(ix+1,iy),fx),T.MathUtils.lerp(at(ix,iy+1),at(ix+1,iy+1),fx),fy)-.5)*2.1:marsRelief(local.x,local.y,local.z)*UNIT};
   }
-  const detailAt=(x:number,z:number)=>localRelief(x,z)*(moon?1:.35)+mountains(x,z,m.body)+surfaceDetail(x,z,m.body);
+  const detailAt=(x:number,z:number)=>{
+   const distance=Math.hypot(x,z),pad=Math.max(2,dimensions[m.model].span*.65);
+   const fade=T.MathUtils.smoothstep(distance,pad,pad+4)*(1-T.MathUtils.smoothstep(distance,800,1600));
+   const soil=(noise3(x*1.8,3,z*1.8)*.055+noise3(x*.35,9,z*.35)*.16+noise3(x*.07,5,z*.07)*.32)*fade;
+   return localRelief(x,z)*(moon?1:.35)+mountains(x,z,m.body)+surfaceDetail(x,z,m.body)+soil;
+  };
   const base=sample(new T.Vector3(0,1,0)).h;
   const positions:number[]=[],uv:number[]=[],indices:number[]=[],rings=480,sectors=320;
   for(let j=0;j<=rings;j++){const a=ringAngle(j,160,320,radiusMetres);
@@ -43,7 +48,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(indices);g.computeVertexNormals();const out=g.toNonIndexed();g.dispose();const uvs=out.attributes.uv;
   for(let i=0;i<uvs.count;i+=3){const us=[uvs.getX(i),uvs.getX(i+1),uvs.getX(i+2)];if(Math.max(...us)-Math.min(...us)>.5)for(let k=0;k<3;k++)if(us[k]<.5)uvs.setX(i+k,us[k]+1)}
   return {ground:(x:number,z:number)=>{const n=new T.Vector3(x*UNIT,R,z*UNIT).normalize();return (R+sample(n).h+detailAt(x,z)*UNIT)*n.y-R-base},rotation:q,geometry:out,center:new T.Vector3(0,-R-base,0),base};
- },[height,m.lat,m.lon,moon,radiusMetres,UNIT,m.body]);
+ },[height,m.lat,m.lon,moon,radiusMetres,UNIT,m.body,m.model]);
  useEffect(()=>()=>surface.geometry.dispose(),[surface]);
  // A floating local origin preserves centimetre detail while every body stays
  // in one shared solar-system layout. Rebase the camera, not the universe.
@@ -122,7 +127,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   const distance=camera.position.distanceTo(ctl.target),near=Math.max(.000005,Math.min(.1,distance/10000));if(camera.near!==near){camera.near=near;camera.updateProjectionMatrix()}
   if(pin.current){const facing=new T.Vector3(0,1,0).dot(camera.position.clone().normalize())>0;pin.current.style.display=mode==='overview'||earthFocus||nearSite||!facing?'none':'block';}
  });
- return <><OrbitControls ref={controls} makeDefault enableDamping dampingFactor={.085} rotateSpeed={.4} enablePan={close} screenSpacePanning={false} panSpeed={.4} minPolarAngle={.04} maxPolarAngle={close?Math.PI/2-.035:Math.PI-.02} minDistance={Math.max(1.2,dimensions[m.model].span*.85)*UNIT} maxDistance={14000} zoomSpeed={.6} onStart={()=>{if(flight.current){descentArmed.current=false;guided.current=flight.current.stage==='descent';}flight.current=null;}}/><ambientLight intensity={close?(moon?.38:.42):(moon?.08:.16)} color={moon?'#edf1ff':'#e5cdbc'}/><hemisphereLight args={['#dae7ff',moon?'#706c65':'#99755a',close?.22:.045]}/><pointLight position={[inspectionSpan*1.7*UNIT,inspectionSpan*1.4*UNIT,inspectionSpan*1.8*UNIT]} intensity={12*inspectionSpan**2*UNIT**2} distance={inspectionSpan*12*UNIT} decay={2} color="#fff0db"/><pointLight position={[-inspectionSpan*1.5*UNIT,inspectionSpan*.9*UNIT,-inspectionSpan*UNIT]} intensity={7*inspectionSpan**2*UNIT**2} distance={inspectionSpan*10*UNIT} decay={2} color="#c9ddff"/><directionalLight castShadow position={localSun.clone().multiplyScalar(.3)} color={moon?'#fff8ee':'#fff0dc'} intensity={3.1} shadow-mapSize={[2048,2048]} shadow-camera-left={-.025} shadow-camera-right={.025} shadow-camera-top={.025} shadow-camera-bottom={-.025} shadow-camera-near={.001} shadow-camera-far={1} shadow-bias={-.000001} shadow-normalBias={.03*UNIT}/><mesh geometry={surface.geometry} castShadow receiveShadow onClick={e=>{if(mode==='overview'&&e.delta<4){e.stopPropagation();onWorld(m.body)}}}><RegolithMaterial map={map} height={moon?height:undefined} unit={UNIT} moon={moon}/></mesh><LunarRocks ground={surface.ground} unit={UNIT} moon={moon}/>{!moon&&<group position={surface.center}><Atmosphere r={R} earth={false}/></group>}<group scale={UNIT}><Model name={m.model}/></group>{others.map(({body,position,radius})=><group key={body}><Planet body={body} r={radius} pos={position.toArray() as [number,number,number]} rotation={surface.rotation} click={()=>focusPlanet(body)}/>{mode==='overview'&&<Html position={position.clone().add(new T.Vector3(0,radius+100,0))} center><button className="worldLabel" onClick={()=>focusPlanet(body)}>{body==='earth'?'الأرض':body==='moon'?'القمر':'المريخ'} ↗</button></Html>}</group>)}{mode==='overview'&&<Html position={[0,100,0]} center><button className="worldLabel" onClick={()=>onWorld(m.body)}>{moon?'القمر':'المريخ'} ↗</button></Html>}<Html position={[0,.5,0]} center><div ref={pin}><button className="sitePin" onClick={()=>onMission(missions.findIndex(item=>item.id===m.id))}>{m.name} · قرّب للوصول<small dir="ltr">{Math.abs(m.lat)}° {m.lat<0?'S':'N'} · {m.lon}° E</small></button></div></Html>{mode!=='overview'&&!earthFocus&&!close&&missions.map((item,i)=>item.body===m.body&&item.id!==m.id?<SitePin key={item.id} m={item} rotation={surface.rotation} selected={false} onClick={()=>onMission(i)}/>:null)}</>;
+ return <><OrbitControls ref={controls} makeDefault enableDamping dampingFactor={.085} rotateSpeed={.4} enablePan={close} screenSpacePanning={false} panSpeed={.4} minPolarAngle={.04} maxPolarAngle={close?Math.PI/2-.035:Math.PI-.02} minDistance={Math.max(1.2,dimensions[m.model].span*.85)*UNIT} maxDistance={14000} zoomSpeed={.6} onStart={()=>{if(flight.current){descentArmed.current=false;guided.current=flight.current.stage==='descent';}flight.current=null;}}/><ambientLight intensity={close?(moon?.29:.33):(moon?.08:.16)} color={moon?'#edf1ff':'#e5cdbc'}/><hemisphereLight args={['#dae7ff',moon?'#706c65':'#99755a',close?.16:.045]}/><spotLight castShadow angle={.95} penumbra={.5} shadow-mapSize={[1024,1024]} shadow-camera-near={.08*UNIT} shadow-camera-far={inspectionSpan*12*UNIT} shadow-normalBias={.012*UNIT} shadow-bias={-.00003} position={[inspectionSpan*1.7*UNIT,inspectionSpan*1.4*UNIT,inspectionSpan*1.8*UNIT]} intensity={.95} distance={inspectionSpan*12*UNIT} decay={0} color="#fff0db"/><pointLight position={[-inspectionSpan*1.5*UNIT,inspectionSpan*.9*UNIT,-inspectionSpan*UNIT]} intensity={.25} distance={inspectionSpan*10*UNIT} decay={0} color="#c9ddff"/><directionalLight castShadow position={localSun.clone().multiplyScalar(.3)} color={moon?'#fff8ee':'#fff0dc'} intensity={3.1} shadow-mapSize={[2048,2048]} shadow-camera-left={-.025} shadow-camera-right={.025} shadow-camera-top={.025} shadow-camera-bottom={-.025} shadow-camera-near={.001} shadow-camera-far={1} shadow-bias={-.000001} shadow-normalBias={.03*UNIT}/><mesh geometry={surface.geometry} castShadow receiveShadow onClick={e=>{if(mode==='overview'&&e.delta<4){e.stopPropagation();onWorld(m.body)}}}><RegolithMaterial map={map} height={moon?height:undefined} unit={UNIT} moon={moon}/></mesh><LunarRocks ground={surface.ground} unit={UNIT} moon={moon} clearance={Math.max(2,dimensions[m.model].span*.7)}/>{!moon&&<group position={surface.center}><Atmosphere r={R} earth={false}/></group>}<group scale={UNIT}><Model name={m.model}/></group>{others.map(({body,position,radius})=><group key={body}><Planet body={body} r={radius} pos={position.toArray() as [number,number,number]} rotation={surface.rotation} click={()=>focusPlanet(body)}/>{mode==='overview'&&<Html position={position.clone().add(new T.Vector3(0,radius+100,0))} center><button className="worldLabel" onClick={()=>focusPlanet(body)}>{body==='earth'?'الأرض':body==='moon'?'القمر':'المريخ'} ↗</button></Html>}</group>)}{mode==='overview'&&<Html position={[0,100,0]} center><button className="worldLabel" onClick={()=>onWorld(m.body)}>{moon?'القمر':'المريخ'} ↗</button></Html>}<Html position={[0,.5,0]} center><div ref={pin}><button className="sitePin" onClick={()=>onMission(missions.findIndex(item=>item.id===m.id))}>{m.name} · قرّب للوصول<small dir="ltr">{Math.abs(m.lat)}° {m.lat<0?'S':'N'} · {m.lon}° E</small></button></div></Html>{mode!=='overview'&&!earthFocus&&!close&&missions.map((item,i)=>item.body===m.body&&item.id!==m.id?<SitePin key={item.id} m={item} rotation={surface.rotation} selected={false} onClick={()=>onMission(i)}/>:null)}</>;
 }
 
 function RegolithMaterial({map,height,unit,moon}:{map:T.Texture;height?:T.Texture;unit:number;moon:boolean}){
@@ -130,20 +135,21 @@ function RegolithMaterial({map,height,unit,moon}:{map:T.Texture;height?:T.Textur
   const mat=new T.MeshStandardMaterial({map,bumpMap:height??null,bumpScale:.025,roughness:1});
   mat.onBeforeCompile=shader=>{
    shader.vertexShader='varying vec3 lunarPosition;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nlunarPosition=position;');
-   shader.fragmentShader='varying vec3 lunarPosition;\nfloat lunarHash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123); }\n'+shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+   shader.fragmentShader='varying vec3 lunarPosition;\nfloat lunarHash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123); }\nfloat soilNoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(lunarHash(i),lunarHash(i+vec2(1.,0.)),f.x),mix(lunarHash(i+vec2(0.,1.)),lunarHash(i+vec2(1.)),f.x),f.y);}\n'+shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
 vec2 metres=lunarPosition.xz / ${unit.toFixed(12)};
 float footprint=max(length(dFdx(metres)),length(dFdy(metres)));
 float localFade=1.-smoothstep(40.,160.,footprint);
-float grain=lunarHash(floor(metres*35.))-.5;
-float strata=sin(metres.x*.23+sin(metres.y*.17)*2.)*sin(metres.y*.31);
-float dust=lunarHash(floor(metres*1.5))-.5;
+float grain=soilNoise(metres*48.)-.5;
+float strata=(soilNoise(metres*.7)-.5)*2.;
+float dust=soilNoise(metres*5.)-.5;
 diffuseColor.rgb=mix(diffuseColor.rgb,vec3(${moon?'.23,.225,.215':'.29,.18,.115'}),localFade*.65);
-diffuseColor.rgb*=1.+localFade*(grain*.19*(1.-smoothstep(.01,.1,footprint))+dust*.13*(1.-smoothstep(.2,2.,footprint))+strata*.075*(1.-smoothstep(1.,8.,footprint)));
+diffuseColor.rgb*=1.+localFade*(grain*.42*(1.-smoothstep(.01,.1,footprint))+dust*.28*(1.-smoothstep(.2,2.,footprint))+strata*.15*(1.-smoothstep(1.,8.,footprint)));
  `).replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
 vec2 detailMetres=lunarPosition.xz / ${unit.toFixed(12)};
 float detailFootprint=max(length(dFdx(detailMetres)),length(dFdy(detailMetres)));
-float relief=(sin(detailMetres.x*11.+sin(detailMetres.y*7.))*sin(detailMetres.y*13.))*.004*(1.-smoothstep(.03,.18,detailFootprint));
-relief+=sin(detailMetres.x*1.3+sin(detailMetres.y*.8))*sin(detailMetres.y*1.7)*.018*(1.-smoothstep(.3,1.5,detailFootprint));
+float relief=(soilNoise(detailMetres*48.)-.5)*.006*(1.-smoothstep(.008,.045,detailFootprint));
+relief+=(soilNoise(detailMetres*9.)-.5)*.025*(1.-smoothstep(.04,.22,detailFootprint));
+relief+=(soilNoise(detailMetres*1.4)-.5)*.065*(1.-smoothstep(.3,1.5,detailFootprint));
 vec3 sx=dFdx(-vViewPosition),sy=dFdy(-vViewPosition);
 vec3 rx=cross(sy,normal),ry=cross(normal,sx);
 float detailDet=dot(sx,rx);
@@ -154,13 +160,13 @@ normal=normalize(abs(detailDet)*normal-gradient+normal*1.e-20);
  },[map,height,unit,moon]);
  useEffect(()=>()=>material.dispose(),[material]);return <primitive object={material} attach="material"/>;
 }
-function LunarRocks({ground,unit:UNIT,moon}:{ground:(x:number,z:number)=>number;unit:number;moon:boolean}){
+function LunarRocks({ground,unit:UNIT,moon,clearance}:{ground:(x:number,z:number)=>number;unit:number;moon:boolean;clearance:number}){
  const rocks=useMemo(()=>{
-  const mesh=new T.InstancedMesh(new T.IcosahedronGeometry(1,1),new T.MeshStandardMaterial({color:moon?'#777570':'#746051',roughness:1}),300);
+  const mesh=new T.InstancedMesh(new T.IcosahedronGeometry(1,1),new T.MeshStandardMaterial({color:moon?'#777570':'#746051',roughness:1}),1200);
   const obj=new T.Object3D();
-  for(let i=0;i<300;i++){const a=i*2.399963,r=5+Math.pow((i+1)/300,1.5)*500,x=Math.cos(a)*r,z=Math.sin(a)*r,size=.045+Math.pow((i*7%29)/29,3)*(moon?1.1:.8);
-   obj.position.set(x*UNIT,ground(x,z)+size*.36*UNIT,z*UNIT);obj.rotation.set(i*.31,i*.7,i*.11);obj.scale.set(size*1.3*UNIT,size*.65*UNIT,size*UNIT);obj.updateMatrix();mesh.setMatrixAt(i,obj.matrix);
+  for(let i=0;i<1200;i++){const a=i*2.399963,r=clearance+(i<900?Math.pow((i+1)/900,1.4)*45:50+Math.pow((i-899)/300,1.5)*450),x=Math.cos(a)*r,z=Math.sin(a)*r,size=i<900?.012+Math.pow((i*7%29)/29,3)*.16:.045+Math.pow((i*7%29)/29,3)*(moon?1.1:.8);
+   obj.position.set(x*UNIT,ground(x,z)+size*.36*UNIT,z*UNIT);obj.rotation.set(i*.31,i*.7,i*.11);obj.scale.set(size*1.3*UNIT,size*.65*UNIT,size*UNIT);obj.updateMatrix();mesh.setMatrixAt(i,obj.matrix);mesh.setColorAt(i,new T.Color(moon?'#bab6ad':'#c9b4a0').multiplyScalar(.65+(i*13%37)/100));
   }mesh.castShadow=true;mesh.receiveShadow=true;mesh.instanceMatrix.needsUpdate=true;return mesh;
- },[ground,UNIT,moon]);
+ },[ground,UNIT,moon,clearance]);
  useEffect(()=>()=>{rocks.geometry.dispose();(rocks.material as T.Material).dispose();rocks.dispose()},[rocks]);return <primitive object={rocks}/>;
 }
