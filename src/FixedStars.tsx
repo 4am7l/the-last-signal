@@ -7,7 +7,7 @@ import {starDirections} from './sceneMath';
 // far plane of the logarithmic depth buffer used by opaque planets.
 export function FixedStars({marsSurface}:{marsSurface:boolean}){
  const {gl}=useThree();
- const geometry=useMemo(()=>{const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(starDirections(16000),3));return g},[]);
+ const geometry=useMemo(()=>{const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(starDirections(40000),3));return g},[]);
  const uniforms=useMemo(()=>({skyRotation:{value:new T.Matrix3()},pixelRatio:{value:1},visibility:{value:1},panorama:{value:null as T.Texture|null},hasPanorama:{value:0}}),[]);
  useEffect(()=>{
   let alive=true;let loaded:T.Texture|undefined;
@@ -43,8 +43,8 @@ gl_FragDepth=1.;gl_FragColor=vec4(color,visibility);
   </mesh>
   <points geometry={geometry} frustumCulled={false} renderOrder={-1000}>
    <shaderMaterial transparent depthWrite={false} depthTest uniforms={uniforms}
-    vertexShader={`uniform mat3 skyRotation;uniform float pixelRatio;varying float brightness;varying vec3 tint;void main(){vec3 direction=mat3(viewMatrix)*skyRotation*position;vec4 p=projectionMatrix*vec4(direction,1.);gl_Position=vec4(p.xy,p.w,p.w);float seed=fract(sin(dot(position,vec3(127.1,311.7,74.7)))*43758.54);brightness=.07+.93*pow(seed,7.);tint=mix(vec3(1.,.84,.67),vec3(.76,.85,1.),fract(seed*43.));gl_PointSize=(.65+brightness*1.65)*pixelRatio;}`}
-    fragmentShader={`uniform float visibility;uniform float hasPanorama;varying float brightness;varying vec3 tint;void main(){float r=length(gl_PointCoord-.5);float alpha=(1.-smoothstep(.08,.5,r))*brightness*visibility*mix(1.,.58,hasPanorama);if(alpha<.004)discard;gl_FragDepth=1.;gl_FragColor=vec4(tint,alpha);}`}/>
+    vertexShader={`uniform mat3 skyRotation;uniform float pixelRatio;varying float brightness;varying vec3 tint;void main(){vec3 direction=mat3(viewMatrix)*skyRotation*position;vec4 p=projectionMatrix*vec4(direction,1.);gl_Position=vec4(p.xy,p.w,p.w);float seed=fract(sin(dot(position,vec3(127.1,311.7,74.7)))*43758.54);brightness=.11+.89*pow(seed,6.);tint=mix(vec3(1.,.84,.67),vec3(.76,.85,1.),fract(seed*43.));gl_PointSize=(.85+brightness*1.65)*pixelRatio;}`}
+    fragmentShader={`uniform float visibility;uniform float hasPanorama;varying float brightness;varying vec3 tint;void main(){float r=length(gl_PointCoord-.5);float alpha=(1.-smoothstep(.08,.5,r))*brightness*visibility*mix(1.,.75,hasPanorama);if(alpha<.004)discard;gl_FragDepth=1.;gl_FragColor=vec4(tint,alpha);}`}/>
   </points>
  </>;
 }
