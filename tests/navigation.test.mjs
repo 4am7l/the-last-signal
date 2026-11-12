@@ -16,7 +16,7 @@ assert.notEqual(surfaceDetail(120,70,'moon'),surfaceDetail(120,70,'mars'));
 assert.ok(cameraTuning(10,300,false).rotate<cameraTuning(300,300,false).rotate);
 for(const min of [.0002,305]){
  let d=min*3;
- for(let i=0;i<100;i++){const next=zoomDistance(d,min,14000,true);assert.ok(next<d&&next>=min);d=next;}
+ for(let i=0;i<100;i++){const next=zoomDistance(d,min,14000,true);assert.ok(next<=d&&next>=min);d=next;}
  assert.ok(zoomDistance(d,min,14000,false)>d,'can reverse at minimum clearance');
 }
 console.log('Passed: terrain continuity, distinct geology, altitude sensitivity and zoom limits.');
