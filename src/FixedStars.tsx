@@ -7,7 +7,7 @@ import {starDirections} from './sceneMath';
 // far plane of the logarithmic depth buffer used by opaque planets.
 export function FixedStars({marsSurface}:{marsSurface:boolean}){
  const {gl}=useThree();
- const geometry=useMemo(()=>{const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(starDirections(40000),3));return g},[]);
+ const geometry=useMemo(()=>{const g=new T.BufferGeometry();g.setAttribute('position',new T.BufferAttribute(starDirections(80000),3));return g},[]);
  const uniforms=useMemo(()=>({skyRotation:{value:new T.Matrix3()},pixelRatio:{value:1},visibility:{value:1},panorama:{value:null as T.Texture|null},hasPanorama:{value:0}}),[]);
  useEffect(()=>{
   let alive=true;let loaded:T.Texture|undefined;
@@ -28,16 +28,15 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
  return <>
   <mesh frustumCulled={false} renderOrder={-1100}>
    <sphereGeometry args={[1,64,32]}/>
-   <shaderMaterial side={T.BackSide} transparent depthWrite={false} depthTest uniforms={uniforms}
+   <shaderMaterial side={T.BackSide} toneMapped={false} transparent depthWrite={false} depthTest uniforms={uniforms}
     vertexShader={`uniform mat3 skyRotation;varying vec3 skyDirection;void main(){skyDirection=position;vec3 d=mat3(viewMatrix)*skyRotation*position;vec4 p=projectionMatrix*vec4(d,1.);gl_Position=vec4(p.xy,p.w,p.w);}`}
     fragmentShader={`uniform sampler2D panorama;uniform float hasPanorama;uniform float visibility;varying vec3 skyDirection;
 float hash(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}
 float noise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}
-void main(){vec3 d=normalize(skyDirection);float latitude=dot(d,normalize(vec3(.25,.83,.5)));float band=exp(-latitude*latitude*65.);float wisps=noise(d*12.)*.55+noise(d*35.)*.3+noise(d*90.)*.15;float lane=smoothstep(.36,.66,wisps);vec3 color=vec3(.13,.145,.17)*band*(.12+.88*lane);
+void main(){vec3 d=normalize(skyDirection);float latitude=dot(d,normalize(vec3(.25,.83,.5)));float band=exp(-latitude*latitude*65.);float wisps=noise(d*12.)*.55+noise(d*35.)*.3+noise(d*90.)*.15;float lane=smoothstep(.36,.66,wisps);vec3 color=mix(vec3(.14,.145,.15),vec3(.18,.155,.125),wisps)*band*(.12+.88*lane);
 vec2 uv=vec2(atan(d.z,d.x)/6.2831853+.5,asin(clamp(d.y,-1.,1.))/3.14159265+.5);
-if(hasPanorama>.5)color=texture2D(panorama,uv).rgb*.62;
+if(hasPanorama>.5)color=texture2D(panorama,uv).rgb*.72;
 gl_FragDepth=1.;gl_FragColor=vec4(color,visibility);
-#include <tonemapping_fragment>
 #include <colorspace_fragment>
 }`}/>
   </mesh>
