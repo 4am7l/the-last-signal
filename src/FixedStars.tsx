@@ -33,7 +33,11 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
     fragmentShader={`uniform sampler2D panorama;uniform float hasPanorama;uniform float visibility;varying vec3 skyDirection;
 float hash(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}
 float noise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}
-void main(){vec3 d=normalize(skyDirection);float latitude=dot(d,normalize(vec3(.25,.83,.5)));float band=exp(-latitude*latitude*65.);float wisps=noise(d*12.)*.55+noise(d*35.)*.3+noise(d*90.)*.15;float lane=smoothstep(.36,.66,wisps);vec3 color=mix(vec3(.14,.145,.15),vec3(.18,.155,.125),wisps)*band*(.12+.88*lane);
+void main(){vec3 d=normalize(skyDirection);float latitude=dot(d,normalize(vec3(.25,.83,.5)));float band=exp(-latitude*latitude*65.);float wisps=noise(d*12.)*.55+noise(d*35.)*.3+noise(d*90.)*.15;float lane=smoothstep(.36,.66,wisps);// Neutral ivory starlight with warm dust extinction, not a blue nebula.
+float dustLane=(1.-smoothstep(.38,.62,wisps))*exp(-latitude*latitude*190.);
+vec3 starlight=mix(vec3(.21,.205,.19),vec3(.26,.225,.175),smoothstep(.45,.8,wisps));
+vec3 transmission=exp(-dustLane*vec3(1.6,2.1,2.8));
+vec3 color=starlight*band*(.2+.8*lane)*transmission;
 vec2 uv=vec2(atan(d.z,d.x)/6.2831853+.5,asin(clamp(d.y,-1.,1.))/3.14159265+.5);
 if(hasPanorama>.5)color=texture2D(panorama,uv).rgb*.72;
 gl_FragDepth=1.;gl_FragColor=vec4(color,visibility);
