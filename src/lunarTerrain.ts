@@ -27,8 +27,8 @@ export function localRelief(x:number,z:number){
  return h*smooth(9,22,d)*(1-smooth(1200,1600,d));
 }
 // Preserve fine rings at the equipment AND adequate coverage on the far hemisphere.
-export function ringAngle(index:number,nearRings=160,farRings=320){
+export function ringAngle(index:number,nearRings=160,farRings=320,radiusMetres=MOON_RADIUS_METRES){
  if(index===0)return 0;
- if(index<=nearRings)return Math.exp(Math.log(.25/MOON_RADIUS_METRES)+(Math.log(.01)-Math.log(.25/MOON_RADIUS_METRES))*(index-1)/(nearRings-1));
+ if(index<=nearRings)return Math.exp(Math.log(.25/radiusMetres)+(Math.log(.01)-Math.log(.25/radiusMetres))*(index-1)/(nearRings-1));
  return .01+(Math.PI-.01)*(index-nearRings)/farRings;
 }

@@ -2,11 +2,12 @@ import {useEffect,useRef} from 'react';
 import {useFrame,useThree} from '@react-three/fiber';
 import type {OrbitControls} from 'three-stdlib';
 import * as T from 'three';
+import {zoomDistance} from './sceneMath';
 export type CameraCommand={id:number;kind:'in'|'out'|'left'|'right'|'up'|'down'|'stop'};
 export function CameraCommands({command}:{command?:CameraCommand}){
  const {camera,controls:raw,gl}=useThree(),controls=raw as OrbitControls|undefined,last=useRef(0),pending=useRef<number|null>(null);
- const run=(kind:CameraCommand['kind'])=>{if(!controls)return;controls.dispatchEvent({type:'start',target:controls});const step=.13;
-  if(kind==='in'||kind==='out')pending.current=T.MathUtils.clamp(controls.getDistance()*(kind==='in'?.76:1.32),controls.minDistance,controls.maxDistance);
+ const run=(kind:CameraCommand['kind'])=>{if(!controls)return;controls.dispatchEvent({type:'start',target:controls});const step=.13*Math.max(.08,controls.rotateSpeed/.65);
+  if(kind==='in'||kind==='out')pending.current=zoomDistance(controls.getDistance(),controls.minDistance,controls.maxDistance,kind==='in');
   else if(kind==='left'||kind==='right')controls.setAzimuthalAngle(controls.getAzimuthalAngle()+(kind==='left'?step:-step));
   else if(kind==='up'||kind==='down')controls.setPolarAngle(T.MathUtils.clamp(controls.getPolarAngle()+(kind==='up'?-step:step),controls.minPolarAngle,controls.maxPolarAngle));
   controls.update();
