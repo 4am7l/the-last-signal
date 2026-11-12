@@ -53,6 +53,6 @@ export function cameraTuning(altitude:number,radius:number,local:boolean){
 }
 // Zoom relative to clearance, not the planet-centre distance.
 export function zoomDistance(distance:number,min:number,max:number,inward:boolean){
- const clearance=Math.max(distance-min,min*.015,1e-7);
+ const clearance=inward?Math.max(0,distance-min):Math.max(distance-min,min*.015,1e-7);
  return Math.max(min,Math.min(max,min+clearance*(inward?.72:1.38)));
 }
