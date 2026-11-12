@@ -1,6 +1,7 @@
 import * as T from 'three';
 // One distant sun for every material, atmosphere and shadow ray.
 export const SUN_DIRECTION=new T.Vector3(-.72,.44,.54).normalize();
+export const SCENE_SUN_DIRECTION=SUN_DIRECTION.clone();
 export type Occluder={position:[number,number,number];radius:number};
 export function eclipseVisibility(point:T.Vector3,occluder:Occluder){
  const delta=new T.Vector3(...occluder.position).sub(point),along=delta.dot(SUN_DIRECTION);
@@ -9,7 +10,7 @@ export function eclipseVisibility(point:T.Vector3,occluder:Occluder){
  return T.MathUtils.smoothstep(distance,occluder.radius-width,occluder.radius+width);
 }
 export function solarShader(shader:T.WebGLProgramParametersWithUniforms,occluders:Occluder[]){
- shader.uniforms.sunDirection={value:SUN_DIRECTION};
+ shader.uniforms.sunDirection={value:SCENE_SUN_DIRECTION};
  shader.uniforms.solarOccluders={value:Array.from({length:2},(_,i)=>{const o=occluders[i];return o?new T.Vector4(...o.position,o.radius):new T.Vector4(0,0,0,0)})};
  shader.vertexShader='varying vec3 solarWorld;\n'+shader.vertexShader.replace('#include <worldpos_vertex>','#include <worldpos_vertex>\nsolarWorld=(modelMatrix*vec4(transformed,1.)).xyz;');
  shader.fragmentShader='varying vec3 solarWorld;\nuniform vec3 sunDirection;\nuniform vec4 solarOccluders[2];\n'+shader.fragmentShader.replace('#include <lights_fragment_end>',`#include <lights_fragment_end>

@@ -3,13 +3,14 @@ import {useFrame,useLoader,useThree} from '@react-three/fiber';
 import {Html} from '@react-three/drei';
 import * as T from 'three';
 import type {Mission} from './data';
+import {usePlanetTexture} from './usePlanetTexture';
 import {localRelief} from './lunarTerrain';
 import {mountains,surfaceDetail,marsRelief} from './sceneMath';
-import {SUN_DIRECTION,solarShader,type Occluder} from './solar';
+import {SCENE_SUN_DIRECTION,solarShader,type Occluder} from './solar';
 // Equirectangular maps: Greenwich at u=.5, east-positive longitude.
 export function point(lat:number,lon:number,r=300){const a=T.MathUtils.degToRad(lat),b=T.MathUtils.degToRad(lon);return new T.Vector3(r*Math.cos(a)*Math.cos(b),r*Math.sin(a),-r*Math.cos(a)*Math.sin(b))}
 export function Atmosphere({r,earth}:{r:number;earth:boolean}){
- const uniforms=useMemo(()=>({tint:{value:new T.Color(earth?'#3189ff':'#bf7953')},sunDirection:{value:SUN_DIRECTION},strength:{value:earth?.8:.24}}),[earth]);
+ const uniforms=useMemo(()=>({tint:{value:new T.Color(earth?'#3189ff':'#bf7953')},sunDirection:{value:SCENE_SUN_DIRECTION},strength:{value:earth?.8:.24}}),[earth]);
  const vertexShader=`
  #include <common>
  #include <logdepthbuf_pars_vertex>
@@ -39,7 +40,7 @@ function Clouds({r}:{r:number}){
  return <mesh><sphereGeometry args={[r*1.0016,96,64]}/><meshStandardMaterial map={texture} transparent opacity={.83} depthWrite={false} roughness={1}/></mesh>;
 }
 function EarthSurface({occluders}:{occluders:Occluder[]}){
- const [map,clouds]=useLoader(T.TextureLoader,['/earth.jpg','/earth-clouds.png']);
+ const map=usePlanetTexture('earth');const clouds=useLoader(T.TextureLoader,'/earth-clouds.png');
  const {gl}=useThree();
  const material=useMemo(()=>{map.colorSpace=T.SRGBColorSpace;map.anisotropy=Math.min(8,gl.capabilities.getMaxAnisotropy());map.needsUpdate=true;
   const mat=new T.MeshStandardMaterial({map,roughness:.8,metalness:0});
@@ -54,12 +55,12 @@ reflectedLight.directDiffuse*=sunlightVisibility*(1.-cloudShadow*.37);`);
  useEffect(()=>()=>material.dispose(),[material]);return <primitive object={material} attach="material"/>;
 }
 function Surface({body,occluders}:{body:string;occluders:Occluder[]}){
- const map=useLoader(T.TextureLoader,`/${body}.jpg`);const {gl}=useThree();
+ const map=usePlanetTexture(body);const {gl}=useThree();
  const material=useMemo(()=>{map.colorSpace=T.SRGBColorSpace;map.anisotropy=Math.min(8,gl.capabilities.getMaxAnisotropy());map.needsUpdate=true;const mat=new T.MeshStandardMaterial({map,roughness:1});mat.onBeforeCompile=shader=>solarShader(shader,occluders);return mat},[map,gl,occluders]);
  useEffect(()=>()=>material.dispose(),[material]);return <primitive object={material} attach="material"/>;
 }
 function LunarSurface({r,occluders}:{r:number;occluders:Occluder[]}){
- const [map,height]=useLoader(T.TextureLoader,['/moon.jpg','/moon-height.jpg']);
+ const map=usePlanetTexture('moon');const height=useLoader(T.TextureLoader,'/moon-height.jpg');
  const material=useMemo(()=>{map.colorSpace=T.SRGBColorSpace;const mat=new T.MeshStandardMaterial({map,bumpMap:height,bumpScale:r*.00012,displacementMap:height,displacementScale:r*.007,displacementBias:-r*.0035,roughness:1});mat.onBeforeCompile=shader=>solarShader(shader,occluders);return mat},[map,height,r,occluders]);
  useEffect(()=>()=>material.dispose(),[material]);return <primitive object={material} attach="material"/>;
 }
