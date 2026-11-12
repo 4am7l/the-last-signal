@@ -58,3 +58,33 @@ The local terrain is 24 km across with planetary curvature, deterministic illust
   https://science.nasa.gov/moon/by-the-numbers/ .
 - Validation: production build, coordinate tests, and lunar geometry/scale
   tests. Visual WebGL QA remains unavailable in the current preview browser.
+
+## Shared Mars/Moon exploration and fixed stars (2026-11-12)
+
+- `SurfaceWorld.tsx` replaces the separate Mars model floor during exploration.
+  Each destination keeps one spherical mesh from orbit down to its metre-scaled
+  equipment. All four Mars missions keep their existing documented anchors.
+  Story-mode transport animations remain educational reconstructions, now with
+  a continuous radial terrain mesh instead of overlapping near/far planes.
+- Camera approach first aligns outside the globe, then descends on a logarithmic
+  distance curve. Near-ground height is checked against the same relief sampler.
+  Reduced-motion preference skips the transitions.
+- Added deterministic local mountain ranges, crater bowls/rims, rock instances,
+  filtered ground grain, and Mars dust haze. Local mountains are visual scenery,
+  NOT surveyed mountains at Apollo, Gusev, Elysium, Meridiani, or Jezero.
+  Mars global relief is procedural (not MOLA); lunar global displacement still
+  uses the existing uncalibrated NASA-derived JPEG. No additional DEM was imported.
+- `FixedStars` projects unit sky directions through the rotational part of the
+  view matrix. No camera translation, distance attenuation, time animation, or
+  randomly regenerated positions. Stars keep pixel sizes and fade in Mars haze.
+- `SystemOverview` has stable Earth/Moon/Mars identities independent of the selected
+  mission. Exploration mode groups Earth and Moon, with Mars farther away, using
+  true body-size ratios but deliberately compressed separations.
+- Physical distance mode uses 384,400 km Earth–Moon and an explicitly illustrative
+  225,000,000 km Earth–Mars separation. It is not a current ephemeris. Toggle between
+  Earth/Moon framing and the full interplanetary scale; labels remain selectable.
+  Earth in the lunar sky uses the reference mean lunar distance as well.
+- Sources: https://spaceplace.nasa.gov/moon-distance/en/ and
+  https://www.nasa.gov/wp-content/uploads/2024/12/esdmd-001-add-rev-b.pdf .
+- Browser controls were checked; the preview still cannot create a WebGL context.
+  Production build and numerical tests cover the available nonvisual validation.
