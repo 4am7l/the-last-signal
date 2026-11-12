@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {stripTypeScriptTypes} from 'node:module';
+import * as T from 'three';
+const source=stripTypeScriptTypes(readFileSync(new URL('../src/solar.ts',import.meta.url),'utf8')).replace("from 'three'",`from '${import.meta.resolve('three')}'`);
+const {SUN_DIRECTION,eclipseVisibility,solarShader}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+assert.ok(Math.abs(SUN_DIRECTION.length()-1)<1e-12);
+const point=new T.Vector3(),toward=SUN_DIRECTION.clone().multiplyScalar(1000),perpendicular=new T.Vector3().crossVectors(SUN_DIRECTION,new T.Vector3(0,1,0)).normalize();
+assert.equal(eclipseVisibility(point,{position:toward.toArray(),radius:100}),0,'foreground body blocks sunlight');
+assert.equal(eclipseVisibility(point,{position:toward.clone().negate().toArray(),radius:100}),1,'body behind receiver cannot cast a solar shadow on it');
+assert.equal(eclipseVisibility(point,{position:toward.clone().addScaledVector(perpendicular,110).toArray(),radius:100}),1,'missed light ray remains lit');
+const partial=eclipseVisibility(point,{position:toward.clone().addScaledVector(perpendicular,100).toArray(),radius:100});assert.ok(partial>.45&&partial<.55);
+// Check shader extension against the actual shipped standard material chunks.
+const shader={vertexShader:T.ShaderLib.standard.vertexShader,fragmentShader:T.ShaderLib.standard.fragmentShader,uniforms:{}};
+solarShader(shader,[{position:toward.toArray(),radius:100}]);
+assert.ok(shader.vertexShader.includes('solarWorld=(modelMatrix*vec4(transformed,1.)).xyz;'));
+assert.ok(shader.fragmentShader.includes('reflectedLight.directDiffuse*=sunlightVisibility;'));
+assert.ok(shader.fragmentShader.includes('reflectedLight.directSpecular*=sunlightVisibility;'));
+assert.equal(shader.uniforms.solarOccluders.value[1].w,0);
+console.log('Passed: common solar direction, foreground/night-side occlusion, penumbra, and standard shader integration.');

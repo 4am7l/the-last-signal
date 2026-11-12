@@ -88,3 +88,29 @@ The local terrain is 24 km across with planetary curvature, deterministic illust
   https://www.nasa.gov/wp-content/uploads/2024/12/esdmd-001-add-rev-b.pdf .
 - Browser controls were checked; the preview still cannot create a WebGL context.
   Production build and numerical tests cover the available nonvisual validation.
+
+## Camera and sunlight refinement (2026-11-12)
+
+- `CameraCommands` operates the active OrbitControls in all scenes. Zoom buttons
+  ease toward a bounded distance, canvas-focused arrow keys rotate, +/- zoom,
+  and Escape/Stop interrupt motion. Pointer input also interrupts auto-flight.
+  Surface orbit/pan speed and zoom sensitivity decrease near equipment; the
+  close-view polar limit and terrain clearance prevent moving below the ground.
+  The pan target is bounded around the selected equipment. Focus Equipment and
+  Reset Camera provide recovery paths.
+- `solar.ts` owns a common distant-sun direction for all lights, atmospheric
+  shaders, and a small visible solar disk. ACES tone mapping and low ambient
+  fill preserve a dark night side and clearer terminators.
+- Planet materials support analytic occultation by the other spherical bodies
+  in the overview. Shadows only appear when a body actually lies sunward on the
+  light ray; the overview is not forced into a fabricated eclipse. Penumbra is
+  an approximation, not a solar ephemeris or finite-disk eclipse solver.
+- Earth uses ocean-dependent specular roughness and a cloud alpha shadow mask.
+  The cloud shell is kept aligned with the shadow texture. This mask approximates
+  cloud shadows; it is not ray-traced atmospheric volumetrics.
+- Lunar displacement now scales with the displayed radius in overview and story
+  shots. Local terrain casts/receives filtered shadow maps with a metre-scaled
+  normal bias. The existing relief accuracy limitations still apply.
+- Validation: TypeScript/Vite production build, existing geometry tests, and
+  solar ray/penumbra/shader-integration checks. GPU appearance remains unverified
+  because the preview browser has no WebGL context.
