@@ -11,11 +11,18 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
  const uniforms=useMemo(()=>({skyRotation:{value:new T.Matrix3()},pixelRatio:{value:1},visibility:{value:1},panorama:{value:null as T.Texture|null},hasPanorama:{value:0}}),[]);
  useEffect(()=>{
   let alive=true;let loaded:T.Texture|undefined;
-  // Optional photograph: a procedural Milky Way remains if the CDN fails.
-  new T.TextureLoader().load('https://cdn.eso.org/images/large/eso0932a.jpg',texture=>{
-   if(!alive){texture.dispose();return;}loaded=texture;texture.colorSpace=T.SRGBColorSpace;texture.wrapS=T.RepeatWrapping;
+  const loader=new T.TextureLoader();
+  const install=(texture:T.Texture)=>{
+   if(!alive){texture.dispose();return;}
+   const previous=loaded;loaded=texture;
+   texture.colorSpace=T.SRGBColorSpace;texture.wrapS=T.RepeatWrapping;
    uniforms.panorama.value=texture;uniforms.hasPanorama.value=1;
-  },undefined,()=>{});
+   previous?.dispose();
+  };
+  const upgrade=()=>{if(alive)loader.load('https://cdn.eso.org/images/large/eso0932a.jpg',install,undefined,()=>{})};
+  // Use the actual visible-light panorama immediately, then upgrade resolution.
+  // Preserve photographed dust absorption and RGB ratios without a painted tint.
+  loader.load('https://cdn.eso.org/images/screen/eso0932a.jpg',texture=>{install(texture);upgrade()},undefined,upgrade);
   return()=>{alive=false;loaded?.dispose();uniforms.panorama.value=null;uniforms.hasPanorama.value=0};
  },[uniforms]);
  useFrame(({scene},dt)=>{
@@ -33,10 +40,12 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
     fragmentShader={`uniform sampler2D panorama;uniform float hasPanorama;uniform float visibility;varying vec3 skyDirection;
 float hash(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}
 float noise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}
-void main(){vec3 d=normalize(skyDirection);float latitude=dot(d,normalize(vec3(.25,.83,.5)));float band=exp(-latitude*latitude*65.);float wisps=noise(d*12.)*.55+noise(d*35.)*.3+noise(d*90.)*.15;float lane=smoothstep(.36,.66,wisps);// Neutral ivory starlight with warm dust extinction, not a blue nebula.
-float dustLane=(1.-smoothstep(.38,.62,wisps))*exp(-latitude*latitude*190.);
-vec3 starlight=mix(vec3(.21,.205,.19),vec3(.26,.225,.175),smoothstep(.45,.8,wisps));
-vec3 transmission=exp(-dustLane*vec3(1.6,2.1,2.8));
+void main(){vec3 d=normalize(skyDirection);float latitude=dot(d,normalize(vec3(.25,.83,.5)));float band=exp(-latitude*latitude*65.);float wisps=noise(d*12.)*.55+noise(d*35.)*.3+noise(d*90.)*.15;float lane=smoothstep(.36,.66,wisps);// Visible-light reference: ESO/S. Brunier eso0932a; dust absorbs background starlight.
+float dustLane=(1.-smoothstep(.34,.64,wisps))*exp(-latitude*latitude*150.);
+float filaments=1.-smoothstep(.3,.6,noise(d*52.+vec3(3.,1.,7.)));
+float opticalDepth=dustLane*(3.+filaments*2.5);
+vec3 starlight=mix(vec3(.19,.188,.18),vec3(.22,.205,.185),smoothstep(.55,.85,wisps));
+vec3 transmission=exp(-opticalDepth*vec3(.94,1.,1.12));
 vec3 color=starlight*band*(.2+.8*lane)*transmission;
 vec2 uv=vec2(atan(d.z,d.x)/6.2831853+.5,asin(clamp(d.y,-1.,1.))/3.14159265+.5);
 if(hasPanorama>.5)color=texture2D(panorama,uv).rgb*.72;
