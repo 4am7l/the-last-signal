@@ -54,7 +54,7 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius}:{
    for(let i=0;i<total;i++){
     let x=0,z=0,size=0;
     size=shape==='monolith'?3.8+Math.pow(rand(),1.25)*25:shape==='boulder'?.2+Math.pow(rand(),2.35)*3.4:shape==='slab'?.12+Math.pow(rand(),2.2)*2.1:.009+Math.pow(rand(),2.1)*.11;
-    const minimumRadius=clearance+(shape==='gravel'?.45:shape==='monolith'?size*1.25:size*1.6);
+    const minimumRadius=shape==='monolith'?Math.max(landingRadius+135,landingRadius+size*3.2):clearance+(shape==='gravel'?.45:size*1.6);
     for(let attempt=0;attempt<12;attempt++){
      const kind=rand();
      if(shape==='monolith'){
