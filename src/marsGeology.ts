@@ -19,8 +19,10 @@ export function marsSiteSeed(lat:number,lon:number){
 // Only the actual footprint needs a safe landing zone, not an entire kilometre
 // of flat landscape. Preserve distinct surrounding scenery at every site.
 export function marsLandingRadius(site:string,span:number){
- return Math.max(site==='insight'?11:site==='ingenuity'?8:9,span*.95);
+ return Math.max(site==='opportunity'?18:site==='insight'?11:site==='ingenuity'?8:9,span*(site==='opportunity'?1.4:.95));
 }
+// Broader, gradual blend at Opportunity prevents a synthetic mound under its rover.
+export function marsLandingTransition(site:string){return site==='opportunity'?78:site==='insight'?45:28;}
 export type MarsCrater={x:number;z:number;radius:number};
 export function marsCraterField(lat:number,lon:number,landingRadius:number):MarsCrater[]{
  const random=seededRandom(marsSiteSeed(lat,lon)^0x426ac17);
@@ -56,13 +58,13 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
  return (x:number,z:number)=>{
   const distance=Math.hypot(x,z);
   if(distance>13500)return 0;
-  const landing=smooth(landingRadius,landingRadius+(site==='insight'?45:28),distance);
+  const landing=smooth(landingRadius,landingRadius+marsLandingTransition(site),distance);
   const falloff=1-smooth(7900,12800,distance);
   if(landing<=0||falloff<=0)return 0;
   const x0=x+offsetX,z0=z+offsetZ;
   const broad=noise3(x0*.001,11,z0*.001)*42+noise3(x0*.003,17,z0*.003)*11-centerNoise;
   const warped=noise3(x0*.0019,29,z0*.0019)*72;
-  const ridged=Math.pow(1-Math.abs(noise3((x0+warped)*.005,41,(z0-warped)*.005)),3)*31;
+  const ridged=Math.pow(1-Math.abs(noise3((x0+warped)*.005,41,(z0-warped)*.005)),2.2)*55;
   // Sculpted eroded mesas: high broken tops, steep terraced sides and talus aprons.
   let cliffs=0;
   for(const m of mesas){
@@ -73,10 +75,11 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
    const distort=noise3(x*.005,53,z*.005)*.14+noise3(x*.013,37,z*.013)*.045;
    const u=Math.hypot(xx/m.rx,zz/m.rz)+distort;
    if(u>1.5)continue;
-   const crest=1-smooth(.60,1.05,u);
-   const talus=(1-smooth(.93,1.5,u))*.14;
-   const layers=(.83+.09*Math.sin(u*29+noise3(x*.018,9,z*.018)*2));
-   cliffs+=m.height*(crest*layers+talus);
+   const crest=1-smooth(.57,1.01,u);
+   const talus=(1-smooth(.94,1.5,u))*.20;
+   const layers=(.80+.14*Math.sin(u*32+noise3(x*.018,9,z*.018)*2.4));
+   const fractures=1+noise3(x*.011,61,z*.011)*.18+noise3(x*.028,57,z*.028)*.075;
+   cliffs+=m.height*(crest*layers*fractures+talus);
   }
   // Branching erosional valleys crossing the high ground without flattening it.
   let canyons=0;
@@ -95,8 +98,8 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
   }
   // Fine dunes, ripple fields and gravelly ridges near the camera.
   const across=x*acrossX+z*acrossZ;
-  const dunes=(Math.pow(.5+.5*Math.sin(across*.075+noise3(x0*.012,7,z0*.012)*2),3)-.36)*3.2;
-  const ripples=Math.sin(across*.92+noise3(x0*.16,5,z0*.16)*.5)*.09*
+  const dunes=(Math.pow(.5+.5*Math.sin(across*.055+noise3(x0*.01,7,z0*.01)*1.4),3)-.42)*.85;
+  const ripples=Math.sin(across*.72+noise3(x0*.11,5,z0*.11)*.35)*.038*
    (1-smooth(120,520,distance));
   let impacts=0;
   for(const crater of craters){
