@@ -178,9 +178,21 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
 function RegolithMaterial({map,height,unit,moon,centerY,rotation}:{map:T.Texture;height?:T.Texture;unit:number;moon:boolean;centerY:number;rotation:T.Quaternion}){
  const material=useMemo(()=>{
   const mat=new T.MeshStandardMaterial({map,bumpMap:height??null,bumpScale:.025,roughness:1});
+  mat.customProgramCacheKey=()=>moon?'moon-regolith-v2':'mars-regolith-spherical-uv-v2';
   mat.onBeforeCompile=shader=>{
-   shader.vertexShader='varying vec3 lunarPosition;\n'+(moon?'':'varying vec3 marsFaceView;\nvarying vec3 marsRadialView;\n')+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nlunarPosition=position;'+(moon?'':`\nmarsFaceView=normalize(normalMatrix*normal);\nmarsRadialView=normalize(normalMatrix*normalize(position-vec3(0.,${centerY.toFixed(9)},0.)));`));
-   shader.fragmentShader='varying vec3 lunarPosition;\n'+(moon?'':'varying vec3 marsFaceView;\nvarying vec3 marsRadialView;\n')+'float lunarHash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123); }\nfloat soilNoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(lunarHash(i),lunarHash(i+vec2(1.,0.)),f.x),mix(lunarHash(i+vec2(0.,1.)),lunarHash(i+vec2(1.)),f.x),f.y);}\n'+shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+   if(!moon){
+    shader.uniforms.marsCenterY={value:centerY};
+    shader.uniforms.marsToPlanet={value:new T.Matrix3().setFromMatrix4(new T.Matrix4().makeRotationFromQuaternion(rotation.clone().invert()))};
+   }
+   shader.vertexShader='varying vec3 lunarPosition;\n'+(moon?'':'uniform float marsCenterY;\nvarying vec3 marsFaceView;\nvarying vec3 marsRadialView;\n')+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nlunarPosition=position;'+(moon?'':`\nmarsFaceView=normalize(normalMatrix*normal);\nmarsRadialView=normalize(normalMatrix*normalize(position-vec3(0.,marsCenterY,0.)));`));
+   shader.fragmentShader='varying vec3 lunarPosition;\n'+(moon?'':'uniform float marsCenterY;\nuniform mat3 marsToPlanet;\nvarying vec3 marsFaceView;\nvarying vec3 marsRadialView;\n')+'float lunarHash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123); }\nfloat soilNoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(lunarHash(i),lunarHash(i+vec2(1.,0.)),f.x),mix(lunarHash(i+vec2(0.,1.)),lunarHash(i+vec2(1.)),f.x),f.y);}\n'+shader.fragmentShader.replace('#include <map_fragment>',moon?'#include <map_fragment>':`#ifdef USE_MAP
+ // Per-fragment global equirectangular UV. The landing-site ring vertices
+ // cross longitude seams and cannot safely interpolate their baked UV values.
+ vec3 nativeMars=normalize(marsToPlanet*(lunarPosition-vec3(0.,marsCenterY,0.)));
+ vec2 marsUv=vec2(.5+atan(-nativeMars.z,nativeMars.x)/6.28318530718,
+                  .5+asin(clamp(nativeMars.y,-1.,1.))/3.14159265359);
+ diffuseColor*=texture2D(map,marsUv);
+#endif`).replace('#include <color_fragment>',`#include <color_fragment>
 vec2 metres=lunarPosition.xz / ${unit.toFixed(12)};
 float footprint=max(length(dFdx(metres)),length(dFdy(metres)));
 float localFade=1.-smoothstep(40.,160.,footprint);
@@ -201,7 +213,7 @@ diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,
  // Compare the actual geometry normal to the globe's outward radial normal.
  float marsSlope=1.-abs(dot(normalize(marsFaceView),normalize(marsRadialView)));
  float slopeRock=smoothstep(.055,.28,marsSlope);
- float marsElevation=(length(lunarPosition-vec3(0.,${centerY.toFixed(9)},0.))-${R.toFixed(3)})/${unit.toFixed(12)};
+ float marsElevation=(length(lunarPosition-vec3(0.,marsCenterY,0.))-${R.toFixed(3)})/${unit.toFixed(12)};
  float highRock=smoothstep(65.,260.,marsElevation);
  float rockStrata=sin(marsElevation*.14+soilNoise(metres*.045+vec2(7.,-3.))*2.6);
  float rockGrain=soilNoise(metres*.22+vec2(19.,4.))-.5;
@@ -230,7 +242,7 @@ vec3 gradient=sign(detailDet)*(dFdx(relief)*rx+dFdy(relief)*ry)*${unit.toFixed(1
 normal=normalize(abs(detailDet)*normal-gradient+normal*1.e-20);
 `);
   };return mat;
- },[map,height,unit,moon,centerY]);
+ },[map,height,unit,moon,centerY,rotation]);
  useEffect(()=>()=>material.dispose(),[material]);return <primitive object={material} attach="material"/>;
 }
 function LunarRocks({ground,unit:UNIT,moon,clearance,count}:{ground:(x:number,z:number)=>number;unit:number;moon:boolean;clearance:number;count:number}){
