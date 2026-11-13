@@ -1,7 +1,7 @@
 import {noise3} from './sceneMath';
 
-// Site-seeded, illustrative regolith and landforms, not a reconstruction of MOLA/HiRISE imagery.
-// Local geometry is anchored to the actual mission-site DEM when one is available.
+// Seeded cinematic Martian relief. These are illustrative mountains, valleys and
+// eroded cliffs, not surveyed mission-site MOLA/HiRISE elevations.
 const smooth=(a:number,b:number,x:number)=>{
  const t=Math.max(0,Math.min(1,(x-a)/(b-a)));
  return t*t*(3-2*t);
@@ -16,63 +16,98 @@ function seededRandom(seed:number){
 export function marsSiteSeed(lat:number,lon:number){
  return (Math.imul(Math.round((lat+90)*10000),73856093)^Math.imul(Math.round((lon+360)*10000),19349663))>>>0;
 }
-// All Mars landing sites need a safe nearly-level local apron. InSight sits on
-// particularly smooth plains, so its landing apron and transition are wider.
+// Only the actual footprint needs a safe landing zone, not an entire kilometre
+// of flat landscape. Preserve distinct surrounding scenery at every site.
 export function marsLandingRadius(site:string,span:number){
- return Math.max(site==='insight'?28:site==='ingenuity'?17:19,span*1.6);
+ return Math.max(site==='insight'?11:site==='ingenuity'?8:9,span*.95);
 }
 export type MarsCrater={x:number;z:number;radius:number};
 export function marsCraterField(lat:number,lon:number,landingRadius:number):MarsCrater[]{
  const random=seededRandom(marsSiteSeed(lat,lon)^0x426ac17);
- return Array.from({length:49},()=>{
-  const radius=4+Math.pow(random(),2.3)*92;
+ return Array.from({length:62},()=>{
+  const radius=5+Math.pow(random(),1.65)*125;
   const angle=random()*Math.PI*2;
-  // Never put a crater bowl/rim beneath the exploration equipment.
-  const distance=landingRadius+100+radius*1.65+Math.pow(random(),1.4)*2850;
+  const distance=landingRadius+85+radius*1.6+Math.pow(random(),1.15)*3300;
   return {x:Math.cos(angle)*distance,z:Math.sin(angle)*distance,radius};
  });
 }
+type Mesa={x:number;z:number;rx:number;rz:number;height:number;angle:number};
+type Valley={x:number;z:number;angle:number;width:number;length:number;depth:number;phase:number};
 export function createMarsRelief(lat:number,lon:number,landingRadius:number,site=''){
  const random=seededRandom(marsSiteSeed(lat,lon));
- const wind=random()*Math.PI*2;
- const alongX=Math.cos(wind),alongZ=Math.sin(wind);
- const offsetX=(random()-.5)*3200,offsetZ=(random()-.5)*3200;
+ const wind=random()*Math.PI*2,acrossX=-Math.sin(wind),acrossZ=Math.cos(wind);
+ const offsetX=(random()-.5)*2800,offsetZ=(random()-.5)*2800;
  const craters=marsCraterField(lat,lon,landingRadius);
- const isPlain=site==='insight';
- const roughness=isPlain ? 0.55 : 1;
- const broadAtCenter=noise3(offsetX*.0012,11,offsetZ*.0012)*15+noise3(offsetX*.0034,17,offsetZ*.0034)*4.5;
- const shelfAtCenter=Math.pow(Math.max(0,noise3(offsetX*.0017,29,offsetZ*.0017)-.2),2)*26;
+ const mesas:Mesa[]=Array.from({length:12},(_,i)=>{
+  const angle=i*2.399963+random()*.7;
+  const distance=340+Math.pow(random(),.7)*2950;
+  const radius=135+random()*390;
+  return {x:Math.cos(angle)*distance,z:Math.sin(angle)*distance,
+   rx:radius*(.72+random()*.7),rz:radius*(.7+random()*.75),
+   height:85+Math.pow(random(),.75)*345,angle:random()*Math.PI};
+ });
+ const valleys:Valley[]=Array.from({length:5},(_,i)=>{
+  const a=i*2.399963+random();
+  const d=320+random()*2400;
+  return {x:Math.cos(a)*d,z:Math.sin(a)*d,angle:random()*Math.PI*2,
+   width:45+random()*125,length:500+random()*1700,depth:45+random()*170,phase:random()*6};
+ });
+ const centerNoise=noise3(offsetX*.001,11,offsetZ*.001)*42+noise3(offsetX*.003,17,offsetZ*.003)*11;
  return (x:number,z:number)=>{
   const distance=Math.hypot(x,z);
-  if(distance>5700)return 0;
-  const onset=smooth(landingRadius,landingRadius+(isPlain?135:100),distance);
-  const farFade=1-smooth(3450,5650,distance);
-  if(onset<=0||farFade<=0)return 0;
+  if(distance>13500)return 0;
+  const landing=smooth(landingRadius,landingRadius+(site==='insight'?45:28),distance);
+  const falloff=1-smooth(7900,12800,distance);
+  if(landing<=0||falloff<=0)return 0;
   const x0=x+offsetX,z0=z+offsetZ;
-  // Subtract the site's background height before adding landforms: avoids a
-  // raised doughnut around an artificially flat landing area.
-  const broad=(noise3(x0*.0012,11,z0*.0012)*15+noise3(x0*.0034,17,z0*.0034)*4.5)-broadAtCenter;
-  const shelves=Math.pow(Math.max(0,noise3(x0*.0017,29,z0*.0017)-.2),2)*26-shelfAtCenter;
-  const warp=noise3(x0*.0022,41,z0*.0022)*25;
-  const ridge=Math.pow(1-Math.abs(noise3((x0+warp)*.007,53,(z0-warp)*.007)),5)*3.8;
-  // Wind-smoothed sand ribbons with fine ripples, not metre-high repeated waves.
-  const across=-x*alongZ+z*alongX;
-  const downwind=x*alongX+z*alongZ;
-  const dunePhase=across*.18+noise3(x0*.023,23,z0*.023)*1.2;
-  const dunes=(Math.pow(.5+.5*Math.sin(dunePhase),3)-.36)*.72;
-  const ripples=Math.sin(across*1.35+downwind*.09+noise3(x0*.14,5,z0*.14)*.4)*.045*(1-smooth(120,490,distance));
+  const broad=noise3(x0*.001,11,z0*.001)*42+noise3(x0*.003,17,z0*.003)*11-centerNoise;
+  const warped=noise3(x0*.0019,29,z0*.0019)*72;
+  const ridged=Math.pow(1-Math.abs(noise3((x0+warped)*.005,41,(z0-warped)*.005)),3)*31;
+  // Sculpted eroded mesas: high broken tops, steep terraced sides and talus aprons.
+  let cliffs=0;
+  for(const m of mesas){
+   const dx=x-m.x,dz=z-m.z;
+   if(Math.abs(dx)>m.rx*1.65||Math.abs(dz)>m.rz*1.65)continue;
+   const ca=Math.cos(m.angle),sa=Math.sin(m.angle);
+   const xx=dx*ca+dz*sa,zz=dz*ca-dx*sa;
+   const distort=noise3(x*.005,53,z*.005)*.14+noise3(x*.013,37,z*.013)*.045;
+   const u=Math.hypot(xx/m.rx,zz/m.rz)+distort;
+   if(u>1.5)continue;
+   const crest=1-smooth(.60,1.05,u);
+   const talus=(1-smooth(.93,1.5,u))*.14;
+   const layers=(.83+.09*Math.sin(u*29+noise3(x*.018,9,z*.018)*2));
+   cliffs+=m.height*(crest*layers+talus);
+  }
+  // Branching erosional valleys crossing the high ground without flattening it.
+  let canyons=0;
+  for(const v of valleys){
+   const dx=x-v.x,dz=z-v.z,ca=Math.cos(v.angle),sa=Math.sin(v.angle);
+   const along=dx*ca+dz*sa;
+   if(Math.abs(along)>v.length*.65)continue;
+   const perpendicular=-dx*sa+dz*ca;
+   const centerline=Math.sin(along*.0034+v.phase)*v.width*.48+
+    noise3(along*.0045,v.phase,0)*v.width*.33;
+   const width=Math.abs(perpendicular-centerline);
+   if(width>v.width*1.45)continue;
+   const rim=1-smooth(v.width*.6,v.width*1.45,width);
+   const lengthMask=1-smooth(v.length*.42,v.length*.64,Math.abs(along));
+   canyons-=v.depth*rim*lengthMask;
+  }
+  // Fine dunes, ripple fields and gravelly ridges near the camera.
+  const across=x*acrossX+z*acrossZ;
+  const dunes=(Math.pow(.5+.5*Math.sin(across*.075+noise3(x0*.012,7,z0*.012)*2),3)-.36)*3.2;
+  const ripples=Math.sin(across*.92+noise3(x0*.16,5,z0*.16)*.5)*.09*
+   (1-smooth(120,520,distance));
   let impacts=0;
   for(const crater of craters){
-   const dx=x-crater.x,dz=z-crater.z,squared=dx*dx+dz*dz;
-   const limit=crater.radius*1.5;
-   if(squared>=limit*limit)continue;
-   const u=Math.sqrt(squared)/crater.radius;
-   const bowl=u<1?-.085*crater.radius*(1-u*u)**2:0;
-   const rim=.027*crater.radius*Math.exp(-Math.pow((u-1)/.18,2));
-   impacts+=(bowl+rim)*(1-smooth(1.25,1.5,u));
+   const dx=x-crater.x,dz=z-crater.z;
+   const limit=crater.radius*1.55;
+   if(dx*dx+dz*dz>=limit*limit)continue;
+   const u=Math.hypot(dx,dz)/crater.radius;
+   const bowl=u<1?-.15*crater.radius*Math.pow(1-u*u,2):0;
+   const rim=.054*crater.radius*Math.exp(-Math.pow((u-1)/.16,2));
+   impacts+=(bowl+rim)*(1-smooth(1.27,1.55,u));
   }
-  // Fade rather than clipping the geology. All missions get a stable landing
-  // apron; surrounding relief stays readable at kilometre scales.
-  return (broad+shelves+ridge+dunes+ripples+impacts)*roughness*onset*farFade;
+  return (broad+ridged+cliffs+canyons+dunes+ripples+impacts)*landing*falloff;
  };
 }
