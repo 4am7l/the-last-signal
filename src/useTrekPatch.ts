@@ -77,16 +77,18 @@ function cachedPatch(body:Body,lat:number,lon:number){
  }
  return atlasCache.get(key)!;
 }
-export function useTrekPatch(body:string,lat:number,lon:number){
+export function useTrekPatch(body:string,lat:number,lon:number,enabled=true){
  const key=body+':'+lat.toFixed(4)+':'+lon.toFixed(4);
  const [ready,setReady]=useState<{key:string;patch:TrekPatch|null}|null>(null);
  useEffect(()=>{
-  if(body!=='moon'&&body!=='mars')return;
+  // Initial orbital view should not request 16 local imagery tiles before
+  // the visitor selects a planet/site. Begin only once exploration starts.
+  if(!enabled||(body!=='moon'&&body!=='mars'))return;
   let active=true;
   cachedPatch(body,lat,lon).then(patch=>{
    if(active)setReady({key,patch});
   });
   return()=>{active=false};
- },[body,lat,lon,key]);
- return ready?.key===key?ready.patch:null;
+ },[body,lat,lon,key,enabled]);
+ return enabled&&ready?.key===key?ready.patch:null;
 }
