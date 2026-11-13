@@ -77,6 +77,14 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
  // remains seated exactly on its terrain (no isolated pedestal or crater).
  const localSlowCenter=noise3(offsetX*.012,73,offsetZ*.012);
  const localFineCenter=noise3(offsetX*.035,91,offsetZ*.035);
+ const regionalCenter=noise3(offsetX*.007,25,offsetZ*.007);
+ // Four story-site landforms. Illustrative metre-scale detail, NOT a claim that
+ // MOLA resolves these slopes; the referenced mission coordinates remain real.
+ // The origin remains at height zero so equipment never floats or gets buried.
+ const ingenuityHillAtOrigin=8.2*Math.exp(
+  -(125*125/(2*92*92)+45*45/(2*115*115)));
+ const spiritShoulderAtOrigin=3.4*Math.exp(
+  -(115*115/(2*105*105)+90*90/(2*95*95)));
  return (x:number,z:number)=>{
   const distance=Math.hypot(x,z);
   if(distance>13500)return 0;
@@ -84,19 +92,49 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
   const falloff=1-smooth(7900,12800,distance);
   if(falloff<=0)return 0;
   const x0=x+offsetX,z0=z+offsetZ;
-  // Gentle, irregular high ground at the landing site: surrounding soil dips
-  // by about a metre over hundreds of metres instead of a visible crater or
-  // a lone steep cone. The adjacent terrain continues with rolling relief.
-  const lobeDistance=Math.hypot(x*.91+z*.09,z*1.09-x*.055);
-  const lowShoulder=-1.15*smooth(18,255,lobeDistance)*
-   (1-smooth(410,790,lobeDistance));
-  const rolling=
-   (noise3(x0*.012,73,z0*.012)-localSlowCenter)*2.3+
-   (noise3(x0*.035,91,z0*.035)-localFineCenter)*.42;
-  const nearGround=(lowShoulder+rolling)*(1-smooth(630,1050,distance));
-  // The severe mesa / ridge field should grow gradually in the distance,
-  // not form an artificial wall immediately around a level landing platform.
-  const ruggedness=smooth(180,590,distance);
+  // Differentiated, naturally uneven landscapes instead of one flattened pad
+  // for every mission. Keep a short low-gradient footprint under the equipment
+  // and reveal slope, terrain height and rock fields within walking distance.
+  const safeFootprint=smooth(landingRadius*.68,landingRadius+13,distance);
+  const vicinity=1-smooth(430,860,distance);
+  const regional=(noise3(x0*.007,25,z0*.007)-regionalCenter)*4.5;
+  const rolling=(noise3(x0*.012,73,z0*.012)-localSlowCenter)*3.4+
+   (noise3(x0*.035,91,z0*.035)-localFineCenter)*.78+
+   regional;
+  let feature=0;
+  if(site==='opportunity'){
+   // Opportunity actually landed in Eagle crater. Show a broad, gently
+   // irregular crater floor, shoulder and broken rim, not a hard circular pit.
+   const d=Math.hypot(x*.93+z*.085,z*1.08-x*.055);
+   const unevenRim=83+9*noise3(x*.018,57,z*.018);
+   const floorClimb=2.9*smooth(landingRadius*.75,69,d)*(1-smooth(180,330,d));
+   const brokenRim=1.4*Math.exp(-Math.pow((d-unevenRim)/34,2));
+   feature=floorClimb+brokenRim;
+  }else if(site==='spirit'){
+   // Gusev: modest traversable slope with an off-centre rocky shoulder.
+   const rise=(x*.78+z*.63)*.045*(1-smooth(260,560,distance));
+   const dx=x+115,dz=z-90;
+   const hill=3.4*Math.exp(-(dx*dx/(2*105*105)+dz*dz/(2*95*95)));
+   feature=rise+(hill-spiritShoulderAtOrigin)*(1-smooth(330,700,distance));
+  }else if(site==='insight'){
+   // InSight's Homestead Hollow is a low-relief, shallow depression,
+   // surrounded by rolling sandy ground; no conspicuous artificial mound.
+   const d=Math.hypot(x*1.1+z*.07,z*.94-x*.05);
+   feature=1.25*smooth(landingRadius*.7,145,d)*(1-smooth(250,520,d));
+  }else if(site==='ingenuity'){
+   // Jezero: a broad shoulder of rocky high ground to one side, with nearby
+   // low swales. Zero-centre correction preserves contact with the helicopter.
+   const dx=x-125,dz=z+45;
+   const hill=8.2*Math.exp(-(dx*dx/(2*92*92)+dz*dz/(2*115*115)));
+   const shallowSwale=1.6*Math.exp(-((x+105)**2+(z-75)**2)/(2*110*110));
+   feature=(hill-ingenuityHillAtOrigin)-shallowSwale*(1-smooth(340,700,distance));
+  }else{
+   // Future landing sites: distinct rolling terrain without forced craters.
+   feature=(x*.32-z*.22)*.015*(1-smooth(220,490,distance));
+  }
+  const nearGround=(rolling+feature)*safeFootprint*vicinity;
+  // Bring large rocky mountains in from the middle distance, smoothly.
+  const ruggedness=smooth(160,560,distance);
   const broad=noise3(x0*.001,11,z0*.001)*42+noise3(x0*.003,17,z0*.003)*11-centerNoise;
   const warped=noise3(x0*.0019,29,z0*.0019)*72;
   const ridged=Math.pow(1-Math.abs(noise3((x0+warped)*.005,41,(z0-warped)*.005)),2.2)*55;
