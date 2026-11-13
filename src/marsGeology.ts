@@ -59,11 +59,11 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
  const craters=marsCraterField(lat,lon,landingRadius);
  const mesas:Mesa[]=Array.from({length:12},(_,i)=>{
   const angle=i*2.399963+random()*.7;
-  const distance=340+Math.pow(random(),.7)*2950;
-  const radius=135+random()*390;
+  const distance=580+Math.pow(random(),.7)*2780;
+  const radius=275+random()*430;
   return {x:Math.cos(angle)*distance,z:Math.sin(angle)*distance,
-   rx:radius*(.72+random()*.7),rz:radius*(.7+random()*.75),
-   height:85+Math.pow(random(),.75)*345,angle:random()*Math.PI};
+   rx:radius*(.92+random()*.50),rz:radius*(.90+random()*.54),
+   height:45+Math.pow(random(),.75)*135,angle:random()*Math.PI};
  });
  const valleys:Valley[]=Array.from({length:5},(_,i)=>{
   const a=i*2.399963+random();
@@ -144,8 +144,10 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
   const ruggedness=smooth(85,360,distance);
   const broad=noise3(x0*.001,11,z0*.001)*42+noise3(x0*.003,17,z0*.003)*11-centerNoise;
   const warped=noise3(x0*.0019,29,z0*.0019)*72;
-  const ridged=Math.pow(1-Math.abs(noise3((x0+warped)*.005,41,(z0-warped)*.005)),2.2)*55;
-  // Sculpted eroded mesas: high broken tops, steep terraced sides and talus aprons.
+  // Fade only the distant sharp ridge crests; preserve the existing nearby soil.
+  const sharpRidge=Math.pow(1-Math.abs(noise3((x0+warped)*.005,41,(z0-warped)*.005)),2.2)*55;
+  const ridged=sharpRidge*(1-.52*smooth(500,1100,distance));
+  // Distant eroded hills: broad rounded crowns, low shoulders and no knife peaks.
   let cliffs=0;
   for(const m of mesas){
    const dx=x-m.x,dz=z-m.z;
@@ -155,11 +157,10 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
    const distort=noise3(x*.005,53,z*.005)*.14+noise3(x*.013,37,z*.013)*.045;
    const u=Math.hypot(xx/m.rx,zz/m.rz)+distort;
    if(u>1.5)continue;
-   const crest=1-smooth(.57,1.01,u);
-   const talus=(1-smooth(.94,1.5,u))*.20;
-   const layers=(.80+.14*Math.sin(u*32+noise3(x*.018,9,z*.018)*2.4));
-   const fractures=1+noise3(x*.011,61,z*.011)*.18+noise3(x*.028,57,z*.028)*.075;
-   cliffs+=m.height*(crest*layers*fractures+talus);
+   const roundCrown=Math.pow(1-smooth(.12,1.13,u),1.25);
+   const shoulder=(1-smooth(.82,1.5,u))*.20;
+   const erosion=.94+noise3(x*.004,61,z*.004)*.055+noise3(x*.012,57,z*.012)*.025;
+   cliffs+=m.height*(roundCrown*erosion+shoulder);
   }
   // Branching erosional valleys crossing the high ground without flattening it.
   let canyons=0;
