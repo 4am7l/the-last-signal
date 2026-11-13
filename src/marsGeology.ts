@@ -23,6 +23,22 @@ export function marsLandingRadius(site:string,span:number){
 }
 // Broader, gradual blend at Opportunity prevents a synthetic mound under its rover.
 export function marsLandingTransition(site:string){return site==='opportunity'?78:site==='insight'?45:28;}
+
+/**
+ * A narrow, gently meandering *illustrative* dirt approach from the current
+ * surface-navigation spawn (positive X/Z) to the equipment. This is a walkable
+ * area, not a historical NASA rover route. The same mask is used for rocks,
+ * footsteps/navigation and ground shading to avoid invisible obstacles.
+ */
+export function marsApproachMask(x:number,z:number,equipmentRadius:number){
+ const along=(x+z)*Math.SQRT1_2;
+ const bend=2*Math.sin(along*.045)*smooth(12,65,along);
+ const across=Math.abs((x-z)*Math.SQRT1_2-bend);
+ return smooth(Math.max(0,equipmentRadius*.6),equipmentRadius+4,along)
+  *(1-smooth(112,142,along))
+  *(1-smooth(4.4,8.5,across));
+}
+
 export type MarsCrater={x:number;z:number;radius:number};
 export function marsCraterField(lat:number,lon:number,landingRadius:number):MarsCrater[]{
  const random=seededRandom(marsSiteSeed(lat,lon)^0x426ac17);
