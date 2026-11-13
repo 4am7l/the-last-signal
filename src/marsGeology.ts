@@ -78,6 +78,8 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
  const localSlowCenter=noise3(offsetX*.012,73,offsetZ*.012);
  const localFineCenter=noise3(offsetX*.035,91,offsetZ*.035);
  const regionalCenter=noise3(offsetX*.007,25,offsetZ*.007);
+ const smallStonesCenter=noise3(offsetX*.071,117,offsetZ*.071);
+ const soilRipplesCenter=noise3(offsetX*.21,133,offsetZ*.21);
  // Four story-site landforms. Illustrative metre-scale detail, NOT a claim that
  // MOLA resolves these slopes; the referenced mission coordinates remain real.
  // The origin remains at height zero so equipment never floats or gets buried.
@@ -95,11 +97,16 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
   // Differentiated, naturally uneven landscapes instead of one flattened pad
   // for every mission. Keep a short low-gradient footprint under the equipment
   // and reveal slope, terrain height and rock fields within walking distance.
-  const safeFootprint=smooth(landingRadius*.68,landingRadius+13,distance);
+  // Keep only the actual landing-gear contact patch level. The old radial
+  // mask flattened a huge halo around every site, making all scenes look alike.
+  const supportRadius=Math.max(3.2,Math.min(6,landingRadius*.28));
+  const safeFootprint=smooth(supportRadius,supportRadius+8,distance);
   const vicinity=1-smooth(430,860,distance);
   const regional=(noise3(x0*.007,25,z0*.007)-regionalCenter)*4.5;
-  const rolling=(noise3(x0*.012,73,z0*.012)-localSlowCenter)*3.4+
-   (noise3(x0*.035,91,z0*.035)-localFineCenter)*.78+
+  const rolling=(noise3(x0*.012,73,z0*.012)-localSlowCenter)*3.8+
+   (noise3(x0*.035,91,z0*.035)-localFineCenter)*1.18+
+   (noise3(x0*.071,117,z0*.071)-smallStonesCenter)*.52+
+   (noise3(x0*.21,133,z0*.21)-soilRipplesCenter)*.075+
    regional;
   let feature=0;
   if(site==='opportunity'){
@@ -120,7 +127,7 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
    // InSight's Homestead Hollow is a low-relief, shallow depression,
    // surrounded by rolling sandy ground; no conspicuous artificial mound.
    const d=Math.hypot(x*1.1+z*.07,z*.94-x*.05);
-   feature=1.25*smooth(landingRadius*.7,145,d)*(1-smooth(250,520,d));
+   feature=2.2*smooth(9,155,d)*(1-smooth(265,515,d));
   }else if(site==='ingenuity'){
    // Jezero: a broad shoulder of rocky high ground to one side, with nearby
    // low swales. Zero-centre correction preserves contact with the helicopter.
@@ -134,7 +141,7 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
   }
   const nearGround=(rolling+feature)*safeFootprint*vicinity;
   // Bring large rocky mountains in from the middle distance, smoothly.
-  const ruggedness=smooth(160,560,distance);
+  const ruggedness=smooth(85,360,distance);
   const broad=noise3(x0*.001,11,z0*.001)*42+noise3(x0*.003,17,z0*.003)*11-centerNoise;
   const warped=noise3(x0*.0019,29,z0*.0019)*72;
   const ridged=Math.pow(1-Math.abs(noise3((x0+warped)*.005,41,(z0-warped)*.005)),2.2)*55;
