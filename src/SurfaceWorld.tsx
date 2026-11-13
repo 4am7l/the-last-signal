@@ -178,7 +178,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
 function RegolithMaterial({map,height,unit,moon,centerY,rotation,landingRadius}:{map:T.Texture;height?:T.Texture;unit:number;moon:boolean;centerY:number;rotation:T.Quaternion;landingRadius:number}){
  const material=useMemo(()=>{
   const mat=new T.MeshStandardMaterial({map,bumpMap:height??null,bumpScale:.025,roughness:1});
-  mat.customProgramCacheKey=()=>moon?'moon-regolith-v2':'mars-regolith-spherical-uv-v2';
+  mat.customProgramCacheKey=()=>moon?'moon-regolith-v2':('mars-regolith-site-v3-'+landingRadius.toFixed(2));
   mat.onBeforeCompile=shader=>{
    if(!moon){
     shader.uniforms.marsCenterY={value:centerY};
