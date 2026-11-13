@@ -220,6 +220,19 @@ diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,
  vec3 rockColor=mix(vec3(.18,.15,.14),vec3(.39,.29,.23),clamp(.51+rockStrata*.19+rockGrain*.26,0.,1.));
  float outcrop=clamp(max(slopeRock*.94,highRock*.68)+(soilNoise(metres*.024)-.5)*.18,0.,.95);
  diffuseColor.rgb=mix(diffuseColor.rgb,rockColor,outcrop);
+ // Dusty oxide regolith, wind-graded sand and exposed rock are distinct
+ // materials at walking distance; keep the NASA global colour when far away.
+ float broadOxide=soilNoise(metres*.083+vec2(7.,-12.));
+ float sandyPatch=soilNoise(metres*.44+vec2(-5.,9.));
+ float brokenBasalt=soilNoise(metres*1.15+vec2(21.,2.));
+ vec3 soilTone=mix(vec3(.30,.195,.144),vec3(.57,.365,.245),smoothstep(.22,.76,broadOxide));
+ soilTone=mix(soilTone,vec3(.255,.215,.195),smoothstep(.63,.87,brokenBasalt)*.30);
+ float groundDust=localFade*(.20+.26*sandyPatch)*(1.-outcrop*.7);
+ diffuseColor.rgb=mix(diffuseColor.rgb,soilTone,groundDust);
+ float sandGrains=soilNoise(metres*32.2+vec2(6.,18.))-.5;
+ float gritGrains=soilNoise(metres*107.7+vec2(14.,-9.))-.5;
+ diffuseColor.rgb*=1.+localFade*(sandGrains*.18*(1.-smoothstep(.025,.12,footprint))
+   +gritGrains*.13*(1.-smoothstep(.006,.038,footprint)));
  // Close-up pebble grit and darker eroded basalt, fading at a distance.
  float speckles=smoothstep(.65,.91,soilNoise(metres*9.7+vec2(18.,-7.)));
  float scatteredRubble=smoothstep(.48,.83,soilNoise(metres*.75+vec2(-8.,3.)));
@@ -241,6 +254,8 @@ vec2 detailMetres=lunarPosition.xz / ${unit.toFixed(12)};
 float detailFootprint=max(length(dFdx(detailMetres)),length(dFdy(detailMetres)));
 float relief=(soilNoise(detailMetres*48.)-.5)*${moon?'.006':'.0045'}*(1.-smoothstep(.008,.045,detailFootprint));
 relief+=(soilNoise(detailMetres*9.)-.5)*${moon?'.025':'.017'}*(1.-smoothstep(.04,.22,detailFootprint));
+ ${moon?'':`relief+=(soilNoise(detailMetres*24.+vec2(7.,9.))-.5)*.008*(1.-smoothstep(.018,.11,detailFootprint));
+relief+=(soilNoise(detailMetres*3.2+vec2(-5.,13.))-.5)*.037*(1.-smoothstep(.11,.65,detailFootprint));`}
 relief+=(soilNoise(detailMetres*1.4)-.5)*${moon?'.065':'.043'}*(1.-smoothstep(.3,1.5,detailFootprint));
  ${moon?'':`// Additional fractured normal relief on steep Martian rock faces.
  float rockFace=1.-abs(dot(normalize(marsFaceView),normalize(marsRadialView)));
