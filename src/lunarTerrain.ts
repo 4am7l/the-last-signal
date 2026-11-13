@@ -1,3 +1,4 @@
+import {noise3} from './sceneMath';
 // Mean spherical radii, metres. The render scale is arbitrary; ratios are physical.
 export const MOON_RADIUS_METRES = 1737400;
 export const EARTH_RADIUS_METRES = 6371000;
@@ -8,7 +9,6 @@ const smooth = (a:number,b:number,x:number) => {const t=Math.max(0,Math.min(1,(x
 // Low mare basalt plains around Apollo 11, with small softened impact
 // craters and distant rolling regolith. This is illustrative microterrain,
 // not a metre-accurate Apollo site survey.
-import {noise3} from './sceneMath';
 export const craters=Array.from({length:28},(_,i)=>{
  const angle=i*2.399963229728653+.25*Math.sin(i*1.7);
  const distance=i<7?145+i*101:36+Math.pow((i-6)/22,1.18)*1010;
@@ -22,7 +22,7 @@ export function craterHeight(distance:number,radius:number){
  const rim=radius*.032*Math.exp(-Math.pow((u-1)/.22,2));
  return (bowl+rim)*(1-smooth(1.28,1.5,u));
 }
-const moonNoiseOrigin=noise3(0,19,0),fineNoiseOrigin=noise3(0,37,0),ridgeOrigin=noise3(0,53,0);
+const moonNoiseOrigin=noise3(0,19,0),fineNoiseOrigin=noise3(0,37,0),ridgeOrigin=noise3(0,53,0),rubbleOrigin=noise3(0,67,0);
 export function localRelief(x:number,z:number){
  const d=Math.hypot(x,z);
  if(d>=1750||d<=5)return 0;
@@ -33,7 +33,7 @@ export function localRelief(x:number,z:number){
  const ridge=(noise3(x*.0035,53,z*.0035)-ridgeOrigin)*4.2;
  const shoulder=(Math.exp(-((x-215)**2/(2*180**2)+(z+110)**2/(2*260**2)))-
   Math.exp(-((215)**2/(2*180**2)+(110)**2/(2*260**2))))*2.9;
- const smallRubble=(noise3(x*.095,67,z*.095)-noise3(0,67,0))*.075;
+ const smallRubble=(noise3(x*.095,67,z*.095)-rubbleOrigin)*.075;
  let impacts=0;
  for(const c of craters){
   const dx=x-c.x,dz=z-c.z,range=c.radius*1.5;
