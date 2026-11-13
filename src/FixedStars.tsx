@@ -29,7 +29,8 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
    if(!alive){texture.dispose();return;}
    const previous=loaded;loaded=texture;texture.colorSpace=T.SRGBColorSpace;texture.wrapS=T.RepeatWrapping;
    texture.anisotropy=Math.min(8,gl.capabilities.getMaxAnisotropy());
-   uniforms.texel.value.set(1/texture.image.width,1/texture.image.height);
+   const image=texture.image as HTMLImageElement;
+   uniforms.texel.value.set(1/image.width,1/image.height);
    uniforms.panorama.value=texture;uniforms.hasPanorama.value=1;previous?.dispose();
   };
   const mirror='https://raw.githubusercontent.com/TokisanGames/Sky3D/main/addons/sky_3d/assets/thirdparty/textures/milkyway/Milkyway.jpg';
