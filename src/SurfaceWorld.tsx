@@ -224,18 +224,19 @@ function RegolithMaterial({map,unit,moon,centerY,rotation,landingRadius}:{map:T.
 #endif`).replace('#include <color_fragment>',`#include <color_fragment>
 vec2 metres=lunarPosition.xz / ${unit.toFixed(12)};
 float footprint=max(length(dFdx(metres)),length(dFdy(metres)));
-// Crossfade the NASA global albedo into physical-looking local regolith before
-// the map texels become visible as oversized squares. The transition follows
-// actual descent altitude, while derivative filtering avoids distant glitter.
-float pixelDetail=1.-smoothstep(28.,130.,footprint);
-float descentDetail=smoothstep(.10,.79,surfaceBlend)*.98;
-float localFade=max(pixelDetail,descentDetail);
+// One geographical photo map is used from orbit to landing. Real mapped
+// albedo remains the base colour at every altitude; procedural sediment only
+// supplies spatial frequencies beyond the orbiting camera's source resolution.
+// Each scale is individually screen-space filtered to prevent shimmer.
+float macroFade=1.-smoothstep(1200.,12000.,footprint);
+float localFade=1.-smoothstep(25.,1400.,footprint);
+float macroTone=soilNoise(metres*.00045+vec2(29.,13.))-.5;
+diffuseColor.rgb*=1.+macroTone*.12*macroFade;
 float grain=soilNoise(metres*48.)-.5;
 float strata=(soilNoise(metres*.7)-.5)*2.;
 float dust=soilNoise(metres*5.)-.5;
-// At close range NASA's global 1440px mosaic has too little spatial detail.
-// Replace its blurry magnified pixels with anti-aliased procedural regolith.
-diffuseColor.rgb=mix(diffuseColor.rgb,vec3(${moon?'.23,.225,.215':'.29,.18,.115'}),localFade*${moon?'.82':'.96'});
+// Never replace planetary imagery with an unrelated flat grey/red surface.
+// Preserve large-scale lunar mare / Martian albedo across the full approach.
 diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,footprint))+dust*${moon?'.28':'.17'}*(1.-smoothstep(.2,2.,footprint))+strata*${moon?'.15':'.09'}*(1.-smoothstep(1.,8.,footprint)));
  ${moon?`// Apollo 11: grey, powdery lunar regolith and sparse dark mare basalt.
  // All the new detail is derived from metres near the landing site and
@@ -243,8 +244,8 @@ diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,
  float mareBasalt=smoothstep(.62,.9,soilNoise(metres*.26+vec2(9.,7.)));
  float lunarDust=soilNoise(metres*.82+vec2(-3.,17.));
  vec3 ashDust=mix(vec3(.285,.281,.27),vec3(.41,.399,.379),lunarDust);
- diffuseColor.rgb=mix(diffuseColor.rgb,ashDust,localFade*(.20+.16*lunarDust));
- diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.19,.19,.188),localFade*mareBasalt*.21);
+ diffuseColor.rgb*=1.+localFade*(lunarDust-.5)*.22;
+ diffuseColor.rgb*=1.-localFade*mareBasalt*.18;
  float basaltFlecks=smoothstep(.75,.94,soilNoise(metres*11.2+vec2(7.,-11.)));
  float lightGrit=smoothstep(.79,.95,soilNoise(metres*28.5+vec2(12.,3.)));
  float grainFade=(1.-smoothstep(.035,.3,footprint))*localFade;
@@ -255,8 +256,8 @@ diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,
  float basaltPatch=smoothstep(.57,.87,soilNoise(metres*.13+vec2(6.,17.)));
  float windBands=sin(metres.x*8.5+metres.y*2.5+soilNoise(metres*.32)*2.2);
  float finerSoil=soilNoise(metres*2.1+vec2(4.,8.))-.5;
- diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.4,.24,.16),localFade*(.14+.16*marsDust));
- diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.19,.15,.14),localFade*basaltPatch*.24);
+ diffuseColor.rgb*=1.+localFade*(marsDust-.5)*.16;
+ diffuseColor.rgb*=1.-localFade*basaltPatch*.18;
  diffuseColor.rgb*=1.+localFade*(windBands*.032*(1.-smoothstep(.1,.6,footprint))+finerSoil*.065*(1.-smoothstep(.05,.4,footprint)));
  // Cliff and ridge surfaces expose darker fractured rock rather than dusty sand.
  // Compare the actual geometry normal to the globe's outward radial normal.
@@ -268,7 +269,7 @@ diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,
  float rockGrain=soilNoise(metres*.22+vec2(19.,4.))-.5;
  vec3 rockColor=mix(vec3(.18,.15,.14),vec3(.39,.29,.23),clamp(.51+rockStrata*.19+rockGrain*.26,0.,1.));
  float outcrop=clamp(max(slopeRock*.94,highRock*.68)+(soilNoise(metres*.024)-.5)*.18,0.,.95);
- diffuseColor.rgb=mix(diffuseColor.rgb,rockColor,outcrop);
+ diffuseColor.rgb*=1.-outcrop*localFade*.27;
  // Dusty oxide regolith, wind-graded sand and exposed rock are distinct
  // materials at walking distance; keep the NASA global colour when far away.
  float broadOxide=soilNoise(metres*.083+vec2(7.,-12.));
@@ -277,7 +278,7 @@ diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,
  vec3 soilTone=mix(vec3(.30,.195,.144),vec3(.57,.365,.245),smoothstep(.22,.76,broadOxide));
  soilTone=mix(soilTone,vec3(.255,.215,.195),smoothstep(.63,.87,brokenBasalt)*.30);
  float groundDust=localFade*(.20+.26*sandyPatch)*(1.-outcrop*.7);
- diffuseColor.rgb=mix(diffuseColor.rgb,soilTone,groundDust);
+ diffuseColor.rgb*=1.+(sandyPatch-.5)*groundDust*.26;
  float sandGrains=soilNoise(metres*32.2+vec2(6.,18.))-.5;
  float gritGrains=soilNoise(metres*107.7+vec2(14.,-9.))-.5;
  diffuseColor.rgb*=1.+localFade*(sandGrains*.18*(1.-smoothstep(.025,.12,footprint))
@@ -286,7 +287,7 @@ diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,
  float speckles=smoothstep(.65,.91,soilNoise(metres*9.7+vec2(18.,-7.)));
  float scatteredRubble=smoothstep(.48,.83,soilNoise(metres*.75+vec2(-8.,3.)));
  vec3 pebbleColor=mix(vec3(.24,.19,.17),vec3(.54,.35,.25),soilNoise(metres*2.6));
- diffuseColor.rgb=mix(diffuseColor.rgb,pebbleColor,speckles*(.10+.20*scatteredRubble)*localFade*(1.-smoothstep(.06,.6,footprint)));
+ diffuseColor.rgb*=1.-speckles*(.08+.14*scatteredRubble)*localFade*(1.-smoothstep(.06,.6,footprint));
  // Dusty path to mission equipment follows the same corridor as rock exclusion.
  float trailAlong=(metres.x+metres.y)*.70710678;
  float trailBend=2.*sin(trailAlong*.045)*smoothstep(12.,65.,trailAlong);
@@ -295,7 +296,7 @@ diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,
  float dirtTrail=trailStart*(1.-smoothstep(112.,142.,trailAlong))*(1.-smoothstep(4.4,8.5,trailAcross));
  float dustyGrain=soilNoise(metres*3.4+vec2(9.,22.))-.5;
  vec3 packedDust=vec3(.395,.244,.167)*(1.+dustyGrain*.09);
- diffuseColor.rgb=mix(diffuseColor.rgb,packedDust,dirtTrail*.58*localFade);
+ diffuseColor.rgb*=1.-dirtTrail*.105*localFade;
  
  `}
  `).replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
