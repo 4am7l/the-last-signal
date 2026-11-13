@@ -1,27 +1,31 @@
-import {useMemo,useEffect} from 'react';
+import {useMemo,useEffect,useState} from 'react';
 import {useFrame,useThree} from '@react-three/fiber';
 import * as T from 'three';
-import {starDirections} from './sceneMath';
+import {useSimulation} from './simulation';
 
 // Photographic sky: ESO/S. Brunier, eso0932a (CC BY 4.0).
-// Cinematic exposure/orientation, with illustrative extra stars; no SpaceEngine assets.
+// Photographic exposure/orientation is artistic; point stars use HYG J2000 coordinates.
 export function FixedStars({marsSurface}:{marsSurface:boolean}){
  const {gl}=useThree();
- const geometry=useMemo(()=>{
-  const g=new T.BufferGeometry(),positions=starDirections(80000),magnitudes=new Float32Array(80000),temperatures=new Float32Array(80000);
-  let seed=73251;const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
-  for(let i=0;i<80000;i++){
-   // Most distant stars belong to the galactic disk, rather than a uniform grid.
-   if(i<48000){const k=i*3;positions[k+1]*=.18;const length=Math.hypot(positions[k],positions[k+1],positions[k+2]);positions[k]/=length;positions[k+1]/=length;positions[k+2]/=length}
-   magnitudes[i]=random();temperatures[i]=random();
-  }
-  g.setAttribute('position',new T.BufferAttribute(positions,3));
-  g.setAttribute('magnitude',new T.BufferAttribute(magnitudes,1));
-  g.setAttribute('temperature',new T.BufferAttribute(temperatures,1));return g;
- },[]);
+ const settings=useSimulation();
+ const [catalog,setCatalog]=useState<T.BufferGeometry|null>(null);
+ const {scene}=useThree();
+ useEffect(()=>{
+  const worker=new Worker(new URL('./starCatalog.worker.ts',import.meta.url),{type:'module'});let geometry:T.BufferGeometry|undefined;
+  scene.userData.starSource='جارٍ تحميل HYG — السماء الفوتوغرافية ظاهرة أثناء التحميل';
+  worker.onmessage=({data})=>{
+   if(data.error){scene.userData.starSource='تعذّر تحميل HYG — خلفية فوتوغرافية فقط';return;}
+   geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.BufferAttribute(data.position,3));geometry.setAttribute('magnitude',new T.BufferAttribute(data.magnitude,1));geometry.setAttribute('temperature',new T.BufferAttribute(data.temperature,1));setCatalog(geometry);
+   scene.userData.starSource='HYG v4.1 · '+data.count.toLocaleString()+' نجمة كتالوجية متاحة · J2000';
+  };
+  worker.onerror=()=>{scene.userData.starSource='تعذّر تحميل HYG — خلفية فوتوغرافية فقط';};
+  worker.postMessage({});
+  return()=>{worker.terminate();geometry?.dispose();};
+ },[scene]);
+ useEffect(()=>{catalog?.setDrawRange(0,Math.min(settings.starCount,catalog.attributes.position.count));},[catalog,settings.starCount]);
  const orientation=useMemo(()=>new T.Matrix4().makeRotationX(.02).multiply(new T.Matrix4().makeRotationZ(-.32)).multiply(new T.Matrix4().makeRotationY(Math.PI/2)),[]);
  const rotationScratch=useMemo(()=>new T.Matrix4(),[]);
- const uniforms=useMemo(()=>({skyRotation:{value:new T.Matrix3()},pixelRatio:{value:1},visibility:{value:1},panorama:{value:null as T.Texture|null},hasPanorama:{value:0},photoBlend:{value:0},texel:{value:new T.Vector2(1/6000,1/3000)}}),[]);
+ const uniforms=useMemo(()=>({skyRotation:{value:new T.Matrix3()},starRotation:{value:new T.Matrix3()},pixelRatio:{value:1},visibility:{value:1},panorama:{value:null as T.Texture|null},hasPanorama:{value:0},photoBlend:{value:0},texel:{value:new T.Vector2(1/6000,1/3000)}}),[]);
  useEffect(()=>{
   let alive=true;let loaded:T.Texture|undefined;
   const loader=new T.TextureLoader();
@@ -43,14 +47,16 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
  },[uniforms,gl]);
  useFrame(({scene},dt)=>{
   const q=scene.userData.skyRotation as T.Quaternion|undefined;
-  rotationScratch.makeRotationFromQuaternion(q??new T.Quaternion()).multiply(orientation);
+  rotationScratch.makeRotationFromQuaternion(q??new T.Quaternion());
+  uniforms.starRotation.value.setFromMatrix4(rotationScratch);
+  rotationScratch.multiply(orientation);
   uniforms.skyRotation.value.setFromMatrix4(rotationScratch);
   uniforms.pixelRatio.value=Math.min(gl.getPixelRatio(),2);
   const target=Number(scene.userData.skyVisibility??(marsSurface&&scene.fog?0:1));
   uniforms.visibility.value=T.MathUtils.damp(uniforms.visibility.value,target,3,Math.min(dt,.05));
   uniforms.photoBlend.value=T.MathUtils.damp(uniforms.photoBlend.value,uniforms.hasPanorama.value,2,Math.min(dt,.05));
  });
- useEffect(()=>()=>geometry.dispose(),[geometry]);
+
  return <>
   <mesh frustumCulled={false} renderOrder={-1100}>
    <sphereGeometry args={[1,64,32]}/>
@@ -91,17 +97,17 @@ void main(){
  #include <colorspace_fragment>
 }`}/>
   </mesh>
-  <points geometry={geometry} frustumCulled={false} renderOrder={-1000}>
+  {catalog&&<points geometry={catalog} frustumCulled={false} renderOrder={-1000}>
    <shaderMaterial toneMapped={false} transparent depthWrite={false} depthTest uniforms={uniforms}
-    vertexShader={`uniform mat3 skyRotation;uniform float pixelRatio;attribute float magnitude;attribute float temperature;varying float brightness;varying vec3 tint;
-void main(){vec3 direction=mat3(viewMatrix)*skyRotation*position;vec4 p=projectionMatrix*vec4(direction,1.);gl_Position=vec4(p.xy,p.w,p.w);
-brightness=.065+pow(magnitude,10.)*.935;
-tint=temperature<.18?mix(vec3(1.,.66,.38),vec3(1.,.9,.75),temperature/.18):temperature>.85?mix(vec3(.82,.9,1.),vec3(.58,.74,1.),(temperature-.85)/.15):vec3(1.,.97,.91);
+    vertexShader={`uniform mat3 starRotation;uniform float pixelRatio;attribute float magnitude;attribute float temperature;varying float brightness;varying vec3 tint;
+void main(){vec3 direction=mat3(viewMatrix)*starRotation*position;vec4 p=projectionMatrix*vec4(direction,1.);gl_Position=vec4(p.xy,p.w,p.w);
+brightness=clamp(pow(10.,-.14*(magnitude-2.)),.015,1.);
+tint=temperature<5800.?mix(vec3(1.,.57,.30),vec3(1.,.97,.91),clamp((temperature-2500.)/3300.,0.,1.)):mix(vec3(1.,.97,.91),vec3(.63,.77,1.),clamp((temperature-5800.)/10000.,0.,1.));
 gl_PointSize=(.8+brightness*4.2)*pixelRatio;}`}
     fragmentShader={`uniform float visibility;uniform float photoBlend;varying float brightness;varying vec3 tint;
 void main(){float r=length(gl_PointCoord-.5);float core=exp(-r*r*72.);float halo=exp(-r*r*13.)*.16*smoothstep(.4,.9,brightness);float alpha=(core+halo)*brightness*visibility*mix(.9,.48,photoBlend)*(1.-smoothstep(.4,.5,r));if(alpha<.002)discard;gl_FragDepth=1.;gl_FragColor=vec4(tint,alpha);
 #include <colorspace_fragment>
 }`}/>
-  </points>
+  </points>}
  </>;
 }
