@@ -1,3 +1,5 @@
+import {useElevation} from './useElevation';
+import {elevationAt} from './elevation';
 import {Suspense,useMemo,useRef,useEffect} from 'react';
 import {useFrame,useLoader,useThree} from '@react-three/fiber';
 import {Html} from '@react-three/drei';
@@ -66,13 +68,14 @@ function LunarSurface({r,occluders}:{r:number;occluders:Occluder[]}){
 }
 const NO_OCCLUDERS:Occluder[]=[];
 export function Planet({body,r=300,pos=[0,-300,0],rotation,click,occluders=NO_OCCLUDERS}:{body:string;r?:number;pos?:[number,number,number];rotation?:T.Quaternion;click?:()=>void;occluders?:Occluder[]}){
+ const dem=useElevation(body);
  const geometry=useMemo(()=>{
   const g=new T.SphereGeometry(r,256,192);
-  if(body==='mars'){const positions=g.attributes.position;const n=new T.Vector3();for(let i=0;i<positions.count;i++){n.fromBufferAttribute(positions,i).normalize();const elevation=marsRelief(n.x,n.y,n.z)*r/3389500;n.multiplyScalar(r+elevation);positions.setXYZ(i,n.x,n.y,n.z)}g.computeVertexNormals();}
+  if(dem){const positions=g.attributes.position;const n=new T.Vector3();for(let i=0;i<positions.count;i++){n.fromBufferAttribute(positions,i).normalize();const elevation=elevationAt(dem,Math.asin(n.y)*180/Math.PI,Math.atan2(-n.z,n.x)*180/Math.PI)*r/(body==='moon'?1737400:3389500);n.multiplyScalar(r+elevation);positions.setXYZ(i,n.x,n.y,n.z)}g.computeVertexNormals();}
   return g;
- },[body,r]);
+ },[body,r,dem]);
  useEffect(()=>()=>geometry.dispose(),[geometry]);
- return <group position={pos} quaternion={rotation}><mesh geometry={geometry} onClick={e=>{if(e.delta>4)return;e.stopPropagation();click?.()}}><meshStandardMaterial color={body==='mars'?'#a76d48':'#929796'} roughness={1}/><Suspense fallback={null}>{body==='earth'?<EarthSurface occluders={occluders}/>:body==='moon'?<LunarSurface r={r} occluders={occluders}/>:<Surface body={body} occluders={occluders}/>}</Suspense></mesh>{body==='earth'&&<Suspense fallback={null}><Clouds r={r}/></Suspense>}{body!=='moon'&&<Atmosphere r={r} earth={body==='earth'}/>}</group>;
+ return <group position={pos} quaternion={rotation}><mesh geometry={geometry} onClick={e=>{if(e.delta>4)return;e.stopPropagation();click?.()}}><meshStandardMaterial color={body==='mars'?'#a76d48':'#929796'} roughness={1}/><Suspense fallback={null}>{body==='earth'?<EarthSurface occluders={occluders}/>:body==='moon'?<LunarSurface r={dem?0:r} occluders={occluders}/>:<Surface body={body} occluders={occluders}/>}</Suspense></mesh>{body==='earth'&&<Suspense fallback={null}><Clouds r={r}/></Suspense>}{body!=='moon'&&<Atmosphere r={r} earth={body==='earth'}/>}</group>;
 }
 export function SitePin({m,rotation,onClick,selected}:{m:Mission;rotation:T.Quaternion;onClick:()=>void;selected:boolean}){const ref=useRef<T.Group>(null),el=useRef<HTMLButtonElement>(null);const center=useMemo(()=>new T.Vector3(0,-300,0),[]);const normal=useMemo(()=>point(m.lat,m.lon,1).applyQuaternion(rotation),[m.lat,m.lon,rotation]);const pos=useMemo(()=>normal.clone().multiplyScalar(302).add(center),[normal,center]);const scratch=useMemo(()=>new T.Vector3(),[]);useFrame(({camera})=>{const distance=camera.position.distanceTo(center);const visible=normal.dot(scratch.copy(camera.position).sub(pos).normalize())>.04&&distance<1600;if(ref.current)ref.current.visible=visible;if(el.current){el.current.style.visibility=visible?'visible':'hidden';el.current.tabIndex=visible?0:-1}});return <group ref={ref} position={pos}><mesh><sphereGeometry args={[selected?2:1.4,12,8]}/><meshBasicMaterial color="#e6f5bd"/></mesh><Html center zIndexRange={[8,1]} style={{pointerEvents:'none'}}><button ref={el} className={'sitePin '+(selected?'chosen':'')} style={{pointerEvents:'auto'}} onClick={onClick}><span className="pinDot"/>{m.name}<small dir="ltr">{Math.abs(m.lat).toFixed(3)}° {m.lat<0?'S':'N'} · {m.lon.toFixed(3)}° E</small></button></Html></group>}
 function Regolith({moon,launch}:{moon:boolean;launch:boolean}){const material=useMemo(()=>{const mat=new T.MeshStandardMaterial({color:launch?'#475349':moon?'#797773':'#9a6d50',roughness:1});mat.onBeforeCompile=shader=>{shader.vertexShader='varying vec3 vGround;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvGround=position;');shader.fragmentShader='varying vec3 vGround;\nfloat grain(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }\n'+shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nfloat grit=grain(floor(vGround.xz*85.)); float strata=sin(vGround.x*.13+sin(vGround.z*.17))*sin(vGround.z*.08); diffuseColor.rgb*=.84+grit*.24+strata*.07;');};return mat},[moon,launch]);useEffect(()=>()=>material.dispose(),[material]);return <primitive object={material} attach="material"/>}
