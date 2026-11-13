@@ -39,6 +39,37 @@ export function marsApproachMask(x:number,z:number,equipmentRadius:number){
   *(1-smooth(4.4,8.5,across));
 }
 
+/**
+ * Illustrative, mission-specific MER rover wheel paths. The rover and both
+ * parallel tyre marks use this exact reference frame, so their contact lanes
+ * follow the same heading instead of diverging into a separate road.
+ * They are visitor visualizations, not historical NASA traverse coordinates.
+ */
+export function marsRoverRoadYaw(site:string){
+ return site==='spirit'?-0.36:site==='opportunity'?.26:0;
+}
+function roverRoadBend(t:number,site:string){
+ const u=Math.max(0,Math.min(1,t));
+ const direction=site==='spirit'?1:-1;
+ return direction*(.68*u*u*(3-2*u)+.26*Math.sin(Math.PI*u)**2);
+}
+export function marsRoverRoadPoint(t:number,side:number,site:string){
+ const u=Math.max(0,Math.min(1,t));
+ const localX=-.95-33*u;
+ const localZ=side*.72+roverRoadBend(u,site);
+ const yaw=marsRoverRoadYaw(site),c=Math.cos(yaw),s=Math.sin(yaw);
+ return {x:localX*c+localZ*s,z:-localX*s+localZ*c};
+}
+export function marsRoverRoadClearance(x:number,z:number,site:string,margin:number){
+ if(site!=='spirit'&&site!=='opportunity')return false;
+ const yaw=marsRoverRoadYaw(site),c=Math.cos(yaw),s=Math.sin(yaw);
+ const localX=x*c-z*s,localZ=x*s+z*c;
+ const travel=-localX;
+ if(travel<.6-margin||travel>34.0+margin)return false;
+ const bend=roverRoadBend((travel-.95)/33,site);
+ return Math.abs(localZ-bend)<1.0+margin;
+}
+
 export type MarsCrater={x:number;z:number;radius:number};
 export function marsCraterField(lat:number,lon:number,landingRadius:number):MarsCrater[]{
  const random=seededRandom(marsSiteSeed(lat,lon)^0x426ac17);
