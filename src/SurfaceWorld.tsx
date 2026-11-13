@@ -175,12 +175,21 @@ float strata=(soilNoise(metres*.7)-.5)*2.;
 float dust=soilNoise(metres*5.)-.5;
 diffuseColor.rgb=mix(diffuseColor.rgb,vec3(${moon?'.23,.225,.215':'.29,.18,.115'}),localFade*.65);
 diffuseColor.rgb*=1.+localFade*(grain*.42*(1.-smoothstep(.01,.1,footprint))+dust*.28*(1.-smoothstep(.2,2.,footprint))+strata*.15*(1.-smoothstep(1.,8.,footprint)));
+ ${moon?'':`// Mars: red oxidised dust over darker exposed basalt, plus wind-carved sand bands.
+ float marsDust=soilNoise(metres*.27+vec2(10.,-4.));
+ float basaltPatch=smoothstep(.59,.86,soilNoise(metres*.12+vec2(6.,17.)));
+ float windBands=sin(metres.x*11.+metres.y*3.+soilNoise(metres*.5)*2.5);
+ diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.39,.23,.15),localFade*(.15+.15*marsDust));
+ diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.16,.13,.12),localFade*basaltPatch*.30);
+ diffuseColor.rgb*=1.+localFade*windBands*.055*(1.-smoothstep(.1,.6,footprint));
+ `}
  `).replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
 vec2 detailMetres=lunarPosition.xz / ${unit.toFixed(12)};
 float detailFootprint=max(length(dFdx(detailMetres)),length(dFdy(detailMetres)));
 float relief=(soilNoise(detailMetres*48.)-.5)*.006*(1.-smoothstep(.008,.045,detailFootprint));
 relief+=(soilNoise(detailMetres*9.)-.5)*.025*(1.-smoothstep(.04,.22,detailFootprint));
 relief+=(soilNoise(detailMetres*1.4)-.5)*.065*(1.-smoothstep(.3,1.5,detailFootprint));
+ ${moon?'':`relief+=sin(detailMetres.x*10.+detailMetres.y*3.+soilNoise(detailMetres*.35)*2.)*.0035*(1.-smoothstep(.06,.4,detailFootprint));`}
 vec3 sx=dFdx(-vViewPosition),sy=dFdy(-vViewPosition);
 vec3 rx=cross(sy,normal),ry=cross(normal,sx);
 float detailDet=dot(sx,rx);
