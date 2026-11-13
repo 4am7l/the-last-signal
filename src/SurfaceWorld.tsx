@@ -16,7 +16,7 @@ import {dimensions} from './journey';
 import {SUN_DIRECTION,SCENE_SUN_DIRECTION} from './solar';
 import {marsRelief,mountains,surfaceDetail,noise3,cameraTuning,systemLayout,RADII_KM} from './sceneMath';
 import {Model,type Space} from './Space';
-import {createMarsRelief,marsLandingRadius,marsLandingTransition} from './marsGeology';
+import {createMarsRelief,marsApproachMask,marsLandingRadius,marsLandingTransition} from './marsGeology';
 import {MarsRocks,MarsGroundMarks} from './MarsSurfaceDetails';
 import {MOON_RENDER_RADIUS as R,MOON_RADIUS_METRES,EARTH_RADIUS_METRES,MARS_RADIUS_METRES,localRelief,ringAngle} from './lunarTerrain';
 // Visual orbit preview: keeps the ephemeris position as the starting point.
@@ -70,10 +70,20 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
    const soil=(noise3(x*1.8,3,z*1.8)*.055+noise3(x*.35,9,z*.35)*.16+noise3(x*.07,5,z*.07)*.32)*fade;
    if(moon)return surfaceDetail(x,z,'moon')+soil;
    const nearBlend=T.MathUtils.smoothstep(distance,landingRadius,landingRadius+marsLandingTransition(m.id));
-   return marsReliefAt(x,z)+(surfaceDetail(x,z,'mars')*.31+soil*.30)*nearBlend;
+   // Resolve metre- and decimetre-scale rock chips geometrically near the
+   // camera. Keep the lander footing and the walking approach smooth.
+   const closeDetail=T.MathUtils.smoothstep(distance,pad+2,pad+10)*
+    (1-T.MathUtils.smoothstep(distance,180,430));
+   const stoneGrain=(noise3(x*.83,31,z*.83)*.105+
+    noise3(x*2.7,37,z*2.7)*.022)*closeDetail*
+    (1-.65*marsApproachMask(x,z,landingRadius));
+   return marsReliefAt(x,z)+(surfaceDetail(x,z,'mars')*.31+soil*.30)*nearBlend+stoneGrain;
   };
   const positions:number[]=[],uv:number[]=[],indices:number[]=[],rings=preset.rings,sectors=preset.sectors;
-  for(let j=0;j<=rings;j++){const a=ringAngle(j,Math.round(rings/3),rings-Math.round(rings/3),radiusMetres);
+  // Give nearby ground most of the available radial rings to preserve
+  // close-up terrain quality without multiplying mobile draw calls.
+  const nearRings=moon?Math.round(rings/3):Math.round(rings*.62);
+  for(let j=0;j<=rings;j++){const a=ringAngle(j,nearRings,rings-nearRings,radiusMetres);
    for(let i=0;i<=sectors;i++){const b=i/sectors*Math.PI*2,n=new T.Vector3(Math.sin(a)*Math.cos(b),Math.cos(a),Math.sin(a)*Math.sin(b));const s=sample(n);
     // Local crater bowls and rims are illustrative and fade into the mapped globe.
     const x=n.x*radiusMetres,z=n.z*radiusMetres,detail=detailAt(x,z)*(n.y>0?1:0);
