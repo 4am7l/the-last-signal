@@ -1,17 +1,12 @@
-import {useEffect,useMemo,useRef} from 'react';
+import {useEffect,useRef} from 'react';
 import {useFrame,useThree} from '@react-three/fiber';
 import * as T from 'three';
-import {useSimulation,PRESETS} from './simulation';
+import {useSimulation} from './simulation';
 import {BODIES,type Body} from './science';
 export function SurfaceNavigation({active,body,unit,ground,center,equipmentRadius}:{active:boolean;body:Body;unit:number;ground:(x:number,z:number)=>number;center:T.Vector3;equipmentRadius:number}){
  const settings=useSimulation(),{camera,gl,controls}=useThree();
  const enabled=active&&settings.navigation!=='orbit';
  const keys=useRef(new Set<string>()),angles=useRef({yaw:0,pitch:0}),vertical=useRef(0),velocity=useRef(new T.Vector3()),grounded=useRef(false);
- const rocks=useMemo(()=>Array.from({length:PRESETS[settings.quality].rocks},(_,i)=>{
-  const clearance=Math.max(2,equipmentRadius/.6*.7),a=i*2.399963,r=clearance+(i<900?Math.pow((i+1)/900,1.4)*45:50+Math.pow((i-899)/300,1.5)*450);
-  const size=i<900?.012+Math.pow((i*7%29)/29,3)*.16:.045+Math.pow((i*7%29)/29,3)*(body==='moon'?1.1:.8);
-  return {x:Math.cos(a)*r,z:Math.sin(a)*r,r:size*1.3};
- }),[settings.quality,equipmentRadius,body]);
  useEffect(()=>{
   if(!enabled)return;
   const direction=camera.getWorldDirection(new T.Vector3());
@@ -61,7 +56,10 @@ export function SurfaceNavigation({active,body,unit,ground,center,equipmentRadiu
   const mx=candidate.x/unit,mz=candidate.z/unit;
   // The old synthetic collider field did not match the rendered Mars rocks.
   // Let the clear approach work without invisible blockers; retain lunar collision checks.
-  const blocked=Math.hypot(mx,mz)>200||Math.hypot(mx,mz)<equipmentRadius+.35||(body==='moon'&&rocks.some(r=>r.r>.12&&Math.hypot(mx-r.x,mz-r.z)<r.r+.3));
+  // Preserve actual equipment clearance and exploration radius. The old
+  // synthetic rock colliders did not match rendered Apollo stones and caused
+  // invisible walls across otherwise clear lunar walking routes.
+  const blocked=Math.hypot(mx,mz)>200||Math.hypot(mx,mz)<equipmentRadius+.35;
   const oldFloor=ground(before.x/unit,before.z/unit),floor=ground(mx,mz);
   const horizontal=Math.hypot(candidate.x-before.x,candidate.z-before.z);
   if(!blocked&&(!walk||floor-oldFloor<Math.max(.25*unit,horizontal*.7))){camera.position.x=candidate.x;camera.position.z=candidate.z;}
