@@ -306,7 +306,10 @@ relief+=(soilNoise(detailMetres*9.)-.5)*${moon?'.025':'.017'}*(1.-smoothstep(.04
 relief+=(soilNoise(detailMetres*3.3+vec2(8.,11.))-.5)*.025*(1.-smoothstep(.12,.55,detailFootprint));`:''}
  ${moon?'':`relief+=(soilNoise(detailMetres*24.+vec2(7.,9.))-.5)*.008*(1.-smoothstep(.018,.11,detailFootprint));
 relief+=(soilNoise(detailMetres*3.2+vec2(-5.,13.))-.5)*.037*(1.-smoothstep(.11,.65,detailFootprint));`}
-relief+=(soilNoise(detailMetres*1.4)-.5)*${moon?'.065':'.043'}*(1.-smoothstep(.3,1.5,detailFootprint));
+relief+=(soilNoise(detailMetres*1.4)-.5)*${moon?'.082':'.056'}*(1.-smoothstep(.3,1.5,detailFootprint));
+ ${moon?`relief+=(soilNoise(detailMetres*6.4+vec2(2.,-7.))-.5)*.012*(1.-smoothstep(.045,.22,detailFootprint));
+relief+=(soilNoise(detailMetres*18.0+vec2(11.,5.))-.5)*.004*(1.-smoothstep(.01,.08,detailFootprint));`:`relief+=(soilNoise(detailMetres*5.6+vec2(3.,-8.))-.5)*.010*(1.-smoothstep(.05,.24,detailFootprint));
+relief+=(soilNoise(detailMetres*16.5+vec2(9.,6.))-.5)*.0035*(1.-smoothstep(.012,.085,detailFootprint));`}
  ${moon?'':`// Additional fractured normal relief on steep Martian rock faces.
  float rockFace=1.-abs(dot(normalize(marsFaceView),normalize(marsRadialView)));
  float fractureRelief=(soilNoise(detailMetres*.2+vec2(5.,7.))-.5)*.18+
