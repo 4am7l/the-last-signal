@@ -178,10 +178,11 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
  useFrame((_,dt)=>{const ctl=controls.current;if(!ctl)return;
   scene.userData.terrainSource=dem?dem.source:'تعذّر تحميل DEM — سطح تقريبي';
   scene.userData.altitude=Math.max(0,(camera.position.y-surface.ground(camera.position.x/UNIT,camera.position.z/UNIT))/UNIT);
-  // Start the transition before the global orbital imagery can become
-  // obviously enlarged; finish it above the detailed rocky ground.
+  // The bundled Viking Mars globe has only 1440x720 pixels. Begin the
+  // dissolve while the landing region is still far away, preserving authentic
+  // planetary colour from orbit and revealing 3D regolith before pixelation.
   const zoomMetres=camera.position.length()/UNIT;
-  const blend=1-T.MathUtils.smoothstep(zoomMetres,12000,350000);
+  const blend=1-T.MathUtils.smoothstep(zoomMetres,35000,1350000);
   transition.value=blend;
   if(globeRef.current)globeRef.current.visible=blend<.99999;
   if(terrainRef.current)terrainRef.current.visible=blend>.00001;
