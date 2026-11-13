@@ -41,7 +41,9 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
  const controls=useRef<Controls>(null),pin=useRef<HTMLDivElement>(null);
  const {camera,scene,gl}=useThree();
  const coarsePointer=typeof window!=='undefined'&&window.matchMedia('(pointer: coarse)').matches;
- const map=usePlanetTexture(m.body,mode!=='overview');
+ // Resolve the best available orbital imagery while still in overview, not
+ // in the middle of a guided landing animation.
+ const map=usePlanetTexture(m.body,true);
  const height=useLoader(T.TextureLoader,'/moon-height.jpg');
  const landingRadius=useMemo(()=>marsLandingRadius(m.id,dimensions[m.model].span),[m.id,m.model]);
  const marsReliefAt=useMemo(()=>createMarsRelief(m.lat,m.lon,landingRadius,m.id),[m.lat,m.lon,landingRadius,m.id]);
