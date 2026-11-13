@@ -1,152 +1,112 @@
 import {useEffect,useMemo} from 'react';
-import {useLoader} from '@react-three/fiber';
-import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {mergeGeometries,mergeVertices} from 'three/addons/utils/BufferGeometryUtils.js';
 import * as T from 'three';
 import {marsCraterField,marsSiteSeed} from './marsGeology';
 import {noise3} from './sceneMath';
 
-// Ten separate CC0 Kenney Nature Kit GLB meshes are vendored in public/models/mars-rocks.
-// Each is a different authored 3D silhouette, rather than a recoloured layered monolith.
-const ROCK_ASSETS=[
- 'rock-largea','rock-largeb','rock-largec','rock-larged','rock-largee','rock-largef',
- 'rock-talla','rock-tallb','rock-smallb','rock-smallc'
-];
-const ROCK_PATHS=ROCK_ASSETS.map(name=>'/models/mars-rocks/'+name+'.glb');
-const COLOURS=['#a0836f','#8c7364','#987c69','#655c56','#ae8970','#72675e','#83685d'];
+// Mars-only instanced geology: battered basalt blocks, dust-covered flat slabs
+// and small gravel. Seeded per mission site; not surveyed rock coordinates.
 function randomFromSeed(seed:number){
  let s=seed>>>0||1;
  return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return (s>>>0)/4294967296};
 }
-function rockGeometry(scene:T.Group,seed:number){
- scene.updateMatrixWorld(true);
- const parts:T.BufferGeometry[]=[];
- scene.traverse(object=>{
-  if(!(object instanceof T.Mesh))return;
-  const original=(object.geometry as T.BufferGeometry).clone();
-  original.applyMatrix4(object.matrixWorld);
-  for(const key of Object.keys(original.attributes))if(key!=='position')original.deleteAttribute(key);
-  const plain=original.index?original.toNonIndexed():original;
-  if(plain!==original)original.dispose();
-  parts.push(plain);
- });
- if(!parts.length)return new T.IcosahedronGeometry(1,1);
- const merged=mergeGeometries(parts,false);
- parts.forEach(g=>g.dispose());
- if(!merged)return new T.IcosahedronGeometry(1,1);
- const position=merged.getAttribute('position') as T.BufferAttribute;
- merged.computeBoundingBox();
- const bounds=merged.boundingBox!;
- const cx=(bounds.min.x+bounds.max.x)*.5,cz=(bounds.min.z+bounds.max.z)*.5;
- const scale=1/Math.max(bounds.max.x-bounds.min.x,bounds.max.z-bounds.min.z,bounds.max.y-bounds.min.y,.001);
- for(let i=0;i<position.count;i++){
-  const x=(position.getX(i)-cx)*scale,y=(position.getY(i)-bounds.min.y)*scale,z=(position.getZ(i)-cz)*scale;
-  position.setXYZ(i,x,y,z);
+const rockColours=['#99715d','#927366','#76675e','#514d4b','#ad8970','#6b635d','#856d5b'];
+type RockShape='boulder'|'slab'|'gravel'|'monolith';
+function rockGeometry(shape:RockShape){
+ const geo=new T.IcosahedronGeometry(1,shape==='boulder'?2:shape==='gravel'?0:1);
+ const positions=geo.getAttribute('position') as T.BufferAttribute;
+ for(let i=0;i<positions.count;i++){
+  const x=positions.getX(i),y=positions.getY(i),z=positions.getZ(i);
+  // World-independent coherent damage keeps shared polygon vertices consistent.
+  const rough=noise3(x*2.7+17,y*3.1+2,z*2.9-8);
+  const fracture=noise3(x*5.3-4,y*4.2,z*4.9+13);
+  const radius=1+rough*.23+fracture*.095;
+  const yScale=shape==='slab'?.40:shape==='gravel'?.57:shape==='monolith'?1.18:.78;
+  const flattenedBottom=Math.max(-.64,y*radius*yScale);
+  positions.setXYZ(i,x*radius,flattenedBottom,z*radius);
  }
- position.needsUpdate=true;
- // Add mid-edge chiselling to the source mesh while retaining its unique shape.
- let result=mergeVertices(merged,1e-5);
- merged.dispose();
- const vertex=result.getAttribute('position') as T.BufferAttribute;
- const points=Array.from(vertex.array as ArrayLike<number>);
- const indices=result.index,faces:number[]=[],cache=new Map<string,number>();
- if(indices){
-  const middle=(a:number,b:number)=>{
-   const key=a<b?a+':'+b:b+':'+a;
-   const existing=cache.get(key);if(existing!==undefined)return existing;
-   const x=(points[a*3]+points[b*3])*.5;
-   const y=(points[a*3+1]+points[b*3+1])*.5;
-   const z=(points[a*3+2]+points[b*3+2])*.5;
-   const rough=noise3(x*11+seed*.03,y*13+seed*.01,z*9)*.018;
-   const normal=new T.Vector3(x,y,z).normalize().multiplyScalar(rough);
-   const next=points.length/3;
-   points.push(x+normal.x,y+normal.y,z+normal.z);
-   cache.set(key,next);return next;
-  };
-  for(let i=0;i<indices.count;i+=3){
-   const a=indices.getX(i),b=indices.getX(i+1),c=indices.getX(i+2);
-   const ab=middle(a,b),bc=middle(b,c),ca=middle(c,a);
-   faces.push(a,ab,ca,ab,b,bc,ca,bc,c,ab,bc,ca);
-  }
-  const expanded=new T.BufferGeometry();
-  expanded.setAttribute('position',new T.Float32BufferAttribute(points,3));
-  expanded.setIndex(faces);result.dispose();result=expanded;
- }
- result.computeVertexNormals();
- return result;
-}
-function rockMaterial(){
- const m=new T.MeshStandardMaterial({color:'#ffffff',roughness:.96,metalness:0});
- m.onBeforeCompile=shader=>{
-  shader.vertexShader='varying vec3 vRockShape;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvRockShape=position;');
-  shader.fragmentShader='varying vec3 vRockShape;\n'+shader.fragmentShader.replace('#include <color_fragment>',
-  '#include <color_fragment>\nfloat grain=fract(sin(dot(floor(vRockShape*63.),vec3(127.1,311.7,74.7)))*43758.5453)-.5;\nfloat chips=fract(sin(dot(floor(vRockShape*17.),vec3(39.346,11.135,83.155)))*28145.183)-.5;\ndiffuseColor.rgb*=1.+grain*.11+chips*.15;');
- };
- m.customProgramCacheKey=()=> 'mars-kenney-rocks-v1';
- return m;
+ positions.needsUpdate=true;
+ geo.computeVertexNormals();
+ return geo;
 }
 export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius}:{
  ground:(x:number,z:number)=>number;unit:number;clearance:number;count:number;lat:number;lon:number;landingRadius:number
 }){
- const loaded=useLoader(GLTFLoader,ROCK_PATHS);
- const shapes=useMemo(()=>loaded.map((g,i)=>rockGeometry(g.scene,121+i*13)),[loaded]);
- useEffect(()=>()=>shapes.forEach(geo=>geo.dispose()),[shapes]);
- const meshes=useMemo(()=>{
-  const random=randomFromSeed(marsSiteSeed(lat,lon)^0x7159b);
-  const craters=marsCraterField(lat,lon,landingRadius).filter(c=>Math.hypot(c.x,c.z)<1100);
-  const clusters=Array.from({length:23},()=>{
-   const a=random()*Math.PI*2,r=landingRadius+30+Math.pow(random(),.8)*610;
+ const population=useMemo(()=>{
+  const rand=randomFromSeed(marsSiteSeed(lat,lon)^0x7159b);
+  const craterRims=marsCraterField(lat,lon,landingRadius).filter(c=>Math.hypot(c.x,c.z)<850);
+  const outcropCenters=Array.from({length:25},()=>{
+   const a=rand()*Math.PI*2,r=landingRadius+28+Math.pow(rand(),1.2)*430;
    return {x:Math.cos(a)*r,z:Math.sin(a)*r};
   });
-  const proportions=[.11,.105,.10,.10,.10,.10,.02,.02,.17,.17];
-  return shapes.map((geometry,i)=>{
-   const giant=i===6||i===7,gravel=i>=8;
-   const total=giant?Math.max(7,Math.round(count*proportions[i]*.55)):
-    gravel?Math.max(450,Math.round(count*proportions[i]*2.8)):
-    Math.max(50,Math.round(count*proportions[i]));
-   const mesh=new T.InstancedMesh(geometry,rockMaterial(),total);
-   const dummy=new T.Object3D(),colour=new T.Color();
-   for(let j=0;j<total;j++){
-    const size=giant?6+Math.pow(random(),.85)*26:
-     gravel?.018+Math.pow(random(),2.1)*.23:.22+Math.pow(random(),2.2)*4;
-    const minRadius=Math.max(clearance+size*1.7,giant?landingRadius+135:landingRadius+2);
-    let x=0,z=0;
-    for(let attempt=0;attempt<15;attempt++){
-     const p=random();
-     if(giant){
-      const angle=random()*Math.PI*2,r=minRadius+random()*2200;
-      x=Math.cos(angle)*r;z=Math.sin(angle)*r;
-     }else if(p<.48){
-      const c=clusters[Math.floor(random()*clusters.length)];
-      const angle=random()*Math.PI*2,r=Math.sqrt(random())*(gravel?23:40);
-      x=c.x+Math.cos(angle)*r;z=c.z+Math.sin(angle)*r;
-     }else if(p<.70&&craters.length){
-      const c=craters[Math.floor(random()*craters.length)];
-      const angle=random()*Math.PI*2,r=c.radius*(.95+random()*.4);
-      x=c.x+Math.cos(angle)*r;z=c.z+Math.sin(angle)*r;
+  const boulderCount=Math.max(130,Math.round(count*.45));
+  const giantCount=Math.max(28,Math.round(count*.075));
+  const slabCount=Math.max(140,Math.round(count*.52));
+  const gravelCount=Math.max(1050,Math.round(count*2.2));
+  const makeMesh=(shape:RockShape,total:number)=>new T.InstancedMesh(
+   rockGeometry(shape),new T.MeshStandardMaterial({color:'#ffffff',roughness:1,metalness:0}),total
+  );
+  const boulders=makeMesh('boulder',boulderCount);
+  const giants=makeMesh('monolith',giantCount);
+  const slabs=makeMesh('slab',slabCount);
+  const gravel=makeMesh('gravel',gravelCount);
+  const dummy=new T.Object3D(),tint=new T.Color();
+  function place(mesh:T.InstancedMesh,total:number,shape:RockShape){
+   for(let i=0;i<total;i++){
+    let x=0,z=0,size=0;
+    size=shape==='monolith'?3.8+Math.pow(rand(),1.25)*25:shape==='boulder'?.2+Math.pow(rand(),2.35)*3.4:shape==='slab'?.12+Math.pow(rand(),2.2)*2.1:.009+Math.pow(rand(),2.1)*.11;
+    const minimumRadius=shape==='monolith'?Math.max(landingRadius+135,landingRadius+size*3.2):clearance+(shape==='gravel'?.45:size*1.6);
+    for(let attempt=0;attempt<12;attempt++){
+     const kind=rand();
+     if(shape==='monolith'){
+      const a=rand()*Math.PI*2,r=minimumRadius+18+Math.pow(rand(),.78)*1450;
+      x=Math.cos(a)*r;z=Math.sin(a)*r;
+     }else if(kind<.43){
+      const center=outcropCenters[Math.floor(rand()*outcropCenters.length)];
+      const a=rand()*Math.PI*2,r=Math.sqrt(rand())*(shape==='gravel'?17:29);
+      x=center.x+Math.cos(a)*r;z=center.z+Math.sin(a)*r;
+     }else if(kind<.68&&craterRims.length){
+      const crater=craterRims[Math.floor(rand()*craterRims.length)];
+      const a=rand()*Math.PI*2,r=crater.radius*(.95+rand()*.3);
+      x=crater.x+Math.cos(a)*r;z=crater.z+Math.sin(a)*r;
      }else{
-      const angle=random()*Math.PI*2,r=minRadius+Math.pow(random(),1.4)*(gravel?350:1100);
-      x=Math.cos(angle)*r;z=Math.sin(angle)*r;
+      const a=rand()*Math.PI*2,r=minimumRadius+2+Math.pow(rand(),1.65)*(shape==='gravel'?240:670);
+      x=Math.cos(a)*r;z=Math.sin(a)*r;
      }
-     if(Math.hypot(x,z)>minRadius)break;
+     if(Math.hypot(x,z)>minimumRadius)break;
     }
-    const height=size*(.78+random()*.52);
-    dummy.position.set(x*unit,ground(x,z)-height*.075*unit,z*unit);
-    dummy.rotation.set((random()-.5)*.18,random()*Math.PI*2,(random()-.5)*.18);
-    dummy.scale.set(size*(.75+random()*.55)*unit,height*unit,size*(.8+random()*.45)*unit);
-    dummy.updateMatrix();
-    mesh.setMatrixAt(j,dummy.matrix);
-    colour.set(COLOURS[Math.floor(random()*COLOURS.length)]).multiplyScalar(.82+random()*.3);
-    mesh.setColorAt(j,colour);
+    // Prevent an isolated oversize boulder from looking like a raised landing pad.
+    if(shape!=='gravel'&&Math.hypot(x,z)<landingRadius+7){
+     const a=Math.atan2(z,x),r=landingRadius+8+rand()*6;
+     x=Math.cos(a)*r;z=Math.sin(a)*r;
+    }
+    const flat=shape==='slab';
+    const tall=shape==='monolith'&&rand()<.25;
+    dummy.position.set(x*unit,ground(x,z)+(flat?.16:shape==='gravel'?.18:shape==='monolith'?.36:.27)*size*unit,z*unit);
+    dummy.rotation.set(flat?(rand()-.5)*.17:rand()*Math.PI,rand()*Math.PI*2,flat?(rand()-.5)*.17:rand()*Math.PI);
+    dummy.scale.set(size*(.78+rand()*.42)*unit,size*(tall?1.3+rand()*1.3:.72+rand()*.45)*unit,size*(.76+rand()*.5)*unit);
+    dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);
+    tint.set(rockColours[Math.floor(rand()*rockColours.length)]);
+    tint.multiplyScalar(.78+rand()*.24);
+    mesh.setColorAt(i,tint);
    }
    mesh.instanceMatrix.needsUpdate=true;
    if(mesh.instanceColor)mesh.instanceColor.needsUpdate=true;
-   mesh.castShadow=!gravel;mesh.receiveShadow=true;mesh.frustumCulled=false;
-   return mesh;
-  });
- },[shapes,ground,unit,clearance,count,lat,lon,landingRadius]);
- useEffect(()=>()=>meshes.forEach(mesh=>{(mesh.material as T.Material).dispose();mesh.dispose()}),[meshes]);
- return <group>{meshes.map((mesh,i)=><primitive key={i} object={mesh}/>)}</group>;
+   mesh.frustumCulled=false;
+  }
+  place(boulders,boulderCount,'boulder');
+  place(giants,giantCount,'monolith');
+  place(slabs,slabCount,'slab');
+  place(gravel,gravelCount,'gravel');
+  boulders.castShadow=true;boulders.receiveShadow=true;
+  giants.castShadow=true;giants.receiveShadow=true;
+  slabs.castShadow=true;slabs.receiveShadow=true;
+  gravel.castShadow=false;gravel.receiveShadow=true;
+  return {boulders,giants,slabs,gravel};
+ },[ground,unit,clearance,count,lat,lon,landingRadius]);
+ useEffect(()=>()=>{for(const mesh of [population.boulders,population.giants,population.slabs,population.gravel]){
+  mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();
+ }},[population]);
+ return <group><primitive object={population.boulders}/><primitive object={population.giants}/><primitive object={population.slabs}/><primitive object={population.gravel}/></group>;
 }
 function trackGeometry(ground:(x:number,z:number)=>number,unit:number,side:number){
  const vertices:number[]=[],indices:number[]=[],steps=88;
