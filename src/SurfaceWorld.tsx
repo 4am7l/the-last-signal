@@ -45,7 +45,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
  // Resolve the best available orbital imagery while still in overview, not
  // in the middle of a guided landing animation.
  const map=usePlanetTexture(m.body,true);
- const nasaPatch=useTrekPatch(m.body,m.lat,m.lon);
+ const nasaPatch=useTrekPatch(m.body,m.lat,m.lon,mode!=='overview');
  const nasaPatchFade=useMemo(()=>({value:0}),[m.id,m.body]);
  const height=useLoader(T.TextureLoader,'/moon-height.jpg');
  const landingRadius=useMemo(()=>marsLandingRadius(m.id,dimensions[m.model].span),[m.id,m.model]);
@@ -69,7 +69,11 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   const siteHeight=(rawHeight:number,distance:number)=>moon?rawHeight:
    T.MathUtils.lerp(base,rawHeight,T.MathUtils.smoothstep(distance,landingRadius,landingRadius+marsLandingTransition(m.id)));
   const detailAt=(x:number,z:number)=>{
-   const distance=Math.hypot(x,z),pad=Math.max(2,dimensions[m.model].span*.65);
+   const distance=Math.hypot(x,z);
+   // No visual displacement exists beyond these radii. Avoid thousands of
+   // noise evaluations on the far hemisphere during the initial render.
+   if(distance>(moon?4000:13500))return 0;
+   const pad=Math.max(2,dimensions[m.model].span*.65);
    const fade=T.MathUtils.smoothstep(distance,pad,pad+4)*(1-T.MathUtils.smoothstep(distance,800,1600));
    const soil=(noise3(x*1.8,3,z*1.8)*.055+noise3(x*.35,9,z*.35)*.16+noise3(x*.07,5,z*.07)*.32)*fade;
    if(moon){
@@ -110,14 +114,40 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   for(let j=0;j<=rings;j++){const a=ringAngle(j,nearRings,rings-nearRings,radiusMetres);
    for(let i=0;i<=sectors;i++){const b=i/sectors*Math.PI*2,n=new T.Vector3(Math.sin(a)*Math.cos(b),Math.cos(a),Math.sin(a)*Math.sin(b));const s=sample(n);
     // Local crater bowls and rims are illustrative and fade into the mapped globe.
-    const x=n.x*radiusMetres,z=n.z*radiusMetres,detail=detailAt(x,z)*(n.y>0?1:0);
+    const x=n.x*radiusMetres,z=n.z*radiusMetres,detail=n.y>0?detailAt(x,z):0;
     const h=siteHeight(s.h,Math.hypot(x,z));const p=n.multiplyScalar(R+h+detail*UNIT);p.y-=R+base;positions.push(p.x,p.y,p.z);uv.push(s.u,s.v);
     if(j<rings&&i<sectors){const k=j*(sectors+1)+i;indices.push(k,k+1,k+sectors+1,k+1,k+sectors+2,k+sectors+1)}
    }
   }
-  // Duplicate UV seam vertices per triangle so interpolation never crosses the map.
-  const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(indices);g.computeVertexNormals();const out=g.toNonIndexed();g.dispose();const uvs=out.attributes.uv;
-  for(let i=0;i<uvs.count;i+=3){const us=[uvs.getX(i),uvs.getX(i+1),uvs.getX(i+2)];if(Math.max(...us)-Math.min(...us)>.5)for(let k=0;k<3;k++)if(us[k]<.5)uvs.setX(i+k,us[k]+1)}
+  // Keep the indexed globe mesh: converting every triangle to three unique
+  // vertices used roughly 3x the vertex memory and upload bandwidth.
+  // Compute normals on shared vertices for smooth shading, then duplicate only
+  // seam-crossing triangles so the moon's equirectangular UV cannot wrap.
+  const working=new T.BufferGeometry();
+  working.setAttribute('position',new T.Float32BufferAttribute(positions,3));
+  working.setIndex(indices);
+  working.computeVertexNormals();
+  const sourceNormals=working.getAttribute('normal') as T.BufferAttribute;
+  const normals=Array.from(sourceNormals.array as Float32Array);
+  working.dispose();
+  const originalTriangles=indices.length;
+  for(let k=0;k<originalTriangles;k+=3){
+   const v0=indices[k],v1=indices[k+1],v2=indices[k+2];
+   const u0=uv[v0*2],u1=uv[v1*2],u2=uv[v2*2];
+   if(Math.max(u0,u1,u2)-Math.min(u0,u1,u2)<=.5)continue;
+   for(let corner=0;corner<3;corner++){
+    const vertex=indices[k+corner];
+    positions.push(positions[vertex*3],positions[vertex*3+1],positions[vertex*3+2]);
+    uv.push(uv[vertex*2]+(uv[vertex*2]<.5?1:0),uv[vertex*2+1]);
+    normals.push(normals[vertex*3],normals[vertex*3+1],normals[vertex*3+2]);
+    indices[k+corner]=positions.length/3-1;
+   }
+  }
+  const out=new T.BufferGeometry();
+  out.setAttribute('position',new T.Float32BufferAttribute(positions,3));
+  out.setAttribute('normal',new T.Float32BufferAttribute(normals,3));
+  out.setAttribute('uv',new T.Float32BufferAttribute(uv,2));
+  out.setIndex(indices);
   return {ground:(x:number,z:number)=>{const n=new T.Vector3(x*UNIT,R,z*UNIT).normalize();const h=siteHeight(sample(n).h,Math.hypot(x,z));return (R+h+detailAt(x,z)*UNIT)*n.y-R-base},rotation:q,geometry:out,center:new T.Vector3(0,-R-base,0),base};
  },[height,m.lat,m.lon,moon,radiusMetres,UNIT,m.body,m.model,preset,dem,marsReliefAt,landingRadius,m.id,coarsePointer,settings.quality]);
  useEffect(()=>()=>surface.geometry.dispose(),[surface]);
