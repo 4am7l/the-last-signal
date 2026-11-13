@@ -15,7 +15,7 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
   worker.onmessage=({data})=>{
    if(data.error){scene.userData.starSource='تعذّر تحميل HYG — خلفية فوتوغرافية فقط';return;}
    geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.BufferAttribute(data.position,3));geometry.setAttribute('magnitude',new T.BufferAttribute(data.magnitude,1));geometry.setAttribute('temperature',new T.BufferAttribute(data.temperature,1));setCatalog(geometry);
-   scene.userData.starSource='HYG v4.1 · '+data.count.toLocaleString()+' نجمة حقيقية + '+data.extra.toLocaleString()+' نجمة خلفية اصطناعية';
+   scene.userData.starSource='HYG v4.1 · '+data.count.toLocaleString()+' نجمة حقيقية · J2000';
   };
   worker.onerror=()=>{scene.userData.starSource='تعذّر تحميل HYG — خلفية فوتوغرافية فقط';};
   worker.postMessage({});
@@ -81,7 +81,7 @@ void main(){
   // Lift photographed faint star clouds, retain dark lanes and real colour variation.
   float luminance=dot(photograph,vec3(.2126,.7152,.0722));
   photograph=mix(vec3(luminance),photograph,1.12);
-  photograph=pow(max(photograph,vec3(0.)),vec3(.86))*2.05;
+  photograph=pow(max(photograph,vec3(0.)),vec3(.96))*1.35;
   // Restrained optical glow from the photograph's brightest features only.
   vec3 bloom=vec3(0.);
   bloom+=max(texture2D(panorama,uv+texel*vec2(3.,0.)).rgb-.24,0.);
@@ -107,16 +107,16 @@ void main(){
    <shaderMaterial toneMapped={false} transparent depthWrite={false} depthTest uniforms={uniforms}
     vertexShader={`uniform mat3 starRotation;uniform float pixelRatio;attribute float magnitude;attribute float temperature;varying float brightness;varying vec3 tint;
 void main(){vec3 direction=mat3(viewMatrix)*starRotation*position;vec4 p=projectionMatrix*vec4(direction,1.);gl_Position=vec4(p.xy,p.w,p.w);
-brightness=clamp(pow(10.,-.10*(magnitude-2.)),.18,1.);
-tint=temperature<5800.?mix(vec3(1.,.39,.13),vec3(1.,.97,.91),clamp((temperature-2500.)/3300.,0.,1.)):mix(vec3(1.,.97,.91),vec3(.63,.77,1.),clamp((temperature-5800.)/10000.,0.,1.));
-gl_PointSize=(2.2+brightness*6.8)*pixelRatio;}`}
+brightness=clamp(pow(10.,-.20*(magnitude-1.)),.012,1.);
+tint=temperature<5800.?mix(vec3(1.,.52,.27),vec3(1.,.97,.91),clamp((temperature-2500.)/3300.,0.,1.)):mix(vec3(1.,.97,.91),vec3(.63,.77,1.),clamp((temperature-5800.)/10000.,0.,1.));
+gl_PointSize=(.65+pow(brightness,.55)*5.5)*pixelRatio;}`}
     fragmentShader={`uniform float visibility;uniform float photoBlend;varying float brightness;varying vec3 tint;
 void main(){float r=length(gl_PointCoord-.5);
-float core=1.-smoothstep(.08,.30,r);
-float glow=exp(-r*r*19.)*.65;
-float alpha=clamp((core+glow)*(.45+.85*brightness)*visibility,0.,1.)*(1.-smoothstep(.40,.50,r));
-if(alpha<.012)discard;
-gl_FragDepth=1.;gl_FragColor=vec4(tint*(1.05+.6*brightness),alpha);
+float core=exp(-r*r*78.);
+float glow=exp(-r*r*17.)*.14*smoothstep(.22,.8,brightness);
+float alpha=(core+glow)*(.13+.87*brightness)*visibility*mix(.95,.8,photoBlend)*(1.-smoothstep(.42,.5,r));
+if(alpha<.004)discard;
+gl_FragDepth=1.;gl_FragColor=vec4(tint,alpha);
 #include <colorspace_fragment>
 }`}/>
   </points>}
