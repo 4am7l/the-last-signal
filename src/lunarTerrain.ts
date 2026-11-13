@@ -5,26 +5,41 @@ export const MARS_RADIUS_METRES = 3389500;
 export const MOON_RENDER_RADIUS = 300;
 export const METRES_TO_SCENE = MOON_RENDER_RADIUS / MOON_RADIUS_METRES;
 const smooth = (a:number,b:number,x:number) => {const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
-// Reproducible visual microterrain, NOT surveyed Apollo crater coordinates.
-export const craters=Array.from({length:34},(_,i)=>{
- const angle=i*2.399963229728653, distance=32+Math.pow(i/33,1.7)*1050;
- const radius=Math.min(3+(i*13%29)+distance*.025,(distance-24)/1.5);
+// Low mare basalt plains around Apollo 11, with small softened impact
+// craters and distant rolling regolith. This is illustrative microterrain,
+// not a metre-accurate Apollo site survey.
+import {noise3} from './sceneMath';
+export const craters=Array.from({length:28},(_,i)=>{
+ const angle=i*2.399963229728653+.25*Math.sin(i*1.7);
+ const distance=i<7?145+i*101:36+Math.pow((i-6)/22,1.18)*1010;
+ const radius=i<7?25+(i*19%62):4+(i*11%21);
  return {x:Math.cos(angle)*distance,z:Math.sin(angle)*distance,radius};
 });
 export function craterHeight(distance:number,radius:number){
  const u=distance/radius;
  if(u>=1.5)return 0;
- const bowl=u<1?-radius*.16*Math.pow(1-u*u,2):0;
- const rim=radius*.055*Math.exp(-Math.pow((u-1)/.14,2));
- return (bowl+rim)*(1-smooth(1.25,1.5,u));
+ const bowl=u<1?-radius*.085*Math.pow(1-u*u,2):0;
+ const rim=radius*.032*Math.exp(-Math.pow((u-1)/.22,2));
+ return (bowl+rim)*(1-smooth(1.28,1.5,u));
 }
+const moonNoiseOrigin=noise3(0,19,0),fineNoiseOrigin=noise3(0,37,0),ridgeOrigin=noise3(0,53,0);
 export function localRelief(x:number,z:number){
- const d=Math.hypot(x,z);if(d>=1600||d<=9)return 0;
- const broad=Math.sin(x*.008)*Math.cos(z*.011)*1.8;
- const grain=Math.sin(x*.23)*Math.cos(z*.29)*.1+Math.sin(x*.71+z*.49)*.035;
- let h=broad+grain;
- for(const crater of craters)h+=craterHeight(Math.hypot(x-crater.x,z-crater.z),crater.radius);
- return h*smooth(9,22,d)*(1-smooth(1200,1600,d));
+ const d=Math.hypot(x,z);
+ if(d>=1750||d<=5)return 0;
+ const pad=smooth(5,18,d),edge=1-smooth(1250,1750,d);
+ // Wide, broad shouldered rises, not pointed mountain cones.
+ const broad=(noise3(x*.006,19,z*.006)-moonNoiseOrigin)*2.35+
+  (noise3(x*.021,37,z*.021)-fineNoiseOrigin)*.51;
+ const ridge=(noise3(x*.0035,53,z*.0035)-ridgeOrigin)*4.2;
+ const shoulder=(Math.exp(-((x-215)**2/(2*180**2)+(z+110)**2/(2*260**2)))-
+  Math.exp(-((215)**2/(2*180**2)+(110)**2/(2*260**2))))*2.9;
+ const smallRubble=(noise3(x*.095,67,z*.095)-noise3(0,67,0))*.075;
+ let impacts=0;
+ for(const c of craters){
+  const dx=x-c.x,dz=z-c.z,range=c.radius*1.5;
+  if(Math.abs(dx)<range&&Math.abs(dz)<range)impacts+=craterHeight(Math.hypot(dx,dz),c.radius);
+ }
+ return (broad+ridge+shoulder+smallRubble+impacts)*pad*edge;
 }
 // Preserve fine rings at the equipment AND adequate coverage on the far hemisphere.
 export function ringAngle(index:number,nearRings=160,farRings=320,radiusMetres=MOON_RADIUS_METRES){
