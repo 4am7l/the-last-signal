@@ -7,9 +7,11 @@ export const PRESETS={
  ultra:{dpr:2,stars:100000,shadows:4096,rings:480,sectors:320,rocks:1200}
 } as const;
 export type Settings={date:string;quality:keyof typeof PRESETS;inspection:boolean;exposure:number;navigation:'orbit'|'walk'|'drone';speed:number;starCount:number};
-let state:Settings={date:new Date().toISOString().slice(0,10),quality:'ultra',inspection:true,exposure:1.05,navigation:'orbit',speed:1.5,starCount:100000};
+// Phones must not initialise with desktop-only 4K shadows, 2x DPR and 100K stars.
+const mobileDefault=typeof window!=='undefined'&&(window.matchMedia('(pointer: coarse)').matches||window.innerWidth<=850);
+let state:Settings={date:new Date().toISOString().slice(0,10),quality:mobileDefault?'medium':'ultra',inspection:true,exposure:1.05,navigation:'orbit',speed:1.5,starCount:mobileDefault?30000:100000};
 const listeners=new Set<()=>void>();
-export function configure(patch:Partial<Settings>){state={...state,...patch,quality:'ultra',starCount:100000};listeners.forEach(f=>f());}
+export function configure(patch:Partial<Settings>){state={...state,...patch};listeners.forEach(f=>f());}
 export function useSimulation(){return useSyncExternalStore(f=>{listeners.add(f);return()=>listeners.delete(f)},()=>state);}
 const cache=new Map<string,Ephemeris>();
 export function useEphemeris(date:string){
@@ -35,13 +37,13 @@ export function SimulationPanel(){
  return <details className="simulationPanel"><summary>المحاكاة والإضاءة</summary>
  <label>التاريخ الفلكي UTC<input type="date" min="1800-01-01" max="2050-12-31" value={settings.date} onChange={e=>{const v=e.target.value;if(v>='1800-01-01'&&v<='2050-12-31')configure({date:v})}}/></label>
  <small>{ephemeris.source==='JPL Horizons'?'المواقع: JPL Horizons':'المواقع تقريبية — خدمة JPL غير متصلة'}</small>
- <label>جودة الرسوم<select value={settings.quality} disabled>{Object.keys(PRESETS).map(p=><option key={p}>{p}</option>)}</select></label>
+ <label>جودة الرسوم<select value={settings.quality} onChange={e=>configure({quality:e.target.value as Settings['quality']})}>{Object.keys(PRESETS).map(p=><option key={p}>{p}</option>)}</select></label>
  <label>كثافة النجوم<input type="range" min="1000" max="100000" step="1000" value={settings.starCount} onChange={e=>configure({starCount:Number(e.target.value)})}/><output>{settings.starCount.toLocaleString()}</output></label>
  <label><input type="checkbox" checked={settings.inspection} onChange={e=>configure({inspection:e.target.checked})}/>إضاءة معاينة صناعية</label>
  <label>التعريض<input type="range" min=".2" max="2.5" step=".05" value={settings.exposure} onChange={e=>configure({exposure:Number(e.target.value)})}/></label>
  <label>الملاحة<select value={settings.navigation} onChange={e=>configure({navigation:e.target.value as Settings['navigation']})}><option value="orbit">مدار / معاينة</option><option value="walk">مشي قرب موقع المعدة</option><option value="drone">طيران حر قرب الموقع</option></select></label>
  <label>السرعة (م/ث)<input type="range" min=".5" max="12" step=".5" value={settings.speed} onChange={e=>configure({speed:Number(e.target.value)})}/><output>{settings.speed}</output></label>
- <small>بعد النزول: انقر المشهد لتفعيل الماوس، WASD للحركة، Shift للإسراع، Space للقفز، C للانحناء، E/Q لارتفاع الدرون. Esc لتحرير الماوس.</small>
+ <small>الكمبيوتر: انقر المشهد لتفعيل الماوس، WASD للحركة، Shift للإسراع، Space للقفز، E/Q لارتفاع الدرون. الجوال: استخدم أزرار الحركة واسحب بإصبع واحد لتوجيه الكاميرا.</small>
  <small>المشي محصور ضمن 200 م من الموقع. تفاصيل الأرض الصغيرة إعادة بناء بصرية.</small>
  <dl><dt>الأرض–المريخ</dt><dd dir="ltr">{separation.toLocaleString(undefined,{maximumFractionDigits:0})} km / {(separation/AU_KM).toFixed(3)} AU</dd><dt>الأرض–القمر</dt><dd dir="ltr">{distanceKm(ephemeris.earth,ephemeris.moon).toFixed(0)} km</dd><dt>الارتفاع المحلي</dt><dd>{stats.altitude?.toFixed(1)??'—'} m</dd><dt>أداء جهازك</dt><dd dir="ltr">{stats.fps?.toFixed(0)??'—'} FPS / {stats.frameMs?.toFixed(1)??'—'} ms</dd><dt>الرسم / الخامات</dt><dd>{stats.calls??'—'} / {stats.textures??'—'}</dd></dl>
  <small>{stats.terrain}</small><small>{stats.stars??'جارٍ تحميل الكتالوج النجمي'}</small>
