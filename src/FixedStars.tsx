@@ -82,7 +82,7 @@ void main(){
   // Lift photographed faint star clouds, retain dark lanes and real colour variation.
   float luminance=dot(photograph,vec3(.2126,.7152,.0722));
   photograph=mix(vec3(luminance),photograph,1.12);
-  photograph=pow(max(photograph,vec3(0.)),vec3(.94))*1.65;
+  photograph=pow(max(photograph,vec3(0.)),vec3(.86))*2.05;
   // Restrained optical glow from the photograph's brightest features only.
   vec3 bloom=vec3(0.);
   bloom+=max(texture2D(panorama,uv+texel*vec2(3.,0.)).rgb-.24,0.);
@@ -93,6 +93,13 @@ void main(){
   photograph=photograph/(vec3(1.)+photograph*.32);
   color=mix(color,photograph,photoBlend);
  }
+ // Subtle emission nebulae: procedural artistic accents, not catalogued sky objects.
+ vec3 nebulaDirection=normalize(vec3(-.38,.19,.91));
+ float nebulaAngle=acos(clamp(dot(d,nebulaDirection),-1.,1.));
+ float nebulaStructure=fbm(d*48.+vec3(4.,11.,2.));
+ float nebulaMask=exp(-nebulaAngle*nebulaAngle*65.)*smoothstep(.39,.69,nebulaStructure);
+ vec3 emission=mix(vec3(.13,.26,.48),vec3(.55,.17,.11),smoothstep(.43,.65,fbm(d*19.+7.)));
+ color+=emission*nebulaMask*.55;
  gl_FragDepth=1.;gl_FragColor=vec4(color,visibility);
  #include <colorspace_fragment>
 }`}/>
@@ -101,11 +108,11 @@ void main(){
    <shaderMaterial toneMapped={false} transparent depthWrite={false} depthTest uniforms={uniforms}
     vertexShader={`uniform mat3 starRotation;uniform float pixelRatio;attribute float magnitude;attribute float temperature;varying float brightness;varying vec3 tint;
 void main(){vec3 direction=mat3(viewMatrix)*starRotation*position;vec4 p=projectionMatrix*vec4(direction,1.);gl_Position=vec4(p.xy,p.w,p.w);
-brightness=clamp(pow(10.,-.14*(magnitude-2.)),.015,1.);
-tint=temperature<5800.?mix(vec3(1.,.57,.30),vec3(1.,.97,.91),clamp((temperature-2500.)/3300.,0.,1.)):mix(vec3(1.,.97,.91),vec3(.63,.77,1.),clamp((temperature-5800.)/10000.,0.,1.));
-gl_PointSize=(.8+brightness*4.2)*pixelRatio;}`}
+brightness=clamp(pow(10.,-.13*(magnitude-2.)),.035,1.);
+tint=temperature<5800.?mix(vec3(1.,.39,.13),vec3(1.,.97,.91),clamp((temperature-2500.)/3300.,0.,1.)):mix(vec3(1.,.97,.91),vec3(.63,.77,1.),clamp((temperature-5800.)/10000.,0.,1.));
+gl_PointSize=(1.1+brightness*4.8)*pixelRatio;}`}
     fragmentShader={`uniform float visibility;uniform float photoBlend;varying float brightness;varying vec3 tint;
-void main(){float r=length(gl_PointCoord-.5);float core=exp(-r*r*72.);float halo=exp(-r*r*13.)*.16*smoothstep(.4,.9,brightness);float alpha=(core+halo)*brightness*visibility*mix(.9,.48,photoBlend)*(1.-smoothstep(.4,.5,r));if(alpha<.002)discard;gl_FragDepth=1.;gl_FragColor=vec4(tint,alpha);
+void main(){float r=length(gl_PointCoord-.5);float core=exp(-r*r*72.);float halo=exp(-r*r*13.)*.23*smoothstep(.4,.9,brightness);float alpha=(core+halo)*brightness*visibility*mix(1.0,.78,photoBlend)*(1.-smoothstep(.4,.5,r));if(alpha<.002)discard;gl_FragDepth=1.;gl_FragColor=vec4(tint,alpha);
 #include <colorspace_fragment>
 }`}/>
   </points>}
