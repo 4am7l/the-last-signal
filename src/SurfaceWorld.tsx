@@ -336,7 +336,7 @@ normal=normalize(abs(detailDet)*normal-gradient+normal*1.e-20);
    if(nasaPatch){
     shader.uniforms.trekAtlas={value:nasaPatch.texture};
     shader.uniforms.trekRegion={value:nasaPatch.extent};
-    const geodeticUv=${moon?'"vUv"':'"marsUv"'}; 
+    const geodeticUv=moon?'vUv':'marsUv'; 
     const patchFragment=[
      'vec2 siteMapUv='+geodeticUv+';',
      'vec2 nasaUv=(siteMapUv-trekRegion.xy)/trekRegion.zw;',
@@ -349,10 +349,10 @@ normal=normalize(abs(detailDet)*normal-gradient+normal*1.e-20);
      ' // Use real local luminance and preserve the global NASA color palette.',
      ' diffuseColor.rgb*=mix(1.,clamp(.68+photoLuma*.65,.73,1.27),siteBlend*.83);',
      '}'
-    ].join('\\n');
-    shader.fragmentShader='uniform sampler2D trekAtlas;\\nuniform vec4 trekRegion;\\n'+
+    ].join('\n');
+    shader.fragmentShader='uniform sampler2D trekAtlas;\nuniform vec4 trekRegion;\n'+
      shader.fragmentShader.replace('#include <color_fragment>',
-      '#include <color_fragment>\\n'+patchFragment);
+      '#include <color_fragment>\n'+patchFragment);
    }
   };return mat;
  },[map,nasaPatch,unit,moon,centerY,rotation,landingRadius]);
