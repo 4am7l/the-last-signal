@@ -103,7 +103,7 @@ void main(){
 void main(){vec3 direction=mat3(viewMatrix)*starRotation*position;vec4 p=projectionMatrix*vec4(direction,1.);gl_Position=vec4(p.xy,p.w,p.w);
 brightness=clamp(pow(10.,-.14*(magnitude-2.)),.015,1.);
 tint=temperature<5800.?mix(vec3(1.,.57,.30),vec3(1.,.97,.91),clamp((temperature-2500.)/3300.,0.,1.)):mix(vec3(1.,.97,.91),vec3(.63,.77,1.),clamp((temperature-5800.)/10000.,0.,1.));
-gl_PointSize=(1.0+pow(brightness,.7)*4.9)*pixelRatio;}`}
+gl_PointSize=(1.15+pow(brightness,.7)*5.1)*pixelRatio;}`}
     fragmentShader={`uniform float visibility;uniform float photoBlend;varying float brightness;varying vec3 tint;
 void main(){float r=length(gl_PointCoord-.5);float core=exp(-r*r*72.);float halo=exp(-r*r*13.)*.16*smoothstep(.4,.9,brightness);float alpha=(core+halo)*brightness*visibility*mix(.95,.64,photoBlend)*(1.-smoothstep(.4,.5,r));if(alpha<.002)discard;gl_FragDepth=1.;gl_FragColor=vec4(tint,alpha);
 #include <colorspace_fragment>
