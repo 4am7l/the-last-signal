@@ -97,8 +97,8 @@ function lowestVertexAfterTransform(geometry:T.BufferGeometry,matrix:T.Matrix4){
  }
  return low;
 }
-export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius}:{
- ground:(x:number,z:number)=>number;unit:number;clearance:number;count:number;lat:number;lon:number;landingRadius:number
+export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,site}:{
+ ground:(x:number,z:number)=>number;unit:number;clearance:number;count:number;lat:number;lon:number;landingRadius:number;site:string
 }){
  const population=useMemo(()=>{
   const rand=randomFromSeed(marsSiteSeed(lat,lon)^0x7159b);
@@ -108,16 +108,17 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius}:{
    return {x:Math.cos(a)*r,z:Math.sin(a)*r};
   });
   const totals:Record<RockShape,number>={
-   // Keep imposing giant rocks, but stop packing them into a single pile.
-   monolith:Math.max(22,Math.round(count*.055)),
-   boulder:Math.max(190,Math.round(count*.47)),
-   slab:Math.max(260,Math.round(count*.62)),
+   // The huge isolated monoliths looked like floating fantasy rocks. Terrain
+   // itself now carries the cliffs; site-scale debris stays below human scale.
+   monolith:0,
+   boulder:Math.max(155,Math.round(count*.32)),
+   slab:Math.max(250,Math.round(count*.56)),
    gravel:Math.max(3600,Math.round(count*5.5))
   };
   const occupied:PlacedRock[]=[];
   const meshes:T.InstancedMesh[]=[];
   const dummy=new T.Object3D(),tint=new T.Color();
-  const types:RockShape[]=['monolith','boulder','slab','gravel'];
+  const types:RockShape[]=['boulder','slab','gravel'];
   for(const shape of types){
    const kinds=variants[shape],whole=totals[shape];
    const giant=shape==='monolith',small=shape==='gravel';
@@ -133,8 +134,8 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius}:{
     const mesh=new T.InstancedMesh(geometry,material,total);
     for(let i=0;i<total;i++){
      const size=giant?5+Math.pow(rand(),1.5)*24:
-      shape==='boulder'?.18+Math.pow(rand(),2.25)*4.1:
-      shape==='slab'?.10+Math.pow(rand(),2.2)*1.9:
+      shape==='boulder'?.15+Math.pow(rand(),2.25)*1.85:
+      shape==='slab'?.08+Math.pow(rand(),2.2)*.96:
       .023+Math.pow(rand(),2.25)*.24;
      const ysize=size*(giant?.72+rand()*.40:.72+rand()*.48);
      const scaleX=size*(.78+rand()*.40),scaleZ=size*(.78+rand()*.43);
@@ -171,7 +172,17 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius}:{
        const r=minDistance+Math.pow(rand(),1.28)*(shape==='boulder'?1250:780);
        x=Math.cos(a)*r;z=Math.sin(a)*r;
       }
-      if(Math.hypot(x,z)<minDistance)continue;
+      const radius=Math.hypot(x,z);
+      if(radius<minDistance)continue;
+      // No boulder taller than the rover beside the mission exhibit. Larger
+      // rocks belong to background outcrops rather than the walking area.
+      if(shape==='boulder'&&radius<landingRadius+110&&size>1.05)continue;
+      if(shape==='slab'&&radius<landingRadius+32&&size>.65)continue;
+      // InSight sits on an open plain, Spirit beside a rockier shoulder,
+      // Opportunity in Eagle crater, Ingenuity on a broken Jezero plain.
+      if(site==='insight'&&shape==='boulder'&&radius<landingRadius+85&&rand()<.58)continue;
+      if(site==='opportunity'&&shape==='boulder'&&radius<landingRadius+70&&rand()<.4)continue;
+      if(site==='ingenuity'&&shape==='slab'&&radius>landingRadius+130&&rand()<.3)continue;
       // A navigable dirt strip has no boulder-sized obstacles.
       const path=marsApproachMask(x,z,landingRadius);
       if(!small&&path>.025)continue;
@@ -208,7 +219,9 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius}:{
      const support=fit??{mean:ground(x,z),spread:0};
      // Embed the bottom 10–18% of the rock into local terrain, also accounting
      // for the mild slope across the entire footprint.
-     const burial=(giant?.17:small?.12:.13)*ysize*unit+support.spread*.30;
+     // Sink an irregular lower band into the regolith, not just one pointed
+     // vertex touching the surface. This avoids apparently hovering stones.
+     const burial=(giant?.17:small?.16:shape==='boulder'?.30:.24)*ysize*unit+support.spread*.32;
      dummy.position.set(x*unit,support.mean-lowest-burial,z*unit);
      dummy.updateMatrix();
      mesh.setMatrixAt(i,dummy.matrix);
@@ -224,7 +237,7 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius}:{
    }
   }
   return meshes;
- },[ground,unit,clearance,count,lat,lon,landingRadius]);
+ },[ground,unit,clearance,count,lat,lon,landingRadius,site]);
  useEffect(()=>()=>{for(const mesh of population){
   mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();
  }},[population]);
