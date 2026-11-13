@@ -19,8 +19,10 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
    scene.userData.starSource='HYG v4.1 · '+data.count.toLocaleString()+' نجمة كتالوجية متاحة · J2000';
   };
   worker.onerror=()=>{scene.userData.starSource='تعذّر تحميل HYG — خلفية فوتوغرافية فقط';};
-  worker.postMessage({});
-  return()=>{worker.terminate();geometry?.dispose();};
+  // The star catalogue is optional for first paint. Yield to the planetary
+  // renderer, then populate the same catalogue without changing its quality.
+  const launch=window.setTimeout(()=>worker.postMessage({}),350);
+  return()=>{window.clearTimeout(launch);worker.terminate();geometry?.dispose();};
  },[scene]);
  useEffect(()=>{catalog?.setDrawRange(0,Math.min(settings.starCount,catalog.attributes.position.count));},[catalog,settings.starCount]);
  const orientation=useMemo(()=>new T.Matrix4().makeRotationX(.02).multiply(new T.Matrix4().makeRotationZ(-.32)).multiply(new T.Matrix4().makeRotationY(Math.PI/2)),[]);
@@ -28,6 +30,7 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
  const uniforms=useMemo(()=>({skyRotation:{value:new T.Matrix3()},starRotation:{value:new T.Matrix3()},pixelRatio:{value:1},visibility:{value:1},panorama:{value:null as T.Texture|null},hasPanorama:{value:0},photoBlend:{value:0},texel:{value:new T.Vector2(1/6000,1/3000)}}),[]);
  useEffect(()=>{
   let alive=true;let loaded:T.Texture|undefined;
+  let upgradeTimer:ReturnType<typeof setTimeout>|undefined;
   const loader=new T.TextureLoader();
   const install=(texture:T.Texture)=>{
    if(!alive){texture.dispose();return;}
@@ -42,8 +45,14 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
    if(!alive)return;
    loader.load('https://cdn.eso.org/images/large/eso0932a.jpg',install,undefined,()=>{if(alive)loader.load(mirror,install,undefined,()=>{})});
   };
-  loader.load('https://cdn.eso.org/images/screen/eso0932a.jpg',texture=>{install(texture);upgrade()},undefined,upgrade);
-  return()=>{alive=false;loaded?.dispose();uniforms.panorama.value=null;uniforms.hasPanorama.value=0;uniforms.photoBlend.value=0};
+  // Show the lighter panorama first. Downloading/uploading the multi-
+  // megapixel version immediately competes with the planet and terrain.
+  const scheduleUpgrade=()=>{
+   if(!alive)return;
+   upgradeTimer=window.setTimeout(upgrade,1300);
+  };
+  loader.load('https://cdn.eso.org/images/screen/eso0932a.jpg',texture=>{install(texture);scheduleUpgrade()},undefined,scheduleUpgrade);
+  return()=>{alive=false;if(upgradeTimer!==undefined)window.clearTimeout(upgradeTimer);loaded?.dispose();uniforms.panorama.value=null;uniforms.hasPanorama.value=0;uniforms.photoBlend.value=0};
  },[uniforms,gl]);
  useFrame(({scene},dt)=>{
   const q=scene.userData.skyRotation as T.Quaternion|undefined;
