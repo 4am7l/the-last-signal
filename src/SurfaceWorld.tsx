@@ -16,7 +16,7 @@ import {dimensions} from './journey';
 import {SUN_DIRECTION,SCENE_SUN_DIRECTION} from './solar';
 import {marsRelief,mountains,surfaceDetail,noise3,cameraTuning,systemLayout,RADII_KM} from './sceneMath';
 import {Model,type Space} from './Space';
-import {createMarsRelief,marsLandingRadius} from './marsGeology';
+import {createMarsRelief,marsLandingRadius,marsLandingTransition} from './marsGeology';
 import {MarsRocks,MarsGroundMarks} from './MarsSurfaceDetails';
 import {MOON_RENDER_RADIUS as R,MOON_RADIUS_METRES,EARTH_RADIUS_METRES,MARS_RADIUS_METRES,localRelief,ringAngle} from './lunarTerrain';
 // Visual orbit preview: keeps the ephemeris position as the starting point.
@@ -58,13 +58,13 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   // interpolation bump. Blend the measured elevation back smoothly away
   // from the equipment without changing the global planetary terrain.
   const siteHeight=(rawHeight:number,distance:number)=>moon?rawHeight:
-   T.MathUtils.lerp(base,rawHeight,T.MathUtils.smoothstep(distance,landingRadius,landingRadius+(m.id==='insight'?45:28)));
+   T.MathUtils.lerp(base,rawHeight,T.MathUtils.smoothstep(distance,landingRadius,landingRadius+marsLandingTransition(m.id)));
   const detailAt=(x:number,z:number)=>{
    const distance=Math.hypot(x,z),pad=Math.max(2,dimensions[m.model].span*.65);
    const fade=T.MathUtils.smoothstep(distance,pad,pad+4)*(1-T.MathUtils.smoothstep(distance,800,1600));
    const soil=(noise3(x*1.8,3,z*1.8)*.055+noise3(x*.35,9,z*.35)*.16+noise3(x*.07,5,z*.07)*.32)*fade;
    if(moon)return surfaceDetail(x,z,'moon')+soil;
-   const nearBlend=T.MathUtils.smoothstep(distance,landingRadius,landingRadius+(m.id==='insight'?45:28));
+   const nearBlend=T.MathUtils.smoothstep(distance,landingRadius,landingRadius+marsLandingTransition(m.id));
    return marsReliefAt(x,z)+(surfaceDetail(x,z,'mars')*.31+soil*.30)*nearBlend;
   };
   const positions:number[]=[],uv:number[]=[],indices:number[]=[],rings=preset.rings,sectors=preset.sectors;
@@ -167,15 +167,15 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   const distance=camera.position.distanceTo(ctl.target),near=Math.max(.000005,Math.min(.1,distance/10000));if(camera.near!==near){camera.near=near;camera.updateProjectionMatrix()}
   if(pin.current){const facing=new T.Vector3(0,1,0).dot(camera.position.clone().normalize())>0;pin.current.style.display=mode==='overview'||earthFocus||nearSite||!facing?'none':'block';}
  });
- return <><SurfaceNavigation active={close&&!flight.current&&mode!=='story'} body={m.body} unit={UNIT} ground={surface.ground} center={surface.center} equipmentRadius={dimensions[m.model].span*.6}/><OrbitControls ref={controls} makeDefault enabled={settings.navigation==='orbit'||!close||!!flight.current} enableDamping dampingFactor={.085} rotateSpeed={coarsePointer?.65:.4} enablePan={close} screenSpacePanning={false} panSpeed={.4} minPolarAngle={.04} maxPolarAngle={close?Math.PI/2-.035:Math.PI-.02} minDistance={Math.max(1.2,dimensions[m.model].span*.85)*UNIT} maxDistance={14000} zoomSpeed={.6} onStart={()=>{if(flight.current){descentArmed.current=false;guided.current=flight.current.stage==='descent';}flight.current=null;}}/>{/* Uniform bounced light lifts the unlit terrain without introducing a second shadow direction. */}<ambientLight intensity={daylight*(moon?.26:.34)+night*(moon?.028:.045)} color={moon?'#c3d0e5':'#e6c6ae'}/><hemisphereLight args={[moon?'#c8d6ee':'#e9c6aa',moon?'#798295':'#9b7360',daylight*(moon?.14:.19)+night*.018]}/>{night>.001&&<directionalLight castShadow position={nightDirection.clone().multiplyScalar(350*UNIT)} color={moon?'#a8c5ee':'#b4c5dc'} intensity={night*(moon?.13:.095)} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-normalBias={.004*UNIT} shadow-bias={-.000015} shadow-radius={0}/>}<directionalLight castShadow position={localSun.clone().multiplyScalar(350*UNIT)} color={moon?'#fff8ee':'#fff0dc'} intensity={4.0*solarIrradiance(ephemeris[m.body])/1361} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-bias={-.000015} shadow-normalBias={.004*UNIT} shadow-radius={0}/><mesh geometry={surface.geometry} receiveShadow onClick={e=>{if(mode==='overview'&&e.delta<4){e.stopPropagation();onWorld(m.body)}}}><RegolithMaterial map={map} height={moon?height:undefined} unit={UNIT} moon={moon}/></mesh>{moon?<LunarRocks ground={surface.ground} unit={UNIT} moon={true} clearance={Math.max(2,dimensions[m.model].span*.7)} count={preset.rocks}/>:<><MarsRocks ground={surface.ground} unit={UNIT} clearance={Math.max(3,dimensions[m.model].span*.7)} count={preset.rocks} lat={m.lat} lon={m.lon} landingRadius={landingRadius}/><MarsGroundMarks ground={surface.ground} unit={UNIT} model={m.model} lat={m.lat} lon={m.lon}/></>}{!moon&&<group position={surface.center}><Atmosphere r={R} earth={false}/></group>}<group scale={UNIT}><Model name={m.model}/></group>{others.map(({body,position,radius})=><group key={body}>{body==='moon'&&m.body!=='moon'?<OrbitingMoon position={position} earthPosition={new T.Vector3(...layout.earth).applyMatrix4(frame.systemToLocal)} radius={radius} rotation={localRotation.clone().multiply(bodyOrientation(body,ephemeris.epoch))} onClick={()=>focusPlanet(body)}/>:<Planet body={body} r={radius} pos={position.toArray() as [number,number,number]} rotation={localRotation.clone().multiply(bodyOrientation(body,ephemeris.epoch))} click={()=>focusPlanet(body)}/>} {mode==='overview'&&<Html position={position.clone().add(new T.Vector3(0,radius+100,0))} center><button className="worldLabel" onClick={()=>focusPlanet(body)}>{body==='earth'?'الأرض':body==='moon'?'القمر':'المريخ'} ↗</button></Html>}</group>)}{mode==='overview'&&<Html position={[0,100,0]} center><button className="worldLabel" onClick={()=>onWorld(m.body)}>{moon?'القمر':'المريخ'} ↗</button></Html>}<Html position={[0,.5,0]} center><div ref={pin}><button className="sitePin" onClick={()=>onMission(missions.findIndex(item=>item.id===m.id))}>{m.name} · قرّب للوصول<small dir="ltr">{Math.abs(m.lat)}° {m.lat<0?'S':'N'} · {m.lon}° E</small></button></div></Html>{mode!=='overview'&&!earthFocus&&!close&&missions.map((item,i)=>item.body===m.body&&item.id!==m.id?<SitePin key={item.id} m={item} rotation={surface.rotation} selected={false} onClick={()=>onMission(i)}/>:null)}</>;
+ return <><SurfaceNavigation active={close&&!flight.current&&mode!=='story'} body={m.body} unit={UNIT} ground={surface.ground} center={surface.center} equipmentRadius={dimensions[m.model].span*.6}/><OrbitControls ref={controls} makeDefault enabled={settings.navigation==='orbit'||!close||!!flight.current} enableDamping dampingFactor={.085} rotateSpeed={coarsePointer?.65:.4} enablePan={close} screenSpacePanning={false} panSpeed={.4} minPolarAngle={.04} maxPolarAngle={close?Math.PI/2-.035:Math.PI-.02} minDistance={Math.max(1.2,dimensions[m.model].span*.85)*UNIT} maxDistance={14000} zoomSpeed={.6} onStart={()=>{if(flight.current){descentArmed.current=false;guided.current=flight.current.stage==='descent';}flight.current=null;}}/>{/* Uniform bounced light lifts the unlit terrain without introducing a second shadow direction. */}<ambientLight intensity={daylight*(moon?.26:.34)+night*(moon?.028:.045)} color={moon?'#c3d0e5':'#e6c6ae'}/><hemisphereLight args={[moon?'#c8d6ee':'#e9c6aa',moon?'#798295':'#9b7360',daylight*(moon?.14:.19)+night*.018]}/>{night>.001&&<directionalLight castShadow position={nightDirection.clone().multiplyScalar(350*UNIT)} color={moon?'#a8c5ee':'#b4c5dc'} intensity={night*(moon?.13:.095)} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-normalBias={.004*UNIT} shadow-bias={-.000015} shadow-radius={0}/>}<directionalLight castShadow position={localSun.clone().multiplyScalar(350*UNIT)} color={moon?'#fff8ee':'#fff0dc'} intensity={4.0*solarIrradiance(ephemeris[m.body])/1361} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-bias={-.000015} shadow-normalBias={.004*UNIT} shadow-radius={0}/><mesh geometry={surface.geometry} receiveShadow onClick={e=>{if(mode==='overview'&&e.delta<4){e.stopPropagation();onWorld(m.body)}}}><RegolithMaterial map={map} height={moon?height:undefined} unit={UNIT} moon={moon} centerY={surface.center.y}/></mesh>{moon?<LunarRocks ground={surface.ground} unit={UNIT} moon={true} clearance={Math.max(2,dimensions[m.model].span*.7)} count={preset.rocks}/>:<><MarsRocks ground={surface.ground} unit={UNIT} clearance={Math.max(3,dimensions[m.model].span*.7)} count={preset.rocks} lat={m.lat} lon={m.lon} landingRadius={landingRadius}/><MarsGroundMarks ground={surface.ground} unit={UNIT} model={m.model} lat={m.lat} lon={m.lon}/></>}{!moon&&<group position={surface.center}><Atmosphere r={R} earth={false}/></group>}<group scale={UNIT}><Model name={m.model}/></group>{others.map(({body,position,radius})=><group key={body}>{body==='moon'&&m.body!=='moon'?<OrbitingMoon position={position} earthPosition={new T.Vector3(...layout.earth).applyMatrix4(frame.systemToLocal)} radius={radius} rotation={localRotation.clone().multiply(bodyOrientation(body,ephemeris.epoch))} onClick={()=>focusPlanet(body)}/>:<Planet body={body} r={radius} pos={position.toArray() as [number,number,number]} rotation={localRotation.clone().multiply(bodyOrientation(body,ephemeris.epoch))} click={()=>focusPlanet(body)}/>} {mode==='overview'&&<Html position={position.clone().add(new T.Vector3(0,radius+100,0))} center><button className="worldLabel" onClick={()=>focusPlanet(body)}>{body==='earth'?'الأرض':body==='moon'?'القمر':'المريخ'} ↗</button></Html>}</group>)}{mode==='overview'&&<Html position={[0,100,0]} center><button className="worldLabel" onClick={()=>onWorld(m.body)}>{moon?'القمر':'المريخ'} ↗</button></Html>}<Html position={[0,.5,0]} center><div ref={pin}><button className="sitePin" onClick={()=>onMission(missions.findIndex(item=>item.id===m.id))}>{m.name} · قرّب للوصول<small dir="ltr">{Math.abs(m.lat)}° {m.lat<0?'S':'N'} · {m.lon}° E</small></button></div></Html>{mode!=='overview'&&!earthFocus&&!close&&missions.map((item,i)=>item.body===m.body&&item.id!==m.id?<SitePin key={item.id} m={item} rotation={surface.rotation} selected={false} onClick={()=>onMission(i)}/>:null)}</>;
 }
 
-function RegolithMaterial({map,height,unit,moon}:{map:T.Texture;height?:T.Texture;unit:number;moon:boolean}){
+function RegolithMaterial({map,height,unit,moon,centerY}:{map:T.Texture;height?:T.Texture;unit:number;moon:boolean;centerY:number}){
  const material=useMemo(()=>{
   const mat=new T.MeshStandardMaterial({map,bumpMap:height??null,bumpScale:.025,roughness:1});
   mat.onBeforeCompile=shader=>{
-   shader.vertexShader='varying vec3 lunarPosition;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nlunarPosition=position;');
-   shader.fragmentShader='varying vec3 lunarPosition;\nfloat lunarHash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123); }\nfloat soilNoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(lunarHash(i),lunarHash(i+vec2(1.,0.)),f.x),mix(lunarHash(i+vec2(0.,1.)),lunarHash(i+vec2(1.)),f.x),f.y);}\n'+shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
+   shader.vertexShader='varying vec3 lunarPosition;\n'+(moon?'':'varying vec3 marsFaceView;\nvarying vec3 marsRadialView;\n')+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nlunarPosition=position;'+(moon?'':`\nmarsFaceView=normalize(normalMatrix*normal);\nmarsRadialView=normalize(normalMatrix*normalize(position-vec3(0.,${centerY.toFixed(9)},0.)));`));
+   shader.fragmentShader='varying vec3 lunarPosition;\n'+(moon?'':'varying vec3 marsFaceView;\nvarying vec3 marsRadialView;\n')+'float lunarHash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123); }\nfloat soilNoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(lunarHash(i),lunarHash(i+vec2(1.,0.)),f.x),mix(lunarHash(i+vec2(0.,1.)),lunarHash(i+vec2(1.)),f.x),f.y);}\n'+shader.fragmentShader.replace('#include <color_fragment>',`#include <color_fragment>
 vec2 metres=lunarPosition.xz / ${unit.toFixed(12)};
 float footprint=max(length(dFdx(metres)),length(dFdy(metres)));
 float localFade=1.-smoothstep(40.,160.,footprint);
@@ -192,6 +192,18 @@ diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,
  diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.4,.24,.16),localFade*(.14+.16*marsDust));
  diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.19,.15,.14),localFade*basaltPatch*.24);
  diffuseColor.rgb*=1.+localFade*(windBands*.032*(1.-smoothstep(.1,.6,footprint))+finerSoil*.065*(1.-smoothstep(.05,.4,footprint)));
+ // Cliff and ridge surfaces expose darker fractured rock rather than dusty sand.
+ // Compare the actual geometry normal to the globe's outward radial normal.
+ float marsSlope=1.-abs(dot(normalize(marsFaceView),normalize(marsRadialView)));
+ float slopeRock=smoothstep(.055,.28,marsSlope);
+ float marsElevation=(length(lunarPosition-vec3(0.,${centerY.toFixed(9)},0.))-${R.toFixed(3)})/${unit.toFixed(12)};
+ float highRock=smoothstep(65.,260.,marsElevation);
+ float rockStrata=sin(marsElevation*.14+soilNoise(metres*.045+vec2(7.,-3.))*2.6);
+ float rockGrain=soilNoise(metres*.22+vec2(19.,4.))-.5;
+ vec3 rockColor=mix(vec3(.18,.15,.14),vec3(.39,.29,.23),clamp(.51+rockStrata*.19+rockGrain*.26,0.,1.));
+ float outcrop=clamp(max(slopeRock*.94,highRock*.68)+(soilNoise(metres*.024)-.5)*.18,0.,.95);
+ diffuseColor.rgb=mix(diffuseColor.rgb,rockColor,outcrop);
+ 
  `}
  `).replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>
 vec2 detailMetres=lunarPosition.xz / ${unit.toFixed(12)};
@@ -199,6 +211,12 @@ float detailFootprint=max(length(dFdx(detailMetres)),length(dFdy(detailMetres)))
 float relief=(soilNoise(detailMetres*48.)-.5)*${moon?'.006':'.0045'}*(1.-smoothstep(.008,.045,detailFootprint));
 relief+=(soilNoise(detailMetres*9.)-.5)*${moon?'.025':'.017'}*(1.-smoothstep(.04,.22,detailFootprint));
 relief+=(soilNoise(detailMetres*1.4)-.5)*${moon?'.065':'.043'}*(1.-smoothstep(.3,1.5,detailFootprint));
+ ${moon?'':`// Additional fractured normal relief on steep Martian rock faces.
+ float rockFace=1.-abs(dot(normalize(marsFaceView),normalize(marsRadialView)));
+ float fractureRelief=(soilNoise(detailMetres*.2+vec2(5.,7.))-.5)*.18+
+  (soilNoise(detailMetres*.9+vec2(11.,1.))-.5)*.06;
+ relief+=fractureRelief*smoothstep(.05,.28,rockFace)*(1.-smoothstep(1.5,12.,detailFootprint));`}
+ 
  ${moon?'':`relief+=sin(detailMetres.x*8.+detailMetres.y*2.2+soilNoise(detailMetres*.35)*1.7)*.0024*(1.-smoothstep(.06,.4,detailFootprint));`}
 vec3 sx=dFdx(-vViewPosition),sy=dFdy(-vViewPosition);
 vec3 rx=cross(sy,normal),ry=cross(normal,sx);
@@ -207,7 +225,7 @@ vec3 gradient=sign(detailDet)*(dFdx(relief)*rx+dFdy(relief)*ry)*${unit.toFixed(1
 normal=normalize(abs(detailDet)*normal-gradient+normal*1.e-20);
 `);
   };return mat;
- },[map,height,unit,moon]);
+ },[map,height,unit,moon,centerY]);
  useEffect(()=>()=>material.dispose(),[material]);return <primitive object={material} attach="material"/>;
 }
 function LunarRocks({ground,unit:UNIT,moon,clearance,count}:{ground:(x:number,z:number)=>number;unit:number;moon:boolean;clearance:number;count:number}){
