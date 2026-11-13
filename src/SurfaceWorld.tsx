@@ -191,7 +191,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
 function RegolithMaterial({map,height,unit,moon,centerY,rotation,landingRadius}:{map:T.Texture;height?:T.Texture;unit:number;moon:boolean;centerY:number;rotation:T.Quaternion;landingRadius:number}){
  const material=useMemo(()=>{
   const mat=new T.MeshStandardMaterial({map,bumpMap:height??null,bumpScale:.025,roughness:1});
-  mat.customProgramCacheKey=()=>moon?'moon-regolith-v2':('mars-regolith-site-v3-'+landingRadius.toFixed(2));
+  mat.customProgramCacheKey=()=>moon?'moon-regolith-apollo-v3':('mars-regolith-site-v3-'+landingRadius.toFixed(2));
   mat.onBeforeCompile=shader=>{
    if(!moon){
     shader.uniforms.marsCenterY={value:centerY};
@@ -216,6 +216,19 @@ float dust=soilNoise(metres*5.)-.5;
 // Replace its blurry magnified pixels with anti-aliased procedural regolith.
 diffuseColor.rgb=mix(diffuseColor.rgb,vec3(${moon?'.23,.225,.215':'.29,.18,.115'}),localFade*${moon?'.65':'.93'});
 diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,footprint))+dust*${moon?'.28':'.17'}*(1.-smoothstep(.2,2.,footprint))+strata*${moon?'.15':'.09'}*(1.-smoothstep(1.,8.,footprint)));
+ ${moon?`// Apollo 11: grey, powdery lunar regolith and sparse dark mare basalt.
+ // All the new detail is derived from metres near the landing site and
+ // antialiased by the screen-space footprint; the orbital map stays intact.
+ float mareBasalt=smoothstep(.62,.9,soilNoise(metres*.26+vec2(9.,7.)));
+ float lunarDust=soilNoise(metres*.82+vec2(-3.,17.));
+ vec3 ashDust=mix(vec3(.285,.281,.27),vec3(.41,.399,.379),lunarDust);
+ diffuseColor.rgb=mix(diffuseColor.rgb,ashDust,localFade*(.20+.16*lunarDust));
+ diffuseColor.rgb=mix(diffuseColor.rgb,vec3(.19,.19,.188),localFade*mareBasalt*.21);
+ float basaltFlecks=smoothstep(.75,.94,soilNoise(metres*11.2+vec2(7.,-11.)));
+ float lightGrit=smoothstep(.79,.95,soilNoise(metres*28.5+vec2(12.,3.)));
+ float grainFade=(1.-smoothstep(.035,.3,footprint))*localFade;
+ diffuseColor.rgb*=1.+grainFade*(lightGrit*.13-basaltFlecks*.15);
+ `:''}
  ${moon?'':`// Mars: red oxidised dust over darker exposed basalt, plus wind-carved sand bands.
  float marsDust=soilNoise(metres*.24+vec2(10.,-4.));
  float basaltPatch=smoothstep(.57,.87,soilNoise(metres*.13+vec2(6.,17.)));
@@ -269,6 +282,8 @@ vec2 detailMetres=lunarPosition.xz / ${unit.toFixed(12)};
 float detailFootprint=max(length(dFdx(detailMetres)),length(dFdy(detailMetres)));
 float relief=(soilNoise(detailMetres*48.)-.5)*${moon?'.006':'.0045'}*(1.-smoothstep(.008,.045,detailFootprint));
 relief+=(soilNoise(detailMetres*9.)-.5)*${moon?'.025':'.017'}*(1.-smoothstep(.04,.22,detailFootprint));
+ ${moon?`relief+=(soilNoise(detailMetres*27.+vec2(4.,-9.))-.5)*.007*(1.-smoothstep(.015,.09,detailFootprint));
+relief+=(soilNoise(detailMetres*3.3+vec2(8.,11.))-.5)*.025*(1.-smoothstep(.12,.55,detailFootprint));`:''}
  ${moon?'':`relief+=(soilNoise(detailMetres*24.+vec2(7.,9.))-.5)*.008*(1.-smoothstep(.018,.11,detailFootprint));
 relief+=(soilNoise(detailMetres*3.2+vec2(-5.,13.))-.5)*.037*(1.-smoothstep(.11,.65,detailFootprint));`}
 relief+=(soilNoise(detailMetres*1.4)-.5)*${moon?'.065':'.043'}*(1.-smoothstep(.3,1.5,detailFootprint));
