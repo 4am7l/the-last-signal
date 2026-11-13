@@ -1,13 +1,12 @@
 import {useMemo,useEffect,useState} from 'react';
 import {useFrame,useThree} from '@react-three/fiber';
 import * as T from 'three';
-import {useSimulation} from './simulation';
 
 // Photographic sky: ESO/S. Brunier, eso0932a (CC BY 4.0).
 // Photographic exposure/orientation is artistic; point stars use HYG J2000 coordinates.
 export function FixedStars({marsSurface}:{marsSurface:boolean}){
  const {gl}=useThree();
- const settings=useSimulation();
+
  const [catalog,setCatalog]=useState<T.BufferGeometry|null>(null);
  const {scene}=useThree();
  useEffect(()=>{
@@ -16,13 +15,13 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
   worker.onmessage=({data})=>{
    if(data.error){scene.userData.starSource='تعذّر تحميل HYG — خلفية فوتوغرافية فقط';return;}
    geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.BufferAttribute(data.position,3));geometry.setAttribute('magnitude',new T.BufferAttribute(data.magnitude,1));geometry.setAttribute('temperature',new T.BufferAttribute(data.temperature,1));setCatalog(geometry);
-   scene.userData.starSource='HYG v4.1 · '+data.count.toLocaleString()+' نجمة كتالوجية متاحة · J2000';
+   scene.userData.starSource='HYG v4.1 · '+data.count.toLocaleString()+' نجمة حقيقية + '+data.extra.toLocaleString()+' نجمة خلفية اصطناعية';
   };
   worker.onerror=()=>{scene.userData.starSource='تعذّر تحميل HYG — خلفية فوتوغرافية فقط';};
   worker.postMessage({});
   return()=>{worker.terminate();geometry?.dispose();};
  },[scene]);
- useEffect(()=>{catalog?.setDrawRange(0,Math.min(settings.starCount,catalog.attributes.position.count));},[catalog,settings.starCount]);
+ useEffect(()=>{catalog?.setDrawRange(0,catalog.attributes.position.count);},[catalog]);
  const orientation=useMemo(()=>new T.Matrix4().makeRotationX(.02).multiply(new T.Matrix4().makeRotationZ(-.32)).multiply(new T.Matrix4().makeRotationY(Math.PI/2)),[]);
  const rotationScratch=useMemo(()=>new T.Matrix4(),[]);
  const uniforms=useMemo(()=>({skyRotation:{value:new T.Matrix3()},starRotation:{value:new T.Matrix3()},pixelRatio:{value:1},visibility:{value:1},panorama:{value:null as T.Texture|null},hasPanorama:{value:0},photoBlend:{value:0},texel:{value:new T.Vector2(1/6000,1/3000)}}),[]);
@@ -108,11 +107,11 @@ void main(){
    <shaderMaterial toneMapped={false} transparent depthWrite={false} depthTest uniforms={uniforms}
     vertexShader={`uniform mat3 starRotation;uniform float pixelRatio;attribute float magnitude;attribute float temperature;varying float brightness;varying vec3 tint;
 void main(){vec3 direction=mat3(viewMatrix)*starRotation*position;vec4 p=projectionMatrix*vec4(direction,1.);gl_Position=vec4(p.xy,p.w,p.w);
-brightness=clamp(pow(10.,-.13*(magnitude-2.)),.035,1.);
+brightness=clamp(pow(10.,-.12*(magnitude-2.)),.075,1.);
 tint=temperature<5800.?mix(vec3(1.,.39,.13),vec3(1.,.97,.91),clamp((temperature-2500.)/3300.,0.,1.)):mix(vec3(1.,.97,.91),vec3(.63,.77,1.),clamp((temperature-5800.)/10000.,0.,1.));
-gl_PointSize=(1.1+brightness*4.8)*pixelRatio;}`}
+gl_PointSize=(1.2+brightness*4.8)*pixelRatio;}`}
     fragmentShader={`uniform float visibility;uniform float photoBlend;varying float brightness;varying vec3 tint;
-void main(){float r=length(gl_PointCoord-.5);float core=exp(-r*r*72.);float halo=exp(-r*r*13.)*.23*smoothstep(.4,.9,brightness);float alpha=(core+halo)*brightness*visibility*mix(1.0,.78,photoBlend)*(1.-smoothstep(.4,.5,r));if(alpha<.002)discard;gl_FragDepth=1.;gl_FragColor=vec4(tint,alpha);
+void main(){float r=length(gl_PointCoord-.5);float core=exp(-r*r*72.);float halo=exp(-r*r*13.)*.23*smoothstep(.4,.9,brightness);float alpha=(core+halo)*brightness*visibility*mix(1.0,.9,photoBlend)*(1.-smoothstep(.4,.5,r));if(alpha<.002)discard;gl_FragDepth=1.;gl_FragColor=vec4(tint,alpha);
 #include <colorspace_fragment>
 }`}/>
   </points>}
