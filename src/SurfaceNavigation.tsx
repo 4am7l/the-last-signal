@@ -23,9 +23,27 @@ export function SurfaceNavigation({active,body,unit,ground,center,equipmentRadiu
   const up=(e:KeyboardEvent)=>keys.current.delete(e.code);
   const clear=()=>keys.current.clear();
   const move=(e:MouseEvent)=>{if(document.pointerLockElement===gl.domElement){angles.current.yaw-=e.movementX*.002;angles.current.pitch=T.MathUtils.clamp(angles.current.pitch-e.movementY*.002,-1.48,1.48)}};
-  const lock=()=>{if(document.pointerLockElement!==gl.domElement)gl.domElement.requestPointerLock()?.catch(()=>{})};
-  gl.domElement.addEventListener('click',lock);window.addEventListener('keydown',down);window.addEventListener('keyup',up);window.addEventListener('mousemove',move);window.addEventListener('blur',clear);document.addEventListener('pointerlockchange',clear);
-  return()=>{keys.current.clear();gl.domElement.removeEventListener('click',lock);window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('mousemove',move);window.removeEventListener('blur',clear);document.removeEventListener('pointerlockchange',clear);if(document.pointerLockElement===gl.domElement)document.exitPointerLock();
+  const lock=()=>{if(!window.matchMedia('(pointer:coarse)').matches&&document.pointerLockElement!==gl.domElement)gl.domElement.requestPointerLock()?.catch(()=>{})};
+  // Touch devices cannot use pointer lock. Dragging the actual 3D canvas looks around,
+  // while the on-screen movement pad emits the same key codes as the desktop controls.
+  const touch= {id:-1,x:0,y:0};
+  const touchDown=(e:PointerEvent)=>{if(e.pointerType!=='touch'||touch.id!==-1)return;touch.id=e.pointerId;touch.x=e.clientX;touch.y=e.clientY;};
+  const touchMove=(e:PointerEvent)=>{
+   if(e.pointerId!==touch.id)return;
+   e.preventDefault();
+   const dx=e.clientX-touch.x,dy=e.clientY-touch.y;
+   touch.x=e.clientX;touch.y=e.clientY;
+   angles.current.yaw-=dx*.0034;
+   angles.current.pitch=T.MathUtils.clamp(angles.current.pitch-dy*.0034,-1.48,1.48);
+  };
+  const touchEnd=(e:PointerEvent)=>{if(e.pointerId===touch.id)touch.id=-1};
+  const mobileKeys=(e:Event)=>{const data=(e as CustomEvent<{code:string;pressed:boolean}>).detail;if(!data)return;if(data.pressed)keys.current.add(data.code);else keys.current.delete(data.code)};
+  const invisible=()=>{keys.current.clear();touch.id=-1};
+  gl.domElement.addEventListener('click',lock);gl.domElement.addEventListener('pointerdown',touchDown);gl.domElement.addEventListener('pointermove',touchMove,{passive:false});gl.domElement.addEventListener('pointerup',touchEnd);gl.domElement.addEventListener('pointercancel',touchEnd);
+  window.addEventListener('mobile-navigation',mobileKeys);document.addEventListener('visibilitychange',invisible);
+  window.addEventListener('keydown',down);window.addEventListener('keyup',up);window.addEventListener('mousemove',move);window.addEventListener('blur',clear);document.addEventListener('pointerlockchange',clear);
+  return()=>{keys.current.clear();gl.domElement.removeEventListener('click',lock);gl.domElement.removeEventListener('pointerdown',touchDown);gl.domElement.removeEventListener('pointermove',touchMove);gl.domElement.removeEventListener('pointerup',touchEnd);gl.domElement.removeEventListener('pointercancel',touchEnd);
+   window.removeEventListener('mobile-navigation',mobileKeys);document.removeEventListener('visibilitychange',invisible);window.removeEventListener('keydown',down);window.removeEventListener('keyup',up);window.removeEventListener('mousemove',move);window.removeEventListener('blur',clear);document.removeEventListener('pointerlockchange',clear);if(document.pointerLockElement===gl.domElement)document.exitPointerLock();
    const ctl=controls as unknown as {target?:T.Vector3;update?:()=>void};
    ctl?.target?.copy(camera.position).add(camera.getWorldDirection(new T.Vector3()).multiplyScalar(5*unit));ctl?.update?.();
   };
