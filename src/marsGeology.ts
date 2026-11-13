@@ -45,7 +45,8 @@ export function marsCraterField(lat:number,lon:number,landingRadius:number):Mars
  return Array.from({length:62},()=>{
   const radius=5+Math.pow(random(),1.65)*125;
   const angle=random()*Math.PI*2;
-  const distance=landingRadius+85+radius*1.6+Math.pow(random(),1.15)*3300;
+  // Keep impact bowls away from equipment and the nearby walking landscape.
+  const distance=landingRadius+470+radius*1.7+Math.pow(random(),1.15)*3200;
   return {x:Math.cos(angle)*distance,z:Math.sin(angle)*distance,radius};
  });
 }
@@ -71,13 +72,31 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
    width:45+random()*125,length:500+random()*1700,depth:45+random()*170,phase:random()*6};
  });
  const centerNoise=noise3(offsetX*.001,11,offsetZ*.001)*42+noise3(offsetX*.003,17,offsetZ*.003)*11;
+ // Low, continuous undulations around the equipment. Seeded offset keeps the
+ // horizon different at each site. Subtract the centre noise so every lander
+ // remains seated exactly on its terrain (no isolated pedestal or crater).
+ const localSlowCenter=noise3(offsetX*.012,73,offsetZ*.012);
+ const localFineCenter=noise3(offsetX*.035,91,offsetZ*.035);
  return (x:number,z:number)=>{
   const distance=Math.hypot(x,z);
   if(distance>13500)return 0;
   const landing=smooth(landingRadius,landingRadius+marsLandingTransition(site),distance);
   const falloff=1-smooth(7900,12800,distance);
-  if(landing<=0||falloff<=0)return 0;
+  if(falloff<=0)return 0;
   const x0=x+offsetX,z0=z+offsetZ;
+  // Gentle, irregular high ground at the landing site: surrounding soil dips
+  // by about a metre over hundreds of metres instead of a visible crater or
+  // a lone steep cone. The adjacent terrain continues with rolling relief.
+  const lobeDistance=Math.hypot(x*.91+z*.09,z*1.09-x*.055);
+  const lowShoulder=-1.15*smooth(18,255,lobeDistance)*
+   (1-smooth(410,790,lobeDistance));
+  const rolling=
+   (noise3(x0*.012,73,z0*.012)-localSlowCenter)*2.3+
+   (noise3(x0*.035,91,z0*.035)-localFineCenter)*.42;
+  const nearGround=(lowShoulder+rolling)*(1-smooth(630,1050,distance));
+  // The severe mesa / ridge field should grow gradually in the distance,
+  // not form an artificial wall immediately around a level landing platform.
+  const ruggedness=smooth(180,590,distance);
   const broad=noise3(x0*.001,11,z0*.001)*42+noise3(x0*.003,17,z0*.003)*11-centerNoise;
   const warped=noise3(x0*.0019,29,z0*.0019)*72;
   const ridged=Math.pow(1-Math.abs(noise3((x0+warped)*.005,41,(z0-warped)*.005)),2.2)*55;
@@ -127,6 +146,7 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
    const rim=.054*crater.radius*Math.exp(-Math.pow((u-1)/.16,2));
    impacts+=(bowl+rim)*(1-smooth(1.27,1.55,u));
   }
-  return (broad+ridged+cliffs+canyons+dunes+ripples+impacts)*landing*falloff;
+  return (nearGround+(broad+ridged+cliffs+canyons)*ruggedness*landing+
+   (dunes+ripples)*landing+impacts)*falloff;
  };
 }
