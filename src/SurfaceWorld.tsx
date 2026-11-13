@@ -92,7 +92,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
  const nightDirection=useMemo(()=>new T.Vector3(-.35,.82,.45).normalize(),[]);
  const flight=useRef<{from:T.Vector3;target:T.Vector3;to:T.Vector3;look:T.Vector3;t:number;stage:'overview'|'orbit'|'align'|'descent'}|null>(null),guided=useRef(false);
  const descentArmed=useRef(true);
- const previousDistance=useRef(Infinity),sky=useMemo(()=>new T.Color('#03060c'),[]),dust=useMemo(()=>new T.Color('#8b6955'),[]);
+ const previousDistance=useRef(Infinity),sky=useMemo(()=>new T.Color('#03060c'),[]),dust=useMemo(()=>new T.Color('#8b6955'),[]),marsDaySky=useMemo(()=>new T.Color('#a17c69'),[]),marsTwilight=useMemo(()=>new T.Color('#74616b'),[]),marsNightSky=useMemo(()=>new T.Color('#111522'),[]),marsFog=useMemo(()=>new T.Color(),[]);
  useEffect(()=>{
   const ctl=controls.current;if(!ctl)return;setEarthFocus(false);
   camera.up.transformDirection(previousFrame.current).transformDirection(frame.systemToLocal);
@@ -145,7 +145,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   const daylight=T.MathUtils.smoothstep(localSun.y,-.15,.25);
   const nearGround=1-T.MathUtils.smoothstep(altitude,2000*UNIT,20000*UNIT);
   scene.userData.skyVisibility=moon?1-nearGround*daylight*.72:1;
-  if(!moon&&mode!=='overview'&&!earthFocus){const haze=1-T.MathUtils.smoothstep(altitude,3000*UNIT,18000*UNIT);scene.userData.skyVisibility=1-haze*(.55+.45*daylight);if(scene.background instanceof T.Color)scene.background.copy(sky).lerp(dust,haze);if(haze>.01){if(!(scene.fog instanceof T.FogExp2))scene.fog=new T.FogExp2(dust,0);(scene.fog as T.FogExp2).density=haze/(9000*UNIT)}else scene.fog=null}else{scene.fog=null;if(scene.background instanceof T.Color)scene.background.copy(sky)}
+  if(!moon&&mode!=='overview'&&!earthFocus){const haze=1-T.MathUtils.smoothstep(altitude,3000*UNIT,18000*UNIT);const sunHeight=T.MathUtils.clamp(localSun.y,-1,1);const dusk=1-T.MathUtils.smoothstep(sunHeight,-.12,.22);const darkness=1-T.MathUtils.smoothstep(sunHeight,-.26,-.06);marsFog.copy(marsDaySky).lerp(marsTwilight,dusk).lerp(marsNightSky,darkness);const skyHaze=haze*(.3+.7*daylight);scene.userData.skyVisibility=1-skyHaze*.92;if(scene.background instanceof T.Color)scene.background.copy(sky).lerp(marsFog,skyHaze);if(haze>.01){if(!(scene.fog instanceof T.FogExp2))scene.fog=new T.FogExp2(marsFog,0);(scene.fog as T.FogExp2).color.copy(marsFog);(scene.fog as T.FogExp2).density=haze*(.45+.55*daylight)/(14000*UNIT)}else scene.fog=null}else{scene.fog=null;if(scene.background instanceof T.Color)scene.background.copy(sky)}
   if(close&&!flight.current){const limit=250*UNIT;ctl.target.x=T.MathUtils.clamp(ctl.target.x,-limit,limit);ctl.target.z=T.MathUtils.clamp(ctl.target.z,-limit,limit);ctl.target.y=Math.max(ctl.target.y,surface.ground(ctl.target.x/UNIT,ctl.target.z/UNIT)+.25*UNIT);}
   const tuning=cameraTuning(altitude,R,guided.current);
   ctl.rotateSpeed=mode==='overview'||earthFocus?.55:tuning.rotate;ctl.zoomSpeed=mode==='overview'||earthFocus?.8:tuning.zoom;ctl.panSpeed=mode==='overview'||earthFocus?.5:tuning.pan;
