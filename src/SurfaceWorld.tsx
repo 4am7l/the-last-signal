@@ -44,7 +44,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
  const height=useLoader(T.TextureLoader,'/moon-height.jpg');
  // Distant globe must use a regular, seam-safe equirectangular sphere; the
  // landing-site ring mesh is only for close surface exploration.
- const globeGeometry=useMemo(()=>new T.SphereGeometry(R,192,128),[]);
+ const globeGeometry=useMemo(()=>new T.SphereGeometry(R,256,192),[]);
  useEffect(()=>()=>globeGeometry.dispose(),[globeGeometry]);
  const landingRadius=useMemo(()=>marsLandingRadius(m.id,dimensions[m.model].span),[m.id,m.model]);
  const marsReliefAt=useMemo(()=>createMarsRelief(m.lat,m.lon,landingRadius,m.id),[m.lat,m.lon,landingRadius,m.id]);
@@ -209,7 +209,9 @@ float localFade=1.-smoothstep(40.,160.,footprint);
 float grain=soilNoise(metres*48.)-.5;
 float strata=(soilNoise(metres*.7)-.5)*2.;
 float dust=soilNoise(metres*5.)-.5;
-diffuseColor.rgb=mix(diffuseColor.rgb,vec3(${moon?'.23,.225,.215':'.29,.18,.115'}),localFade*.65);
+// At close range NASA's global 1440px mosaic has too little spatial detail.
+// Replace its blurry magnified pixels with anti-aliased procedural regolith.
+diffuseColor.rgb=mix(diffuseColor.rgb,vec3(${moon?'.23,.225,.215':'.29,.18,.115'}),localFade*${moon?'.65':'.93'});
 diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,footprint))+dust*${moon?'.28':'.17'}*(1.-smoothstep(.2,2.,footprint))+strata*${moon?'.15':'.09'}*(1.-smoothstep(1.,8.,footprint)));
  ${moon?'':`// Mars: red oxidised dust over darker exposed basalt, plus wind-carved sand bands.
  float marsDust=soilNoise(metres*.24+vec2(10.,-4.));
