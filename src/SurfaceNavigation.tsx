@@ -59,7 +59,9 @@ export function SurfaceNavigation({active,body,unit,ground,center,equipmentRadiu
   velocity.current.lerp(motion,1-Math.exp(-dt*10));
   const before=camera.position.clone(),candidate=before.clone().addScaledVector(velocity.current,dt*unit);
   const mx=candidate.x/unit,mz=candidate.z/unit;
-  const blocked=Math.hypot(mx,mz)>200||Math.hypot(mx,mz)<equipmentRadius+.35||rocks.some(r=>r.r>.12&&Math.hypot(mx-r.x,mz-r.z)<r.r+.3);
+  // The old synthetic collider field did not match the rendered Mars rocks.
+  // Let the clear approach work without invisible blockers; retain lunar collision checks.
+  const blocked=Math.hypot(mx,mz)>200||Math.hypot(mx,mz)<equipmentRadius+.35||(body==='moon'&&rocks.some(r=>r.r>.12&&Math.hypot(mx-r.x,mz-r.z)<r.r+.3));
   const oldFloor=ground(before.x/unit,before.z/unit),floor=ground(mx,mz);
   const horizontal=Math.hypot(candidate.x-before.x,candidate.z-before.z);
   if(!blocked&&(!walk||floor-oldFloor<Math.max(.25*unit,horizontal*.7))){camera.position.x=candidate.x;camera.position.z=candidate.z;}
