@@ -12,7 +12,7 @@ import {SCENE_SUN_DIRECTION,solarShader,type Occluder} from './solar';
 // Equirectangular maps: Greenwich at u=.5, east-positive longitude.
 export function point(lat:number,lon:number,r=300){const a=T.MathUtils.degToRad(lat),b=T.MathUtils.degToRad(lon);return new T.Vector3(r*Math.cos(a)*Math.cos(b),r*Math.sin(a),-r*Math.cos(a)*Math.sin(b))}
 export function Atmosphere({r,earth}:{r:number;earth:boolean}){
- const uniforms=useMemo(()=>({tint:{value:new T.Color(earth?'#3189ff':'#bf7953')},sunDirection:{value:SCENE_SUN_DIRECTION},strength:{value:earth?.8:.24}}),[earth]);
+ const uniforms=useMemo(()=>({tint:{value:new T.Color(earth?'#3189ff':'#bf7953')},sunDirection:{value:SCENE_SUN_DIRECTION},strength:{value:earth?1.35:.24}}),[earth]);
  const vertexShader=`
  #include <common>
  #include <logdepthbuf_pars_vertex>
@@ -29,17 +29,17 @@ export function Atmosphere({r,earth}:{r:number;earth:boolean}){
  #include <logdepthbuf_fragment>
  vec3 n=normalize(worldNormal);float facing=abs(dot(n,normalize(worldView)));
  float daylight=smoothstep(-.22,.35,dot(n,sunDirection));
- float rim=pow(1.-facing,3.);float alpha=rim*strength*(.035+.965*daylight);
+ float rim=pow(1.-facing,2.2);float twilight=smoothstep(-.28,.12,dot(n,sunDirection));float alpha=rim*strength*(.012+.988*twilight);
  gl_FragColor=vec4(tint,alpha);
  #include <tonemapping_fragment>
  #include <colorspace_fragment>
  }`;
- return <group>{(earth?[{scale:1+100/6371,side:T.BackSide},{scale:1.0015,side:T.FrontSide}]:[{scale:1.018,side:T.BackSide}]).map((layer,i)=><mesh key={i} scale={layer.scale} renderOrder={2}><sphereGeometry args={[r,96,64]}/><shaderMaterial transparent depthWrite={false} side={layer.side} uniforms={uniforms} vertexShader={vertexShader} fragmentShader={fragmentShader}/></mesh>)}</group>;
+ return <group>{(earth?[{scale:1+100/6371,side:T.BackSide},{scale:1+35/6371,side:T.FrontSide}]:[{scale:1.018,side:T.BackSide}]).map((layer,i)=><mesh key={i} scale={layer.scale} renderOrder={2}><sphereGeometry args={[r,96,64]}/><shaderMaterial transparent depthWrite={false} side={layer.side} uniforms={uniforms} vertexShader={vertexShader} fragmentShader={fragmentShader}/></mesh>)}</group>;
 }
 function Clouds({r}:{r:number}){
  const texture=useLoader(T.TextureLoader,'/earth-clouds.png');
  useEffect(()=>{texture.colorSpace=T.SRGBColorSpace;texture.needsUpdate=true},[texture]);
- return <mesh><sphereGeometry args={[r*1.0016,96,64]}/><meshStandardMaterial map={texture} transparent opacity={.83} depthWrite={false} roughness={1}/></mesh>;
+ return <mesh><sphereGeometry args={[r*(1+12/6371),128,96]}/><meshStandardMaterial map={texture} transparent opacity={.9} depthWrite={false} roughness={1} polygonOffset polygonOffsetFactor={-1}/></mesh>;
 }
 function EarthSurface({occluders}:{occluders:Occluder[]}){
  const map=usePlanetTexture('earth');const clouds=useLoader(T.TextureLoader,'/earth-clouds.png');
