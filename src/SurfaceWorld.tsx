@@ -257,7 +257,12 @@ function RegolithMaterial({map,height,unit,moon,centerY,rotation,landingRadius,t
 #endif`).replace('#include <color_fragment>',`#include <color_fragment>
 vec2 metres=lunarPosition.xz / ${unit.toFixed(12)};
 float footprint=max(length(dFdx(metres)),length(dFdy(metres)));
-float localFade=1.-smoothstep(28.,130.,footprint);
+// Crossfade the NASA global albedo into physical-looking local regolith before
+// the map texels become visible as oversized squares. The transition follows
+// actual descent altitude, while derivative filtering avoids distant glitter.
+float pixelDetail=1.-smoothstep(28.,130.,footprint);
+float descentDetail=smoothstep(.10,.79,surfaceBlend)*.98;
+float localFade=max(pixelDetail,descentDetail);
 float grain=soilNoise(metres*48.)-.5;
 float strata=(soilNoise(metres*.7)-.5)*2.;
 float dust=soilNoise(metres*5.)-.5;
