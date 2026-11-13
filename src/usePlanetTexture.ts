@@ -12,9 +12,15 @@ export function usePlanetTexture(body:string,detail=true){
   // asynchronously swap to a differently colour-graded 8K map mid-flight.
   if(body==='mars'||!detail||!urls[body]||gl.capabilities.maxTextureSize<8192)return;
   let alive=true;
-  if(!cache.has(body))cache.set(body,new T.TextureLoader().loadAsync('https://www.solarsystemscope.com/textures/download/'+urls[body]));
-  cache.get(body)!.then(t=>{if(alive)setHigh({body,map:configure(t)})}).catch(()=>{cache.delete(body)});
-  return()=>{alive=false};
+  // Give the bundled globe a first frame before optional 8K downloads.
+  // Keep the identical full-resolution texture and cache it across visits.
+  const upgrade=()=>{
+   if(!cache.has(body))cache.set(body,new T.TextureLoader().loadAsync('https://www.solarsystemscope.com/textures/download/'+urls[body]));
+   cache.get(body)!.then(t=>{if(alive)setHigh({body,map:configure(t)})}).catch(()=>{cache.delete(body)});
+  };
+  if(cache.has(body))upgrade();
+  const timer=cache.has(body)?undefined:window.setTimeout(upgrade,1500);
+  return()=>{alive=false;if(timer!==undefined)window.clearTimeout(timer)};
  },[base,body,detail,gl]);
  return high?.body===body?high.map:base;
 }
