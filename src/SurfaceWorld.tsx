@@ -58,14 +58,14 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   // interpolation bump. Blend the measured elevation back smoothly away
   // from the equipment without changing the global planetary terrain.
   const siteHeight=(rawHeight:number,distance:number)=>moon?rawHeight:
-   T.MathUtils.lerp(base,rawHeight,T.MathUtils.smoothstep(distance,landingRadius,landingRadius+(m.id==='insight'?135:105)));
+   T.MathUtils.lerp(base,rawHeight,T.MathUtils.smoothstep(distance,landingRadius,landingRadius+(m.id==='insight'?45:28)));
   const detailAt=(x:number,z:number)=>{
    const distance=Math.hypot(x,z),pad=Math.max(2,dimensions[m.model].span*.65);
    const fade=T.MathUtils.smoothstep(distance,pad,pad+4)*(1-T.MathUtils.smoothstep(distance,800,1600));
    const soil=(noise3(x*1.8,3,z*1.8)*.055+noise3(x*.35,9,z*.35)*.16+noise3(x*.07,5,z*.07)*.32)*fade;
    if(moon)return surfaceDetail(x,z,'moon')+soil;
-   const nearBlend=T.MathUtils.smoothstep(distance,landingRadius,landingRadius+(m.id==='insight'?115:80));
-   return marsReliefAt(x,z)+(surfaceDetail(x,z,'mars')*.14+soil*.23)*nearBlend;
+   const nearBlend=T.MathUtils.smoothstep(distance,landingRadius,landingRadius+(m.id==='insight'?45:28));
+   return marsReliefAt(x,z)+(surfaceDetail(x,z,'mars')*.31+soil*.30)*nearBlend;
   };
   const positions:number[]=[],uv:number[]=[],indices:number[]=[],rings=preset.rings,sectors=preset.sectors;
   for(let j=0;j<=rings;j++){const a=ringAngle(j,Math.round(rings/3),rings-Math.round(rings/3),radiusMetres);
