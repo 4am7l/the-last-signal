@@ -39,7 +39,7 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
  const offsetX=(random()-.5)*3200,offsetZ=(random()-.5)*3200;
  const craters=marsCraterField(lat,lon,landingRadius);
  const isPlain=site==='insight';
- const roughness=isPlain?.55:1;
+ const roughness=isPlain ? 0.55 : 1;
  const broadAtCenter=noise3(offsetX*.0012,11,offsetZ*.0012)*15+noise3(offsetX*.0034,17,offsetZ*.0034)*4.5;
  const shelfAtCenter=Math.pow(Math.max(0,noise3(offsetX*.0017,29,offsetZ*.0017)-.2),2)*26;
  return (x:number,z:number)=>{
@@ -68,7 +68,7 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
    if(squared>=limit*limit)continue;
    const u=Math.sqrt(squared)/crater.radius;
    const bowl=u<1?-.085*crater.radius*(1-u*u)**2:0;
-   const rim=.027*crater.radius*Math.exp(-((u-1)/.18)**2);
+   const rim=.027*crater.radius*Math.exp(-Math.pow((u-1)/.18,2));
    impacts+=(bowl+rim)*(1-smooth(1.25,1.5,u));
   }
   // Fade rather than clipping the geology. All missions get a stable landing
