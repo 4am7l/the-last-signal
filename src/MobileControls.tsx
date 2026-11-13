@@ -36,7 +36,7 @@ export function MobileControls({mode,panelOpen,onCamera,onReset,onFocus,onToggle
    <button className={settings.navigation==='orbit'?'selected':''} onClick={()=>configure({navigation:'orbit'})}>تدوير</button>
    {walkable&&<><button className={settings.navigation==='walk'?'selected':''} onClick={()=>configure({navigation:'walk'})}>مشي</button>
    <button className={settings.navigation==='drone'?'selected':''} onClick={()=>configure({navigation:'drone'})}>طيران</button></>}
-   {(mode==='model'||mode==='location')&&<button className="mobileDetails" onClick={onTogglePanel}>{panelOpen?'إخفاء التفاصيل':'تفاصيل المهمة'}</button>}
+   {(mode==='model'||mode==='location'||mode==='story')&&<button className="mobileDetails" onClick={onTogglePanel}>{panelOpen?'إخفاء التفاصيل':'تفاصيل المهمة'}</button>}
   </div>
   <div className="mobileControlLayout">
    <div className="mobileDpad" role="group" aria-label={moving?'اتجاه الحركة':'تدوير الكاميرا'}>
@@ -57,6 +57,7 @@ export function MobileControls({mode,panelOpen,onCamera,onReset,onFocus,onToggle
       <span className="mobileTouchHint">إصبع للتدوير · إصبعان للتقريب</span></>}
     <div className="mobileExtraActions">
      <button onClick={onReset}>⟳ <span>إعادة</span></button>
+     {!moving&&<button onClick={()=>onCamera('stop')}>■ <span>إيقاف</span></button>}
      {!moving&&mode!=='overview'&&mode!=='story'&&<button onClick={onFocus}>◎ <span>المعدّة</span></button>}
     </div>
    </div>
