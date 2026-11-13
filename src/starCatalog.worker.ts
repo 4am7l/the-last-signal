@@ -16,14 +16,14 @@ self.onmessage=async()=>{
   }
   records.sort((a,b)=>a.mag-b.mag);const count=Math.min(100000,records.length);
   if(count<80000)throw Error('Incomplete catalogue');
-  const extra=0,total=count+extra;const position=new Float32Array(total*3),magnitude=new Float32Array(total),temperature=new Float32Array(total);
+  const position=new Float32Array(count*3),magnitude=new Float32Array(count),temperature=new Float32Array(count);
   const eps=23.43928*Math.PI/180;
   for(let i=0;i<count;i++){const s=records[i],x=Math.cos(s.dec)*Math.cos(s.ra),y=Math.cos(s.dec)*Math.sin(s.ra),z=Math.sin(s.dec);
    const ye=y*Math.cos(eps)+z*Math.sin(eps),ze=-y*Math.sin(eps)+z*Math.cos(eps);
    position.set([x,ze,-ye],i*3);magnitude[i]=s.mag;
    const bv=Math.max(-.4,Math.min(2,s.ci));temperature[i]=4600*(1/(.92*bv+1.7)+1/(.92*bv+.62));
   }
-  self.postMessage({position,magnitude,temperature,count,extra}, {transfer:[position.buffer,magnitude.buffer,temperature.buffer]});
+  self.postMessage({position,magnitude,temperature,count}, {transfer:[position.buffer,magnitude.buffer,temperature.buffer]});
  }catch(error){self.postMessage({error:error instanceof Error?error.message:'Catalogue unavailable'});}
 };
 export {};
