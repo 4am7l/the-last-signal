@@ -45,7 +45,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
  const height=useLoader(T.TextureLoader,'/moon-height.jpg');
  // Distant globe must use a regular, seam-safe equirectangular sphere; the
  // landing-site ring mesh is only for close surface exploration.
- const globeGeometry=useMemo(()=>new T.SphereGeometry(R,256,192),[]);
+ const globeGeometry=useMemo(()=>new T.SphereGeometry(R,320,240),[]);
  useEffect(()=>()=>globeGeometry.dispose(),[globeGeometry]);
  const landingRadius=useMemo(()=>marsLandingRadius(m.id,dimensions[m.model].span),[m.id,m.model]);
  const marsReliefAt=useMemo(()=>createMarsRelief(m.lat,m.lon,landingRadius,m.id),[m.lat,m.lon,landingRadius,m.id]);
@@ -71,7 +71,16 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
    const distance=Math.hypot(x,z),pad=Math.max(2,dimensions[m.model].span*.65);
    const fade=T.MathUtils.smoothstep(distance,pad,pad+4)*(1-T.MathUtils.smoothstep(distance,800,1600));
    const soil=(noise3(x*1.8,3,z*1.8)*.055+noise3(x*.35,9,z*.35)*.16+noise3(x*.07,5,z*.07)*.32)*fade;
-   if(moon)return localRelief(x,z)+surfaceDetail(x,z,'moon')*.34+soil*.43;
+   if(moon){
+    // Geometry displacement at short range, rather than just magnified pixels.
+    // Fade it out below the landing gear to avoid floating equipment.
+    const closeMicro=(noise3(x*1.7,27,z*1.7)*.075+
+     noise3(x*4.8,41,z*4.8)*.022+
+     noise3(x*10.5,59,z*10.5)*.006)*
+     T.MathUtils.smoothstep(distance,pad+2,pad+10)*
+     (1-T.MathUtils.smoothstep(distance,170,480));
+    return localRelief(x,z)+surfaceDetail(x,z,'moon')*.36+soil*.45+closeMicro;
+   }
    const nearBlend=T.MathUtils.smoothstep(distance,landingRadius,landingRadius+marsLandingTransition(m.id));
    // Resolve metre- and decimetre-scale rock chips geometrically near the
    // camera. Keep the lander footing and the walking approach smooth.
@@ -80,12 +89,23 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
    const stoneGrain=(noise3(x*.83,31,z*.83)*.105+
     noise3(x*2.7,37,z*2.7)*.022)*closeDetail*
     (1-.65*marsApproachMask(x,z,landingRadius));
-   return marsReliefAt(x,z)+(surfaceDetail(x,z,'mars')*.31+soil*.30)*nearBlend+stoneGrain;
+   const closeMicro=(noise3(x*1.4,43,z*1.4)*.085+
+    noise3(x*4.1,51,z*4.1)*.025+
+    noise3(x*9.8,63,z*9.8)*.007)*
+    T.MathUtils.smoothstep(distance,pad+2,pad+10)*
+    (1-T.MathUtils.smoothstep(distance,180,530))*
+    (1-.55*marsApproachMask(x,z,landingRadius));
+   return marsReliefAt(x,z)+
+    (surfaceDetail(x,z,'mars')*.33+soil*.31)*nearBlend+stoneGrain+closeMicro;
   };
-  const positions:number[]=[],uv:number[]=[],indices:number[]=[],rings=preset.rings,sectors=preset.sectors;
-  // Give nearby ground most of the available radial rings to preserve
-  // close-up terrain quality without multiplying mobile draw calls.
-  const nearRings=moon?Math.round(rings*.56):Math.round(rings*.62);
+  // Quality-aware, bounded tessellation. This raises angular detail around both
+  // landings without the large draw overhead of doubling mesh dimensions.
+  const tessellationBoost=coarsePointer?1.06:settings.quality==='ultra'?1.19:settings.quality==='high'?1.20:1.13;
+  const rings=Math.round(preset.rings*tessellationBoost);
+  const sectors=Math.round(preset.sectors*tessellationBoost);
+  const positions:number[]=[],uv:number[]=[],indices:number[]=[];
+  // Concentrate radial detail near the surface and preserve far hemisphere.
+  const nearRings=moon?Math.round(rings*.72):Math.round(rings*.76);
   for(let j=0;j<=rings;j++){const a=ringAngle(j,nearRings,rings-nearRings,radiusMetres);
    for(let i=0;i<=sectors;i++){const b=i/sectors*Math.PI*2,n=new T.Vector3(Math.sin(a)*Math.cos(b),Math.cos(a),Math.sin(a)*Math.sin(b));const s=sample(n);
     // Local crater bowls and rims are illustrative and fade into the mapped globe.
@@ -98,7 +118,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(positions,3));g.setAttribute('uv',new T.Float32BufferAttribute(uv,2));g.setIndex(indices);g.computeVertexNormals();const out=g.toNonIndexed();g.dispose();const uvs=out.attributes.uv;
   for(let i=0;i<uvs.count;i+=3){const us=[uvs.getX(i),uvs.getX(i+1),uvs.getX(i+2)];if(Math.max(...us)-Math.min(...us)>.5)for(let k=0;k<3;k++)if(us[k]<.5)uvs.setX(i+k,us[k]+1)}
   return {ground:(x:number,z:number)=>{const n=new T.Vector3(x*UNIT,R,z*UNIT).normalize();const h=siteHeight(sample(n).h,Math.hypot(x,z));return (R+h+detailAt(x,z)*UNIT)*n.y-R-base},rotation:q,geometry:out,center:new T.Vector3(0,-R-base,0),base};
- },[height,m.lat,m.lon,moon,radiusMetres,UNIT,m.body,m.model,preset,dem,marsReliefAt,landingRadius,m.id]);
+ },[height,m.lat,m.lon,moon,radiusMetres,UNIT,m.body,m.model,preset,dem,marsReliefAt,landingRadius,m.id,coarsePointer,settings.quality]);
  useEffect(()=>()=>surface.geometry.dispose(),[surface]);
  // A floating local origin preserves centimetre detail while every body stays
  // in one shared solar-system layout. Rebase the camera, not the universe.
@@ -191,7 +211,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
 function RegolithMaterial({map,height,unit,moon,centerY,rotation,landingRadius}:{map:T.Texture;height?:T.Texture;unit:number;moon:boolean;centerY:number;rotation:T.Quaternion;landingRadius:number}){
  const material=useMemo(()=>{
   const mat=new T.MeshStandardMaterial({map,bumpMap:height??null,bumpScale:.025,roughness:1});
-  mat.customProgramCacheKey=()=>moon?'moon-regolith-apollo-v3':('mars-regolith-site-v3-'+landingRadius.toFixed(2));
+  mat.customProgramCacheKey=()=>moon?'moon-regolith-apollo-v4':('mars-regolith-site-v4-'+landingRadius.toFixed(2));
   mat.onBeforeCompile=shader=>{
    if(!moon){
     shader.uniforms.marsCenterY={value:centerY};
@@ -208,13 +228,13 @@ function RegolithMaterial({map,height,unit,moon,centerY,rotation,landingRadius}:
 #endif`).replace('#include <color_fragment>',`#include <color_fragment>
 vec2 metres=lunarPosition.xz / ${unit.toFixed(12)};
 float footprint=max(length(dFdx(metres)),length(dFdy(metres)));
-float localFade=1.-smoothstep(40.,160.,footprint);
+float localFade=1.-smoothstep(28.,130.,footprint);
 float grain=soilNoise(metres*48.)-.5;
 float strata=(soilNoise(metres*.7)-.5)*2.;
 float dust=soilNoise(metres*5.)-.5;
 // At close range NASA's global 1440px mosaic has too little spatial detail.
 // Replace its blurry magnified pixels with anti-aliased procedural regolith.
-diffuseColor.rgb=mix(diffuseColor.rgb,vec3(${moon?'.23,.225,.215':'.29,.18,.115'}),localFade*${moon?'.65':'.93'});
+diffuseColor.rgb=mix(diffuseColor.rgb,vec3(${moon?'.23,.225,.215':'.29,.18,.115'}),localFade*${moon?'.82':'.96'});
 diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,footprint))+dust*${moon?'.28':'.17'}*(1.-smoothstep(.2,2.,footprint))+strata*${moon?'.15':'.09'}*(1.-smoothstep(1.,8.,footprint)));
  ${moon?`// Apollo 11: grey, powdery lunar regolith and sparse dark mare basalt.
  // All the new detail is derived from metres near the landing site and
