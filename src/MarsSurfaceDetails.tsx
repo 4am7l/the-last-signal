@@ -1,6 +1,6 @@
 import {useEffect,useMemo} from 'react';
 import * as T from 'three';
-import {marsApproachMask,marsCraterField,marsSiteSeed} from './marsGeology';
+import {marsApproachMask,marsCraterField,marsSiteSeed,marsRoverRoadPoint,marsRoverRoadYaw,marsRoverRoadClearance} from './marsGeology';
 import {noise3} from './sceneMath';
 
 // Distinct, high-detail eroded rock shapes rather than a few low-poly icosahedrons.
@@ -186,6 +186,9 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
       // A navigable dirt strip has no boulder-sized obstacles.
       const path=marsApproachMask(x,z,landingRadius);
       if(!small&&path>.025)continue;
+      // Keep both wheel tracks free of boulders and slabs. The same site
+      // route also determines the displayed rover's heading.
+      if(!small&&marsRoverRoadClearance(x,z,site,footprint+.55))continue;
       if(!small){
        const margin=giant?1.17:shape==='boulder'?1.12:1.04;
        if(occupied.some(p=>Math.hypot(x-p.x,z-p.z)<margin*(footprint+p.radius)))continue;
@@ -243,13 +246,16 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
  }},[population]);
  return <group>{population.map((mesh,i)=><primitive key={i} object={mesh}/>)}</group>;
 }
-function trackGeometry(ground:(x:number,z:number)=>number,unit:number,side:number){
- const vertices:number[]=[],indices:number[]=[],steps=88;
+function trackGeometry(ground:(x:number,z:number)=>number,unit:number,side:number,site:string){
+ const vertices:number[]=[],indices:number[]=[],steps=120;
+ // The tracks originate beneath the rear wheel lane, then bend naturally as
+ // one consistent pair. Their local heading is shared with the rover model.
+ const yaw=marsRoverRoadYaw(site),lateralX=Math.sin(yaw),lateralZ=Math.cos(yaw);
  for(let i=0;i<=steps;i++){
-  const t=i/steps,x=-2.4-23*t,z=side*.7+Math.sin(t*Math.PI*1.3)*.48;
+  const t=i/steps,p=marsRoverRoadPoint(t,side,site);
   for(const edge of [-1,1]){
-   const xx=x,zz=z+edge*.12;
-   vertices.push(xx*unit,ground(xx,zz)+.011*unit,zz*unit);
+   const xx=p.x+edge*.11*lateralX,zz=p.z+edge*.11*lateralZ;
+   vertices.push(xx*unit,ground(xx,zz)+.009*unit,zz*unit);
   }
   if(i<steps){const k=i*2;indices.push(k,k+1,k+2,k+1,k+3,k+2)}
  }
@@ -276,15 +282,15 @@ function dustScuffGeometry(ground:(x:number,z:number)=>number,unit:number,radius
  geometry.setIndex(indices);geometry.computeVertexNormals();return geometry;
 }
 // Tracks are illustrative only: mission coordinates do not document wheel tracks.
-export function MarsGroundMarks({ground,unit,model,lat,lon}:{
- ground:(x:number,z:number)=>number;unit:number;model:string;lat:number;lon:number
+export function MarsGroundMarks({ground,unit,model,lat,lon,site}:{
+ ground:(x:number,z:number)=>number;unit:number;model:string;lat:number;lon:number;site:string
 }){
  const marks=useMemo(()=>{
-  const tracks=model==='rover'?[trackGeometry(ground,unit,-1),trackGeometry(ground,unit,1)]:[];
+  const tracks=model==='rover'?[trackGeometry(ground,unit,-1,site),trackGeometry(ground,unit,1,site)]:[];
   const scuff=model==='insight'?dustScuffGeometry(ground,unit,4.4,marsSiteSeed(lat,lon)):
    model==='ingenuity'?dustScuffGeometry(ground,unit,2.5,marsSiteSeed(lat,lon)):null;
   return {tracks,scuff};
- },[ground,unit,model,lat,lon]);
+ },[ground,unit,model,lat,lon,site]);
  useEffect(()=>()=>{for(const geometry of marks.tracks)geometry.dispose();marks.scuff?.dispose()},[marks]);
  return <group>
   {marks.tracks.map((geometry,i)=><mesh key={i} geometry={geometry}><meshBasicMaterial color="#3e2921" transparent opacity={.34} depthWrite={false} side={T.DoubleSide} polygonOffset polygonOffsetFactor={-2}/></mesh>)}
