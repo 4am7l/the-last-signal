@@ -42,6 +42,7 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
   };
   const mirror='https://raw.githubusercontent.com/TokisanGames/Sky3D/main/addons/sky_3d/assets/thirdparty/textures/milkyway/Milkyway.jpg';
   const upgrade=()=>{
+   if(settings.quality==='low'||settings.quality==='medium')return;
    if(!alive)return;
    loader.load('https://cdn.eso.org/images/large/eso0932a.jpg',install,undefined,()=>{if(alive)loader.load(mirror,install,undefined,()=>{})});
   };
@@ -53,7 +54,7 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
   };
   loader.load('https://cdn.eso.org/images/screen/eso0932a.jpg',texture=>{install(texture);scheduleUpgrade()},undefined,scheduleUpgrade);
   return()=>{alive=false;if(upgradeTimer!==undefined)window.clearTimeout(upgradeTimer);loaded?.dispose();uniforms.panorama.value=null;uniforms.hasPanorama.value=0;uniforms.photoBlend.value=0};
- },[uniforms,gl]);
+ },[uniforms,gl,settings.quality]);
  useFrame(({scene},dt)=>{
   const q=scene.userData.skyRotation as T.Quaternion|undefined;
   rotationScratch.makeRotationFromQuaternion(q??new T.Quaternion());
