@@ -6,13 +6,13 @@ Reviewed `4am7l/the-last-signal` at `d5fbc24`, its deployed home screen, mission
 
 | Area | Existing Last Signal | Reference observation | Implemented direction |
 | --- | --- | --- | --- |
-| Entry | Simulation controls and introduction share the first screen | Editorial introduction before detailed exploration | Original Arabic cinematic home, charcoal/amber palette, waveform identity and existing Apollo photograph |
+| Entry | Simulation controls and introduction share the first screen | Editorial introduction before detailed exploration | Original Arabic scientific introduction, light paper palette, waveform identity and existing Apollo photograph |
 | Information structure | Five compact text cards beneath the simulation | Browsable catalogue, sources and contextual storytelling | Home, observatory, searchable archive and field guide with browser-history-aware links |
 | Archive | Direct launch into a model | Searchable, illustrated records | Image records, Arabic/English/location search, destination filters, landing-year sort, sourced dossiers and timelines |
 | Exploration | Orbital, model, site and story states | Multiple ways into objects and stories | Preserve all five existing simulation modes and link records directly to the relevant mission/view |
 | Mobile | Existing touch navigation and collapsible details | Readable structured content | Responsive editorial pages, narrower filters, retained touch/walk/drone controls and improved settings placement |
 
-No reference code, assets, branding or prose was copied. Photography is from the existing repository; data, models, coordinates, source links and caveats remain drawn from `src/data.ts` and the existing simulation. The redesign does not claim new mission facts, live telemetry or verified surface reconstructions.
+No reference code, assets, branding or prose was copied. Photography is from the existing repository; data, models, coordinates, source links and caveats remain drawn from `src/data.ts` and the existing simulation. The scientific summaries link to NASA/JPL mission documentation. The redesign does not claim live telemetry or verified surface reconstructions.
 
 ## Behavior
 
@@ -32,3 +32,12 @@ No reference code, assets, branding or prose was copied. Photography is from the
 - Visual review: desktop home and dossier; responsive home/archive at 390 px; simulation controls at 320 px. Content widths checked at 320 and 768 px, including the narrower viewport after scrollbars, without horizontal overflow in the archive.
 - The QA browser reports WebGL renderer/context creation disabled. This also affects the pre-change production site. Actual GPU rendering, surface touchdown and camera flight could not be visually verified here; the existing relevant code and tests are preserved. Verify those interactions on a WebGL-capable device.
 - Vite reports the existing large scene bundle (about 1.12 MB uncompressed). It remains lazy-loaded. This change does not lower quality or claim to eliminate the renderer's GPU cost.
+
+## Light scientific reading revision
+
+- Light-only pages and reading/control panels; no dark theme switch. The existing astronomical scene retains its natural space background.
+- Reference fonts verified from computed styles: Public Sans for body text and Newsreader for headings. Noto Sans Arabic and Noto Naskh Arabic cover Arabic, which the reference Latin families do not support.
+- Replaced promotional home copy with explanations of mission goals, instruments, observations and limitations. Added Opportunity and InSight examples with NASA sources.
+- Each mission dossier answers why it was sent, what it teaches us and how its mission ended, before the retained equipment details and timeline.
+- Removed decorative editorial entrance effects and prioritized reading order; simulation transitions and rendering are unchanged.
+- Reviewed light desktop home and mission dossier, plus narrow mobile layouts down to 320 px with no horizontal overflow.

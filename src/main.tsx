@@ -11,6 +11,7 @@ import { shotsFor, annualStories, dimensions } from "./journey";
 import "./style.css";
 import "./mobile.css";
 import "./experience.css";
+import "./science-theme.css";
 const Space = lazy(() => import("./Space").then((m) => ({ default: m.Space })));
 class Boundary extends React.Component<
   { children: React.ReactNode },
@@ -129,7 +130,7 @@ function App() {
     setReset((v) => v + 1);
     window.scrollTo({ top: 0, behavior: "instant" });
     document.title = {
-      home: "الإشارة الأخيرة — آثار أبعد من الاتصال",
+      home: "الإشارة الأخيرة — دليل معدات القمر والمريخ",
       archive: "أرشيف المهمات — الإشارة الأخيرة",
       guide: "دليل الرحلة — الإشارة الأخيرة",
       explore: "الاستكشاف — الإشارة الأخيرة",

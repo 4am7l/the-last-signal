@@ -1,0 +1,991 @@
+/* Public Sans and Newsreader match the inspected reference's type families.
+   Arabic glyphs use Noto Sans Arabic and Noto Naskh Arabic respectively. */
+@import url("https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Public+Sans:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap");
+:root {
+  --ink: #202b30;
+  --muted: #566165;
+  --accent: #87502d;
+  --line: #24363b30;
+  --surface: #fff;
+  --paper: #f7f5ef;
+  font-family: "Public Sans", "Noto Sans Arabic", sans-serif;
+  color: var(--ink);
+  background: var(--paper);
+  color-scheme: light;
+}
+body {
+  background: var(--paper);
+}
+button,
+input,
+select,
+textarea {
+  font-family: "Public Sans", "Noto Sans Arabic", sans-serif;
+}
+h1 {
+  font-family: "Newsreader", "Noto Naskh Arabic", Georgia, serif;
+  font-weight: 400 !important;
+  letter-spacing: 0 !important;
+}
+.site-header,
+.site-footer {
+  background: var(--paper);
+  color: var(--ink);
+}
+.site-header .brand small,
+.site-header nav a,
+.source-link,
+.footer-credit > span {
+  color: #536267;
+}
+.site-header nav a[aria-current] {
+  color: #202b30;
+  font-weight: 600;
+}
+.site-header .brand small,
+.kicker b,
+.hero-bottom > span,
+.mission-strip strong,
+.feature-copy > small,
+.record-copy > small,
+.record-year,
+.mission-timeline time,
+.destination > div > span,
+.hero-coordinate > span[dir],
+.footer-credit > span,
+.scene-arrival small {
+  font-family: "Public Sans", "Noto Sans Arabic", sans-serif;
+}
+.signal-mark i {
+  background: #526c72;
+}
+.source-link {
+  border-color: var(--line);
+}
+.signal-hero {
+  height: auto;
+  min-height: 610px;
+  max-height: none;
+  background: var(--paper);
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  column-gap: 5%;
+  padding: 48px 6% 85px;
+  align-items: center;
+}
+.hero-copy {
+  padding: 0;
+  width: auto;
+  max-width: none;
+  grid-column: 1;
+  grid-row: 1;
+  z-index: 1;
+}
+.hero-photo {
+  position: relative;
+  inset: auto;
+  grid-column: 2;
+  grid-row: 1;
+  width: 100%;
+  height: 450px;
+  object-fit: cover;
+  object-position: 50% 40%;
+  filter: none;
+  border-radius: 3px;
+  animation: none;
+}
+.hero-shade,
+.hero-grid,
+.hero-coordinate {
+  display: none;
+}
+.hero-copy h1 {
+  font-size: clamp(40px, 4.3vw, 62px);
+  line-height: 1.4;
+  margin: 22px 0 18px;
+}
+.hero-copy h1 em,
+.page-intro h1 em {
+  color: #325e65;
+}
+.hero-copy p {
+  font-size: 15px;
+  line-height: 2.1;
+  color: #384a50;
+  max-width: 560px;
+}
+.hero-note {
+  color: #53666c;
+  font-size: 11px;
+  line-height: 1.8;
+}
+.pulse-dot {
+  background: #54787c;
+  box-shadow: none;
+}
+.hero-caption {
+  top: auto;
+  bottom: 60px;
+  left: 6%;
+  color: #536267;
+  font-size: 10px;
+}
+.hero-bottom {
+  height: 43px;
+  bottom: 0;
+}
+.hero-bottom > span,
+.hero-bottom > a {
+  color: #536267;
+  font-size: 10px;
+}
+.kicker {
+  font-size: 11px;
+  letter-spacing: 0;
+  color: #5e6d71;
+}
+.kicker b {
+  color: #5e6d71;
+  letter-spacing: 1px;
+  border-color: var(--line);
+}
+.action-solid {
+  background: #294c55;
+  border-color: #294c55;
+  color: #fff;
+}
+.action-solid:hover {
+  background: #193a43;
+  border-color: #193a43;
+}
+.action-line {
+  background: transparent;
+  color: var(--ink);
+  border-color: #24363b50;
+}
+.action-line:hover {
+  background: #e9ece7;
+  border-color: #526c72;
+}
+.action {
+  border-radius: 4px;
+  font-size: 13px;
+}
+.arrow-icon {
+  color: currentColor;
+}
+.mission-strip {
+  background: #efeee7;
+}
+.mission-strip strong {
+  color: #294c55;
+}
+.mission-strip small {
+  color: #5f6d70;
+}
+.page-section {
+  padding-top: 55px;
+  padding-bottom: 55px;
+}
+.section-heading h2 {
+  font-size: 30px;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+.section-heading > p {
+  font-size: 14px;
+  max-width: 400px;
+  color: #566165;
+}
+.destination {
+  background: #fff;
+  border-color: var(--line);
+  height: auto;
+  display: flex;
+  flex-direction: column;
+}
+.destination > img {
+  height: 225px;
+  opacity: 1;
+  filter: none;
+}
+.destination:after {
+  display: none;
+}
+.destination > div {
+  position: relative;
+  inset: auto;
+  padding: 23px;
+}
+.destination h3 {
+  font-size: 29px;
+  margin: 12px 0;
+  color: #253e46;
+}
+.destination p {
+  font-size: 14px;
+  color: #566165;
+  max-width: none;
+}
+.destination b {
+  color: #315d66;
+}
+.destination > div > span {
+  color: #596d73;
+}
+.destination > small {
+  background: #fff;
+  color: #283b42;
+  border-color: #d3d9d5;
+}
+.destination:hover > img {
+  opacity: 1;
+  transform: none;
+}
+.feature-image {
+  height: 240px;
+}
+.feature-image > span,
+.record-year,
+.record-body {
+  background: #fffffff2;
+  border-color: #bccac9;
+  color: #253e46;
+}
+.feature-copy h3 {
+  font-size: 24px;
+  color: #253e46;
+}
+.feature-copy > small {
+  color: #54686e;
+}
+.feature-copy p {
+  font-size: 14px;
+  color: #4d6066;
+}
+.feature-card:hover img {
+  transform: none;
+}
+.closing-section {
+  background: #eceee7;
+  padding: 45px 6%;
+  text-align: right;
+}
+.closing-section h2 {
+  font-size: 29px;
+  line-height: 1.7;
+  max-width: 850px;
+  margin: 15px 0;
+}
+.closing-section .kicker {
+  justify-content: start;
+}
+.closing-section > p {
+  font-size: 15px;
+  line-height: 2.1;
+  color: #43565b;
+  max-width: 850px;
+  margin-bottom: 24px;
+}
+.site-footer small,
+.site-footer span,
+.site-footer a {
+  color: #596b70;
+}
+.site-footer > div {
+  gap: 15px;
+}
+.site-footer button,
+.text-link {
+  color: #315d66;
+}
+.page-intro {
+  background: var(--paper);
+  padding-top: 45px;
+  padding-bottom: 30px;
+}
+.page-intro h1 {
+  font-size: 50px;
+  margin: 15px 0;
+  line-height: 1.45;
+}
+.page-intro p {
+  color: #465b62;
+  font-size: 15px;
+  max-width: 740px;
+}
+.archive-controls,
+.results-line {
+  color: #425960;
+}
+.search-field,
+.sort-field {
+  color: #425960;
+  font-size: 12px;
+}
+.search-field input,
+.sort-field select {
+  background: #fff;
+  border-color: #9daeb0;
+  color: #253b43;
+  font-size: 14px;
+}
+.search-field input::placeholder {
+  color: #65777d;
+}
+.filter-group button {
+  color: #364d55;
+  border-color: #aab7b8;
+  font-size: 12px;
+}
+.filter-group button[aria-pressed="true"] {
+  background: #dfe9e6;
+  color: #244e56;
+  border-color: #64868a;
+}
+.results-line small {
+  color: #65777d;
+}
+.mission-record {
+  background: #fff;
+  border-color: #bfc9c7;
+  box-shadow: none;
+}
+.mission-record:hover,
+.mission-record.is-selected {
+  border-color: #4c777d;
+}
+.record-copy > small,
+.record-site {
+  color: #526b73;
+}
+.record-copy h2 {
+  color: #273f48;
+}
+.record-copy p {
+  color: #455e66;
+  font-size: 14px;
+  line-height: 2;
+}
+.record-read,
+.record-actions a {
+  color: #315d66;
+}
+.record-actions a {
+  font-size: 12px;
+}
+.record-photo img {
+  filter: none;
+}
+.record-open:hover img {
+  transform: none;
+}
+.empty-state {
+  background: #edf0e9;
+  color: #273f48;
+  border-color: #9eafb0;
+}
+.empty-state p {
+  color: #536b71;
+}
+.dossier {
+  background: #fff;
+  border-color: #bfc9c7;
+  border-radius: 4px;
+  padding: 40px;
+}
+.dossier-grid {
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: 60px;
+}
+.dossier h2 {
+  color: #253e46;
+}
+.dossier h3 {
+  font-size: 21px;
+  font-weight: 600;
+  color: #294c55;
+}
+.dossier p {
+  font-size: 15px;
+  line-height: 2.1;
+  color: #3c555e;
+}
+.photo-credit {
+  color: #63767c;
+  font-size: 11px;
+}
+.mission-timeline {
+  border-color: #b8cbc9;
+}
+.mission-timeline li:before {
+  background: #527e82;
+  box-shadow: 0 0 0 5px #fff;
+}
+.mission-timeline time {
+  color: #456d74;
+}
+.mission-timeline h4 {
+  font-size: 17px;
+  color: #29434b;
+}
+.mission-timeline p {
+  font-size: 14px;
+  color: #4a626b;
+}
+.mission-explanation {
+  padding-bottom: 25px;
+  border-bottom: 1px solid var(--line);
+}
+.guide-steps article > span {
+  color: #466f76;
+  font-family: "Public Sans", sans-serif;
+}
+.guide-steps h2,
+.guide-notes h2 {
+  color: #29434b;
+}
+.guide-steps p,
+.guide-notes p {
+  color: #455f68;
+  font-size: 14px;
+  line-height: 2;
+}
+.guide-notes {
+  background: #fff;
+  border-color: var(--line);
+}
+.science-introduction {
+  border-bottom: 1px solid var(--line);
+}
+.science-reading {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+}
+.science-reading article {
+  position: relative;
+  padding-top: 10px;
+}
+.reading-number {
+  font-family: "Noto Naskh Arabic", serif;
+  font-size: 28px;
+  color: #638186;
+}
+.science-reading h3,
+.reading-note h3 {
+  font-size: 23px;
+  font-weight: 600;
+  margin: 10px 0 15px;
+  color: #294c55;
+}
+.science-reading p,
+.reading-note p {
+  font-size: 15px;
+  line-height: 2.15;
+  color: #3e565f;
+  max-width: 76ch;
+}
+.science-reading a,
+.reading-note a {
+  font-size: 12px;
+  color: #315d66;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  line-height: 2;
+}
+.reading-conclusion {
+  padding: 16px 20px;
+  border-right: 3px solid #78999a;
+  background: #e9eee8;
+}
+.reading-next {
+  display: block;
+  margin-top: 14px;
+}
+.reading-note {
+  border-top: 1px solid var(--line);
+  margin-top: 35px;
+  padding-top: 22px;
+}
+.reading-note p {
+  max-width: 1000px;
+}
+/* Only the simulated sky remains dark; reading panels and controls use the light theme. */
+.explore-toolbar,
+.exploration-page .archive,
+.exploration-page .timebar {
+  background: #f1f1ea;
+  color: #273f48;
+  border-color: var(--line);
+}
+.explore-toolbar small {
+  color: #61777d;
+}
+.explore-toolbar a[aria-current] {
+  background: #dce7e3;
+  color: #285761;
+}
+.exploration-page .welcome {
+  background: #f7f5eff5;
+  padding: 20px;
+  border: 1px solid #9faeab70;
+  border-radius: 5px;
+  color: #273f48;
+  pointer-events: auto;
+}
+.exploration-page .welcome h1 {
+  color: #294c55;
+  font-size: 36px;
+}
+.exploration-page .welcome em {
+  color: #466f76;
+}
+.exploration-page .welcome p,
+.exploration-page .hint {
+  color: #465f68 !important;
+}
+.exploration-page .welcome .eyebrow {
+  color: #536e75;
+}
+.distanceControls button {
+  color: #294c55;
+  background: #e9eee8;
+  border-color: #9aafb0;
+}
+.distanceControls button[aria-pressed="true"] {
+  background: #d5e3dd;
+  color: #223f48;
+  border-color: #6d9498;
+}
+.distanceControls button:hover {
+  background: #d5e3dd;
+}
+.exploration-page .information {
+  background: #f7f5effa;
+  border-left: 1px solid #a8b8b780;
+  color: #273f48;
+}
+.information p,
+.information small,
+.information .disclosure {
+  color: #49616a;
+}
+.information a,
+.coordinates,
+.date {
+  color: #315d66;
+}
+.information .tabs,
+.information .tabs button {
+  color: #53676d;
+  border-color: #bdc9c6;
+}
+.exploration-page .tabs .active {
+  color: #294c55;
+  border-color: #294c55;
+}
+.exploration-page .primary,
+.play {
+  background: #294c55;
+  color: white;
+}
+.exploration-page .missionMessage {
+  background: #edf1ea;
+  border-color: #b9c9c3;
+}
+.missionMessage > span,
+.yearStory h3 {
+  color: #315d66;
+}
+.yearStory {
+  border-color: #b5c6c0;
+}
+.photo {
+  border-color: #aebfba;
+}
+.photo span {
+  background: #fff;
+  color: #315d66;
+}
+.information .disclosure {
+  border-color: #8aa9a1;
+}
+.exploration-page .card {
+  color: #273f48;
+  border-color: #afc0b9;
+}
+.exploration-page .card:hover,
+.exploration-page .card.selected {
+  background: #dfe9e2;
+}
+.card small,
+.card > span,
+.card b,
+.archiveTop,
+.archiveTop small {
+  color: #526d73;
+}
+.timeTop label,
+.filmControls small,
+.yearTicks button {
+  color: #4a656e;
+}
+.timeTop select {
+  background: #fff;
+  color: #294c55;
+  border-color: #9aaead;
+}
+.chapters button {
+  color: #3d5963;
+  border-color: #a7b9b3;
+  background: #fff;
+}
+.chapters small {
+  color: #567178;
+}
+.exploration-page .chapters .selected {
+  background: #dce9e2;
+  color: #244852;
+  border-color: #6a9495;
+}
+.timebar input {
+  accent-color: #406d73;
+}
+.missionList button {
+  background: #fff;
+  border-color: #aec1bb;
+  color: #2d505a;
+}
+.missionList small {
+  color: #59757c;
+}
+.breadcrumb {
+  background: #f7f5eff0;
+  color: #294c55;
+  padding: 5px 12px;
+  border-radius: 3px;
+  z-index: 9;
+}
+.breadcrumb button {
+  color: #294c55;
+}
+.simulationPanel {
+  background: #f7f5effa;
+  color: #294c55;
+  border-color: #a7bfba;
+  box-shadow: none;
+}
+.simulationPanel small {
+  color: #506b73;
+}
+.simulationPanel input[type="date"],
+.simulationPanel select {
+  background: #fff;
+  color: #294c55;
+  border-color: #9bb4b0;
+}
+.simulationPanel a {
+  color: #315d66;
+}
+.sceneTools button,
+.cameraButtons button {
+  background: #f7f5eff2;
+  color: #294c55;
+  border-color: #9bb4b0;
+}
+.sceneTools > span {
+  color: #fff;
+  background: #21343dd9;
+  padding: 5px;
+}
+.scene-arrival {
+  background: var(--paper);
+  color: #294c55;
+}
+.scene-arrival small {
+  color: #55747b;
+}
+.arrival-line {
+  background: #78999a;
+}
+.overlay {
+  background: #f7f5eff5;
+  backdrop-filter: blur(8px);
+}
+.modal {
+  background: #fff;
+  color: #273f48;
+  border-color: #9db4ae;
+}
+.modal p {
+  color: #405e68;
+  font-size: 14px;
+}
+.modal a {
+  color: #315d66;
+}
+.close {
+  background: #e2ebe3;
+  color: #294c55;
+}
+.error {
+  background: #f7f5eff5 !important;
+  color: #294c55 !important;
+  border-color: #8faeaa;
+}
+.error a {
+  color: #315d66;
+}
+.loading {
+  background: #f7f5ef;
+  color: #294c55;
+}
+.worldLabel,
+.sitePin {
+  background: #f7f5eff2;
+  color: #244852;
+  border-color: #789f9e;
+}
+.sitePin small {
+  color: #4c6b72;
+}
+.sitePin:hover,
+.sitePin.chosen {
+  background: #e0ece5;
+  color: #244852;
+  border-color: #547f82;
+}
+.pinDot {
+  background: #547f82;
+  box-shadow: none;
+}
+* {
+  scrollbar-color: #9baea7 #f7f5ef;
+}
+.editorial-page {
+  animation: none;
+}
+.hero-photo,
+.feature-image img,
+.record-photo img {
+  transition: none;
+}
+@media (min-width: 851px) {
+  .exploration-page .universe.overview .welcome,
+  .exploration-page .universe.planet .welcome {
+    right: 15px;
+    max-width: 340px;
+  }
+  .exploration-page .welcome h1 {
+    font-size: 34px;
+  }
+}
+@media (max-width: 850px) {
+  .site-header {
+    background: var(--paper);
+  }
+  .signal-hero {
+    display: flex;
+    flex-direction: column;
+    padding: 30px 6% 60px;
+    gap: 25px;
+    min-height: 0;
+  }
+  .hero-copy {
+    width: 100%;
+    padding: 0;
+  }
+  .hero-copy h1 {
+    font-size: 46px;
+    line-height: 1.4;
+  }
+  .hero-copy p {
+    font-size: 14px;
+    max-width: none;
+  }
+  .hero-photo {
+    height: 330px;
+    width: 100%;
+    opacity: 1;
+    object-position: 50% 38%;
+    order: 2;
+  }
+  .hero-caption {
+    position: static;
+    order: 3;
+    align-self: start;
+    font-size: 10px;
+    margin-top: -15px;
+  }
+  .hero-note {
+    font-size: 10px;
+  }
+  .hero-bottom {
+    height: 40px;
+  }
+  .hero-bottom > span {
+    font-size: 8px;
+  }
+  .hero-bottom > a {
+    font-size: 10px;
+  }
+  .section-heading h2 {
+    font-size: 25px;
+  }
+  .section-heading > p {
+    font-size: 13px;
+  }
+  .science-reading {
+    grid-template-columns: 1fr;
+    gap: 25px;
+  }
+  .science-reading h3,
+  .reading-note h3 {
+    font-size: 21px;
+  }
+  .science-reading p,
+  .reading-note p {
+    font-size: 14px;
+  }
+  .science-introduction {
+    padding-top: 35px;
+  }
+  .destination {
+    height: auto;
+  }
+  .destination > img {
+    height: 200px;
+  }
+  .destination > div {
+    inset: auto;
+    padding: 20px;
+  }
+  .destination h3 {
+    font-size: 26px;
+  }
+  .destination p {
+    font-size: 13px;
+  }
+  .feature-copy p {
+    font-size: 13px;
+  }
+  .feature-copy h3 {
+    font-size: 21px;
+  }
+  .feature-image {
+    height: 175px;
+  }
+  .closing-section h2 {
+    font-size: 25px;
+  }
+  .closing-section > p {
+    font-size: 14px;
+  }
+  .page-intro h1 {
+    font-size: 41px;
+  }
+  .dossier {
+    padding: 22px;
+  }
+  .dossier-grid {
+    grid-template-columns: 1fr;
+    gap: 22px;
+  }
+  .dossier p {
+    font-size: 14px;
+  }
+  .record-copy p {
+    font-size: 13px;
+  }
+  .exploration-page .overview .welcome,
+  .exploration-page .planet .welcome {
+    background: #f7f5eff5;
+    pointer-events: auto;
+  }
+  .exploration-page .information,
+  .exploration-page .information .tabs,
+  .exploration-page .mobileSheetToggle {
+    background: #f7f5effa;
+    color: #294c55;
+  }
+  .mobileSheetGrip {
+    background: #97b2a8;
+  }
+  .mobileControlModes button,
+  .mobileDpad button,
+  .mobileZoom button {
+    background: #f7f5eff2;
+    color: #294c55;
+    border-color: #8ba9a4;
+    box-shadow: none;
+  }
+  .mobileControlModes button.selected {
+    background: #dce9e2;
+    color: #294c55;
+  }
+  .mobileTouchHint {
+    color: #fff;
+    background: #21343dbb;
+    border-radius: 4px;
+    padding: 3px;
+  }
+  .mobileSheetToggle {
+    border-color: #b2c6bc;
+  }
+  .exploration-page .simulationPanel {
+    background: #f7f5effa;
+  }
+  .exploration-page .universe .welcome h1 {
+    font-size: 30px;
+  }
+}
+@media (max-width: 520px) {
+  .hero-copy h1 {
+    font-size: 42px;
+  }
+  .hero-copy p {
+    font-size: 14px;
+  }
+  .hero-photo {
+    height: 320px;
+  }
+  .hero-copy .action {
+    font-size: 12px;
+  }
+  .feature-card {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+  .feature-image {
+    height: 235px;
+  }
+  .feature-copy p {
+    font-size: 14px;
+  }
+  .page-intro h1 {
+    font-size: 37px;
+  }
+  .record-actions a {
+    font-size: 11px;
+  }
+  .hero-bottom > span {
+    max-width: 160px;
+  }
+  .section-heading h2 {
+    font-size: 24px;
+  }
+}
+/* Keep every legacy simulation label on the same text family. */
+.worldLabel,
+.pin,
+.sitePin,
+.sitePin small,
+.scaleLabel,
+.coordinates,
+.yearTicks button,
+.chapters small,
+.missionList small,
+.card > span {
+  font-family: "Public Sans", "Noto Sans Arabic", sans-serif;
+}
