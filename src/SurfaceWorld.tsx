@@ -27,7 +27,8 @@ function OrbitingMoon({position,earthPosition,radius,rotation,onClick}:{position
  const ref=useRef<T.Group>(null);
  const base=useMemo(()=>position.clone().sub(earthPosition),[position,earthPosition]);
  const axis=useMemo(()=>new T.Vector3(0,1,0),[]);
- useFrame(({clock})=>{if(ref.current)ref.current.position.copy(earthPosition).add(base.clone().applyAxisAngle(axis,clock.elapsedTime*(Math.PI*2/180)));});
+ const rotated=useMemo(()=>new T.Vector3(),[]);
+ useFrame(({clock})=>{if(ref.current)ref.current.position.copy(earthPosition).add(rotated.copy(base).applyAxisAngle(axis,clock.elapsedTime*(Math.PI*2/180)));});
  return <group ref={ref} position={position}><Planet body="moon" r={radius} pos={[0,0,0]} rotation={rotation} click={onClick}/></group>;
 }
 // One continuous sphere, with logarithmically spaced rings resolving the landing site.
