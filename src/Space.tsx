@@ -25,7 +25,33 @@ function Capsule({cruise=false,moon=false}:{cruise?:boolean;moon?:boolean}){if(m
 function Chute(){return <group position={[0,9,0]}><mesh><sphereGeometry args={[4,24,12,0,Math.PI*2,0,Math.PI/2]}/><meshStandardMaterial color="#ded5ba" side={T.DoubleSide}/></mesh>{[0,1,2,3,4,5,6,7].map(i=>{const a=i*Math.PI/4;return <Line key={i} points={[[Math.cos(a)*4,0,Math.sin(a)*4],[0,-9,0]]} color="#c4bca9" lineWidth={1}/>})}</group>}
 function Carrier(){return <group><mesh position={[0,1.1,0]}><boxGeometry args={[2.7,.65,2.3]}/><meshStandardMaterial color="#a99a77"/></mesh>{[-1,1].flatMap(x=>[-1,0,1].map(z=><mesh key={`${x}${z}`} position={[x*1.5,.4,z]} rotation={[0,0,Math.PI/2]}><cylinderGeometry args={[.4,.4,.3,16]}/><meshStandardMaterial color="#303335"/></mesh>))}<mesh position={[0,2,0]}><boxGeometry args={[.12,1.6,.12]}/><meshStandardMaterial color="#b2a58d"/></mesh><mesh position={[0,2.7,0]}><boxGeometry args={[.5,.25,.25]}/><meshStandardMaterial color="#9b987e"/></mesh></group>}
 function Airbags({p}:{p:number}){const inflate=1-smooth((p-.65)/.35);return <group scale={Math.max(.02,inflate)}>{[-1,1].flatMap(x=>[-1,1].map(z=><mesh key={`${x}${z}`} position={[x*.9,1,z*.9]}><sphereGeometry args={[1.3,16,12]}/><meshStandardMaterial color="#b89b79" roughness={1}/></mesh>))}</group>}
-function Ground({moon=false,launch=false}:{moon?:boolean;launch?:boolean}){const rocks=useMemo(()=>Array.from({length:110},(_,i)=>{const a=i*2.3999,r=10+((i*37)%130);return{x:Math.sin(a)*r,z:Math.cos(a)*r,s:.12+(i%9)*.09}}),[]);return <group><Terrain moon={moon} launch={launch}/>{!launch&&rocks.map((r,i)=><mesh key={i} position={[r.x,terrainHeight(r.x,r.z,moon)+r.s*.25,r.z]} rotation={[i,.3*i,0]} scale={[r.s*1.5,r.s*.7,r.s]} castShadow receiveShadow><icosahedronGeometry args={[1,0]}/><meshStandardMaterial color={moon?'#555553':i%2?'#614f40':'#705846'} roughness={1}/></mesh>)}{launch&&<mesh position={[0,.15,0]} receiveShadow><boxGeometry args={[20,.3,20]}/><meshStandardMaterial color="#686866"/></mesh>}</group>}
+function Ground({moon=false,launch=false}:{moon?:boolean;launch?:boolean}){
+ const rocks=useMemo(()=>Array.from({length:110},(_,i)=>{const a=i*2.3999,r=10+((i*37)%130);return{x:Math.sin(a)*r,z:Math.cos(a)*r,s:.12+(i%9)*.09}}),[]);
+ const first=useRef<T.InstancedMesh>(null),second=useRef<T.InstancedMesh>(null);
+ useEffect(()=>{
+  const dummy=new T.Object3D();
+  rocks.forEach((r,i)=>{
+   const mesh=i%2===0?first.current:second.current;
+   if(!mesh)return;
+   dummy.position.set(r.x,terrainHeight(r.x,r.z,moon)+r.s*.25,r.z);
+   dummy.rotation.set(i,.3*i,0);
+   dummy.scale.set(r.s*1.5,r.s*.7,r.s);
+   dummy.updateMatrix();
+   mesh.setMatrixAt(Math.floor(i/2),dummy.matrix);
+  });
+  for(const mesh of [first.current,second.current]){
+   if(mesh){mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();}
+  }
+ },[rocks,moon,launch]);
+ return <group><Terrain moon={moon} launch={launch}/>{!launch&&<>
+  <instancedMesh ref={first} args={[undefined,undefined,55]} castShadow receiveShadow>
+   <icosahedronGeometry args={[1,0]}/><meshStandardMaterial color={moon?'#555553':'#705846'} roughness={1}/>
+  </instancedMesh>
+  <instancedMesh ref={second} args={[undefined,undefined,55]} castShadow receiveShadow>
+   <icosahedronGeometry args={[1,0]}/><meshStandardMaterial color={moon?'#555553':'#614f40'} roughness={1}/>
+  </instancedMesh>
+ </>}{launch&&<mesh position={[0,.15,0]} receiveShadow><boxGeometry args={[20,.3,20]}/><meshStandardMaterial color="#686866"/></mesh>}</group>;
+}
 function Landing({m,phase,p}:{m:Mission;phase:string;p:number}){if(phase==='entry')return <group position={[15*(1-p),m.body==='moon'?35-25*p:35-7*p,0]} rotation={[0,0,-.3]}>{m.body==='moon'?<Model name="apollo"/>:<><Capsule/><mesh position={[0,-1,0]}><sphereGeometry args={[2.1,24,16]}/><meshBasicMaterial color="#e78a35" transparent opacity={.18} depthWrite={false}/></mesh></>}</group>;if(phase==='parachute')return <group position={[0,28-18*smooth(p),0]}><Capsule/><Chute/></group>;if(m.model==='rover')return <group position={[p<.65?3*(1-p):0,p<.3?10*(1-smooth(p/.3)):p<.65?Math.abs(Math.sin((p-.3)/.35*Math.PI*3))*2*(1-p):0,0]}><Airbags p={p}/>{p>.7&&<Model name="rover"/>}</group>;if(m.id==='ingenuity')return <><group position={[0,10*(1-smooth(p)),0]}><Carrier/>{p<.9&&<><mesh position={[0,7,0]}><boxGeometry args={[3,.5,2.5]}/><meshStandardMaterial color="#9c997e"/></mesh>{[-1,1].map(x=><Line key={x} points={[[x,1.5,0],[x,7,0]]} color="#b6b9a9" lineWidth={1}/>)}</>}</group></>;return <group position={[0,10*(1-smooth(p)),0]}><Model name={m.model}/>{p<.95&&<group position={[0,.2,0]}><Exhaust length={2*(1-p)}/></group>}</group>}
 function Deploy({m,p}:{m:Mission;p:number}){return <>{m.id==='ingenuity'?<><group position={[smooth(p)*8,0,0]}><Carrier/></group><group position={[0,.2*(1-p),0]}><Model name="ingenuity"/></group></>:<group position={[m.model==='rover'?smooth(p)*3:0,0,0]}><Model name={m.model}/></group>}</>}
 export function LunarBase(){return <group><mesh position={[0,1,0]} castShadow><boxGeometry args={[4,2,4]}/><meshStandardMaterial color="#ae8844" metalness={.35} roughness={.65}/></mesh>{[0,1,2,3].map(i=>{const a=i*Math.PI/2,x=Math.cos(a),z=Math.sin(a);return <group key={i}><Line points={[[x*1.6,1.8,z*1.6],[x*4.7,.15,z*4.7]]} color="#a5a49b" lineWidth={3}/><mesh position={[x*4.7,.06,z*4.7]}><cylinderGeometry args={[.45,.45,.12,20]}/><meshStandardMaterial color="#9c9685"/></mesh></group>})}</group>}
