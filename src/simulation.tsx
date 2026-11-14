@@ -9,7 +9,7 @@ export const PRESETS={
 export type Settings={date:string;quality:keyof typeof PRESETS;inspection:boolean;exposure:number;navigation:'orbit'|'walk'|'drone';speed:number;starCount:number};
 // Phones must not initialise with desktop-only 4K shadows, 2x DPR and 100K stars.
 const mobileDefault=typeof window!=='undefined'&&(window.matchMedia('(pointer: coarse)').matches||window.innerWidth<=850);
-let state:Settings={date:new Date().toISOString().slice(0,10),quality:mobileDefault?'medium':'ultra',inspection:true,exposure:1.05,navigation:'orbit',speed:1.5,starCount:mobileDefault?30000:100000};
+let state:Settings={date:new Date().toISOString().slice(0,10),quality:mobileDefault?'medium':'high',inspection:true,exposure:1.05,navigation:'orbit',speed:1.5,starCount:mobileDefault?30000:80000};
 const listeners=new Set<()=>void>();
 export function configure(patch:Partial<Settings>){state={...state,...patch};listeners.forEach(f=>f());}
 export function useSimulation(){return useSyncExternalStore(f=>{listeners.add(f);return()=>listeners.delete(f)},()=>state);}
