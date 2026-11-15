@@ -311,42 +311,68 @@
 .fullscreen-explorer .explorer-navigation .action-line {
   background: var(--paper);
 }
+.explorer-stage {
+  position: absolute;
+  inset: 0;
+}
+.fullscreen-explorer.has-apollo-dock {
+  --apollo-drawer-width: clamp(240px, 38vw, 460px);
+  --apollo-handle-width: 38px;
+}
+.apollo-dock-open .explorer-stage {
+  right: var(--apollo-drawer-width);
+}
 .apollo-explorer-dock {
   position: absolute;
-  z-index: 32;
-  inset-block-start: calc(var(--explorer-content-top) + 12px);
-  right: max(var(--explorer-gap), env(safe-area-inset-right));
-  width: min(450px, calc(100% - 2 * var(--explorer-gap)));
-  display: grid;
-  justify-items: right;
-  gap: 8px;
+  z-index: 95;
+  inset-block: 0;
+  right: calc(0px - var(--apollo-drawer-width));
+  width: var(--apollo-drawer-width);
+  transition: right 230ms var(--md-sys-motion-easing, ease);
   pointer-events: none;
 }
-.apollo-details-toggle,
-.apollo-explorer-details {
-  pointer-events: auto;
-}
-.apollo-explorer-dock .apollo-details-toggle {
-  display: inline-flex;
+.apollo-dock-open .apollo-explorer-dock { right: 0; }
+.apollo-details-toggle {
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 7px;
-  min-height: 44px;
-  padding: 8px 14px;
-  line-height: 1.25;
-  background: var(--paper);
-}
-.apollo-details-toggle .material-symbols-rounded { font-size: 18px; }
-.apollo-explorer-details {
-  width: 100%;
-  box-sizing: border-box;
-  max-height: min(70dvh, calc(100dvh - var(--explorer-content-top) - 110px));
-  overflow: auto;
-  overscroll-behavior: contain;
-  padding: 18px;
+  justify-content: center;
+  gap: 8px;
+  width: var(--apollo-handle-width);
+  min-height: 128px;
+  padding: 8px 4px;
   border: 1px solid var(--line);
-  border-radius: var(--tls-shape-field);
+  border-right: 0;
+  border-radius: 14px 0 0 14px !important;
   background: var(--paper);
   color: var(--ink);
+  pointer-events: auto;
+  cursor: pointer;
+}
+.apollo-details-toggle:hover,
+.apollo-details-toggle:focus-visible {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+.apollo-details-toggle > [aria-hidden] { font-size: 22px; line-height: 1; }
+.apollo-details-label { writing-mode: vertical-rl; font-size: .82rem; }
+.apollo-explorer-details {
+  height: 100%;
+  box-sizing: border-box;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: max(20px, env(safe-area-inset-top)) 18px max(20px, env(safe-area-inset-bottom));
+  border-left: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  pointer-events: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  .apollo-explorer-dock { transition: none; }
 }
 .apollo-explorer-details h2 { margin: 0; }
 .apollo-explorer-details .apollo-brief p { line-height: 1.65; }
@@ -356,6 +382,8 @@
 @media (max-width: 550px) {
   .fullscreen-explorer .explorer-navigation { gap: 4px; }
   .fullscreen-explorer .explorer-navigation .action { font-size: 11px; padding-inline: 7px; }
-  .apollo-explorer-dock { inset-block-start: calc(var(--explorer-content-top) + 48px); }
-  .apollo-explorer-details { max-height: min(62dvh, calc(100dvh - var(--explorer-content-top) - 130px)); }
+  .fullscreen-explorer.has-apollo-dock { --apollo-drawer-width: min(78vw, 360px); }
+  .apollo-dock-open .explorer-stage { right: 0; }
+  .apollo-explorer-details { padding-inline: 12px; }
+  .apollo-explorer-actions .action { min-width: 0; }
 }

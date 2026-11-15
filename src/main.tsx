@@ -285,7 +285,8 @@ function App() {
       )}{" "}
       {route.page === "guide" && <Guide />}
       {route.page === "explore" && (
-        <div className="exploration-page fullscreen-explorer">
+        <div className={`exploration-page fullscreen-explorer${isApollo ? " has-apollo-dock" : ""}${isApollo && apolloDetailsOpen ? " apollo-dock-open" : ""}`}>
+          <div className="explorer-stage">
           <header className="fullscreen-toolbar">
             <a className="action action-line" href="#/">
               <span aria-hidden="true">{english ? "←" : "→"}</span> {t("الرئيسية", "Home")}
@@ -565,33 +566,6 @@ function App() {
                 ))}
               </>
             )}
-            {isApollo && (
-              <div className="apollo-explorer-dock">
-                <button type="button" className="action action-line apollo-details-toggle"
-                  aria-expanded={apolloDetailsOpen} aria-controls="apollo-explorer-details"
-                  onClick={() => setApolloDetailsOpen((open) => !open)}>
-                  <span className="material-symbols-rounded" aria-hidden="true">{apolloDetailsOpen ? "close" : "info"}</span>
-                  {apolloDetailsOpen ? t("إغلاق التفاصيل", "Close details") : t("تفاصيل أبولو 11", "Apollo 11 details")}
-                </button>
-                {apolloDetailsOpen && (
-                  <aside id="apollo-explorer-details" className="apollo-explorer-details" aria-labelledby="apollo-explorer-title">
-                    <h2 id="apollo-explorer-title">{t("أبولو 11", "Apollo 11")}</h2>
-                    <p>{missionCopy.site} · <bdi>{m.lat}° N, {m.lon}° E</bdi></p>
-                    <div className="apollo-explorer-actions">
-                      <button type="button" className="action action-solid" onClick={() => change("location")}>{t("موقع الهبوط", "Landing site")}</button>
-                      <button type="button" className="action action-line" onClick={() => change("model")}>{t("المجسّم", "3D model")}</button>
-                      <button type="button" className="action action-line" onClick={() => change("story")}>{t("قصة الرحلة", "Mission story")}</button>
-                    </div>
-                    <details className="apollo-explorer-photos">
-                      <summary>{t("الصور والمصادر", "Photos and sources")}</summary>
-                      <NasaGallery mission={m.id} compact />
-                    </details>
-                    <ApolloBrief />
-                    <a className="action action-line" href={`#/archive?mission=${m.id}`}>{t("سجل المهمة الكامل", "Full mission record")}</a>
-                  </aside>
-                )}
-              </div>
-            )}
             <MobileControls
               mode={mode}
               panelOpen={mobilePanelOpen}
@@ -733,6 +707,33 @@ function App() {
               </div>
             </details>
           )}
+          </div>
+            {isApollo && (
+              <div className="apollo-explorer-dock">
+                <button type="button" className="apollo-details-toggle"
+                  aria-label={apolloDetailsOpen ? t("إغلاق تفاصيل أبولو 11", "Close Apollo 11 details") : t("فتح تفاصيل أبولو 11", "Open Apollo 11 details")}
+                  aria-expanded={apolloDetailsOpen} aria-controls="apollo-explorer-details"
+                  onClick={() => setApolloDetailsOpen((open) => !open)}>
+                  <span aria-hidden="true">{apolloDetailsOpen ? "›" : "‹"}</span>
+                  <span className="apollo-details-label">{t("تفاصيل أبولو 11", "Apollo 11 details")}</span>
+                </button>
+                  <aside id="apollo-explorer-details" className="apollo-explorer-details" aria-labelledby="apollo-explorer-title" hidden={!apolloDetailsOpen}>
+                    <h2 id="apollo-explorer-title">{t("أبولو 11", "Apollo 11")}</h2>
+                    <p>{missionCopy.site} · <bdi>{m.lat}° N, {m.lon}° E</bdi></p>
+                    <div className="apollo-explorer-actions">
+                      <button type="button" className="action action-solid" onClick={() => change("location")}>{t("موقع الهبوط", "Landing site")}</button>
+                      <button type="button" className="action action-line" onClick={() => change("model")}>{t("المجسّم", "3D model")}</button>
+                      <button type="button" className="action action-line" onClick={() => change("story")}>{t("قصة الرحلة", "Mission story")}</button>
+                    </div>
+                    <details className="apollo-explorer-photos">
+                      <summary>{t("الصور والمصادر", "Photos and sources")}</summary>
+                      <NasaGallery mission={m.id} compact />
+                    </details>
+                    <ApolloBrief />
+                    <a className="action action-line" href={`#/archive?mission=${m.id}`}>{t("سجل المهمة الكامل", "Full mission record")}</a>
+                  </aside>
+              </div>
+            )}
         </div>
       )}
       {route.page !== "explore" && (
