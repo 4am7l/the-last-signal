@@ -32,15 +32,14 @@ test("Theme control exposes accessible toggling and follows the visitor preferen
   assert.match(index, /Material\+Symbols\+Rounded/);
 });
 
-test("the empty archive and explorer do not load the removed mission media", () => {
+test("the Eagle archive includes the supplied and historical photographs", () => {
   const editorial = file("src/Experience.tsx");
-  const explorer = file("src/main.tsx");
-  const space = file("src/Space.tsx");
+  const data = file("src/eagle.ts");
   assert.match(editorial, /<ThemeToggle\s*\/>/);
-  assert.match(editorial, /The archive is currently empty/);
-  for (const source of [editorial, explorer, space]) {
-    assert.doesNotMatch(source, /NasaGallery|\/photos\/|\/models\/|useGLTF/);
-  }
+  assert.match(editorial, /eagleImages\.map/);
+  assert.match(data, /1969-059C/);
+  assert.match(data, /AS11-40-5927/);
+  assert.match(data, /apollo_lm_diagram\.gif/);
 });
 
 test("The local Samsung font supplies Arabic and English text while Material icons keep their font", () => {

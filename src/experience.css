@@ -1692,3 +1692,42 @@ body {
 .signal-hero:has(> .hero-copy:only-child) {
   grid-template-columns: minmax(0, 1fr);
 }
+
+.eagle-sources {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding-inline-start: 1.25rem;
+}
+.eagle-sources a, .eagle-gallery figcaption a {
+  color: var(--md-sys-color-primary);
+  text-decoration: underline;
+}
+.eagle-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 18px;
+}
+.eagle-gallery figure {
+  margin: 0;
+  background: var(--md-sys-color-surface-container);
+  border: 1px solid var(--line);
+  border-radius: var(--md-sys-shape-corner-large);
+  overflow: hidden;
+}
+.eagle-gallery img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: contain;
+  background: #131417;
+}
+.eagle-gallery figcaption {
+  display: grid;
+  gap: 6px;
+  padding: 14px 16px;
+}
+.eagle-gallery figcaption a {
+  width: fit-content;
+  font-size: .84em;
+}

@@ -1,6 +1,6 @@
 # الإشارة الأخيرة
 
-محاكاة ثلاثية الأبعاد للقمر والمريخ مع استكشاف السطح. أرشيف المهمات فارغ حاليًا.
+محاكاة ثلاثية الأبعاد للقمر والمريخ مع استكشاف السطح. يتضمن الأرشيف سجل إيغل وصور أبولو 11.
 
 ## التشغيل
 
@@ -9,6 +9,13 @@
 
     npm test
     npm run build
+
+## إيغل
+
+- [سجل ناسا NSSDCA، المعرّف 1969-059C](https://nssdc.gsfc.nasa.gov/nmc/spacecraft/display.action?id=1969-059C).
+- [إحداثيات LROC](https://lroc.im-ldi.com/data/support/downloads/2016_LROC_Coordinates_of_Human_Features.pdf): 0.67416° شمالًا، 23.47314° شرقًا.
+- [مجسّم NASA / Michael D. Carbajal](https://science.nasa.gov/3d-resources/apollo-lunar-module/). تُعرض أجزاء مرحلة الهبوط على السطح بامتداد 9.4 م بين القدمين المتقابلتين.
+- الصور من سجل NSSDCA و[أرشيف ناسا لأبولو 11](https://www.nasa.gov/wp-content/uploads/static/history/ap11ann/kippsphotos/apollo.html).
 
 ## خرائط الأجرام
 

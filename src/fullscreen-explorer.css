@@ -299,3 +299,12 @@
 .fullscreen-explorer .universe.surface {
   background: #05070d;
 }
+
+.explorer-entry .eagle-explorer-link {
+  display: grid;
+  gap: 1px;
+  background: var(--paper);
+}
+.eagle-explorer-link bdi {
+  font-size: .8em;
+}

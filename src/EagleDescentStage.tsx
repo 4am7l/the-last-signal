@@ -1,0 +1,58 @@
+import { useMemo } from "react";
+import { useGLTF } from "@react-three/drei";
+import { Box3, Mesh, Vector3 } from "three";
+import { eagle } from "./eagle";
+
+const modelPath = "/models/apollo.glb";
+const decoderPath = "/draco/";
+
+// Mesh names in the NASA/Michael D. Carbajal GLB for the landing gear,
+// descent body and engine, ladder, forward platform, and descent-stage hardware.
+const descentParts = /^(group31 |group13 p2$|group13 pC$|pCylinder[12367]$|pCube3$|pCylinde11$|polySurfa1$|pPlane[12]$)/;
+
+export function EagleDescentStage({ unit, ground, night }: {
+  unit: number;
+  ground: (x: number, z: number) => number;
+  night: number;
+}) {
+  const { scene } = useGLTF(modelPath, decoderPath);
+  const stage = useMemo(() => {
+    const object = scene.clone(true);
+    const ascentParts: Mesh[] = [];
+    object.traverse((part) => {
+      if (!(part instanceof Mesh)) return;
+      // Three removes spaces when it imports node names.
+      const originalName = part.userData.name ?? part.name;
+      if (!descentParts.test(originalName)) {
+        ascentParts.push(part);
+        return;
+      }
+      part.castShadow = true;
+      part.receiveShadow = true;
+    });
+    ascentParts.forEach((part) => part.removeFromParent());
+    const box = new Box3().setFromObject(object);
+    const center = box.getCenter(new Vector3());
+    const size = box.getSize(new Vector3());
+    const scale = eagle.footpadSpan / Math.max(size.x, size.z);
+    object.position.set(-center.x * scale, -box.min.y * scale, -center.z * scale);
+    object.scale.setScalar(scale);
+    return object;
+  }, [scene]);
+
+  return (
+    <group position={[0, ground(0, 0), 0]} scale={unit}>
+      <primitive object={stage} />
+      {night > .001 && (
+        <>
+          <pointLight position={[8, 10, 8]} color="#fff0d7" intensity={390 * unit ** 2 * night} distance={36 * unit} />
+          <pointLight position={[-7, 6, -7]} color="#c6ddff" intensity={180 * unit ** 2 * night} distance={30 * unit} />
+        </>
+      )}
+    </group>
+  );
+}
+
+export function preloadEagle() {
+  useGLTF.preload(modelPath, decoderPath);
+}

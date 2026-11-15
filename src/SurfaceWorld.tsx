@@ -4,7 +4,7 @@ import {useSimulation,useEphemeris,PRESETS} from './simulation';
 import {solarIrradiance} from './science';
 import {bodyOrientation} from './orientation';
 import {SurfaceNavigation} from './SurfaceNavigation';
-import {useEffect,useMemo,useRef,useState} from 'react';
+import {Suspense,useEffect,useMemo,useRef,useState} from 'react';
 import {useFrame,useLoader,useThree} from '@react-three/fiber';
 import {OrbitControls} from '@react-three/drei';
 import type {OrbitControls as Controls} from 'three-stdlib';
@@ -17,17 +17,20 @@ import {surfaceDetail,noise3,cameraTuning} from './sceneMath';
 import type {Destination} from './navigation';
 import {createMarsRelief} from './marsGeology';
 import {MarsRocks} from './MarsSurfaceDetails';
+import {EagleDescentStage,preloadEagle} from './EagleDescentStage';
+import {eagle} from './eagle';
 import {LunarRocks} from './LunarSurfaceDetails';
 import {MOON_RENDER_RADIUS as R,MOON_RADIUS_METRES,MARS_RADIUS_METRES,localRelief,ringAngle} from './lunarTerrain';
 // Resolve the terrain around a neutral descent point on each body.
 export function SurfaceWorld({mode,body,reset}: {mode:'planet'|'surface';body:Destination;reset:number}){
- const lat=0,lon=0;
+ const lat=body==='moon'?eagle.latitude:0,lon=body==='moon'?eagle.longitude:0;
  const landingRadius=9;
  const surfaceDistance=24;
  const settings=useSimulation(),preset=PRESETS[settings.quality],ephemeris=useEphemeris(settings.date);
  const bodyToSystem=useMemo(()=>bodyOrientation(body,ephemeris.epoch),[body,ephemeris.epoch]);
  const moon=body==='moon',radiusMetres=moon?MOON_RADIUS_METRES:MARS_RADIUS_METRES,UNIT=R/radiusMetres;
  const [close,setClose]=useState(false);
+ useEffect(()=>{if(moon)preloadEagle()},[moon]);
  const incomingDem=useElevation(body),heldDem=useRef({body:body,grid:incomingDem});
  if((mode==='planet'&&!close)||heldDem.current.body!==body)heldDem.current={body:body,grid:incomingDem};
  const dem=heldDem.current.grid;
@@ -224,9 +227,10 @@ export function SurfaceWorld({mode,body,reset}: {mode:'planet'|'surface';body:De
   const distance=camera.position.distanceTo(ctl.target),near=Math.max(.000005,Math.min(.1,distance/10000));if(camera.near!==near){camera.near=near;camera.updateProjectionMatrix()}
  });
  return <>
-  <SurfaceNavigation active={mode==='surface'&&close&&!flight.current} body={body} unit={UNIT} ground={surface.ground} center={surface.center}/><OrbitControls ref={controls} makeDefault enabled={mode==='planet'||settings.navigation==='orbit'||!close||!!flight.current} enableDamping dampingFactor={.085} rotateSpeed={coarsePointer?.65:.4} enablePan={close} screenSpacePanning={false} panSpeed={.4} minPolarAngle={.04} maxPolarAngle={close?Math.PI/2-.035:Math.PI-.02} minDistance={1.2*UNIT} maxDistance={Math.max(1800,950*orbitFraming)} zoomSpeed={.6} onStart={()=>{if(flight.current){descentArmed.current=false;guided.current=flight.current.stage==='descent';}flight.current=null;}}/>{/* Uniform bounced light lifts the unlit terrain without introducing a second shadow direction. */}<ambientLight intensity={daylight*(moon?.26:.34)+night*(moon?.028:.045)} color={moon?'#c3d0e5':'#e6c6ae'}/><hemisphereLight args={[moon?'#c8d6ee':'#e9c6aa',moon?'#798295':'#9b7360',daylight*(moon?.14:.19)+night*.018]}/>{night>.001&&<directionalLight castShadow position={nightDirection.clone().multiplyScalar(350*UNIT)} color={moon?'#a8c5ee':'#b4c5dc'} intensity={night*(moon?.13:.095)} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-normalBias={.004*UNIT} shadow-bias={-.000015} shadow-radius={0}/>}<directionalLight castShadow position={localSun.clone().multiplyScalar(350*UNIT)} color={moon?'#fff8ee':'#fff0dc'} intensity={4.0*solarIrradiance(ephemeris[body])/1361} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-bias={-.000015} shadow-normalBias={.004*UNIT} shadow-radius={0}/><mesh geometry={surface.geometry} receiveShadow><RegolithMaterial map={map} nasaPatch={nasaPatch} nasaPatchFade={nasaPatchFade} unit={UNIT} moon={moon} centerY={surface.center.y} rotation={surface.rotation} landingRadius={landingRadius}/></mesh>{globeOnly ? null : moon
-    ? <LunarRocks ground={surface.ground} unit={UNIT} clearance={3} count={preset.rocks}/>
+  <SurfaceNavigation active={mode==='surface'&&close&&!flight.current} body={body} unit={UNIT} ground={surface.ground} center={surface.center} clearance={moon?eagle.footpadSpan/2:0}/><OrbitControls ref={controls} makeDefault enabled={mode==='planet'||settings.navigation==='orbit'||!close||!!flight.current} enableDamping dampingFactor={.085} rotateSpeed={coarsePointer?.65:.4} enablePan={close} screenSpacePanning={false} panSpeed={.4} minPolarAngle={.04} maxPolarAngle={close?Math.PI/2-.035:Math.PI-.02} minDistance={1.2*UNIT} maxDistance={Math.max(1800,950*orbitFraming)} zoomSpeed={.6} onStart={()=>{if(flight.current){descentArmed.current=false;guided.current=flight.current.stage==='descent';}flight.current=null;}}/>{/* Uniform bounced light lifts the unlit terrain without introducing a second shadow direction. */}<ambientLight intensity={daylight*(moon?.26:.34)+night*(moon?.028:.045)} color={moon?'#c3d0e5':'#e6c6ae'}/><hemisphereLight args={[moon?'#c8d6ee':'#e9c6aa',moon?'#798295':'#9b7360',daylight*(moon?.14:.19)+night*.018]}/>{night>.001&&<directionalLight castShadow position={nightDirection.clone().multiplyScalar(350*UNIT)} color={moon?'#a8c5ee':'#b4c5dc'} intensity={night*(moon?.13:.095)} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-normalBias={.004*UNIT} shadow-bias={-.000015} shadow-radius={0}/>}<directionalLight castShadow position={localSun.clone().multiplyScalar(350*UNIT)} color={moon?'#fff8ee':'#fff0dc'} intensity={4.0*solarIrradiance(ephemeris[body])/1361} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-bias={-.000015} shadow-normalBias={.004*UNIT} shadow-radius={0}/><mesh geometry={surface.geometry} receiveShadow><RegolithMaterial map={map} nasaPatch={nasaPatch} nasaPatchFade={nasaPatchFade} unit={UNIT} moon={moon} centerY={surface.center.y} rotation={surface.rotation} landingRadius={landingRadius}/></mesh>{globeOnly ? null : moon
+    ? <LunarRocks ground={surface.ground} unit={UNIT} clearance={6} count={preset.rocks}/>
     : <MarsRocks ground={surface.ground} unit={UNIT} clearance={3} count={preset.rocks} lat={lat} lon={lon} landingRadius={landingRadius}/>}
+   {moon&&close&&<Suspense fallback={null}><EagleDescentStage unit={UNIT} ground={surface.ground} night={night}/></Suspense>}
    {!moon && <group position={surface.center}><Atmosphere r={R}/></group>}
  </>;
 }

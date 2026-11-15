@@ -1,3 +1,4 @@
+import { eagle, eagleImages } from "./eagle";
 import { LanguageToggle } from "./LanguageToggle";
 import { ThemeToggle } from "./ThemeToggle";
 import { useLanguage, useExplorerText } from "./explorer-language";
@@ -84,6 +85,7 @@ export function Home() {
             <a className="action action-solid" href="#/explore">
               {t("افتح المحاكاة", "Open simulation")} <Arrow />
             </a>
+            <a className="text-link" href="#/archive?mission=apollo">{t("إيغل — أبولو 11", "Eagle — Apollo 11")}</a>
           </div>
         </div>
       </section>
@@ -113,8 +115,42 @@ export function Archive() {
   return (
     <main id="main-content" className="editorial-page" tabIndex={-1}>
       <section className="page-intro">
-        <h1>{t("أرشيف المهمات", "Mission archive")}</h1>
-        <p>{t("الأرشيف فارغ حاليًا.", "The archive is currently empty.")}</p>
+        <p>{t("أبولو 11 · 20 تموز 1969", "Apollo 11 · July 20, 1969")}</p>
+        <h1>{t("إيغل — مرحلة الهبوط", "Eagle — Descent Stage")}</h1>
+        <p>{t(
+          "هبطت إيغل في بحر السكون وعلى متنها نيل أرمسترونغ وباز ألدرين. في اليوم التالي أقلعت مرحلة الصعود للالتحام بكولومبيا، وبقيت مرحلة الهبوط بأرجلها الأربع ومحرّكها على القمر.",
+          "Eagle landed in the Sea of Tranquility carrying Neil Armstrong and Buzz Aldrin. The next day its ascent stage lifted off to dock with Columbia, leaving the descent stage, its four legs and its engine on the Moon.",
+        )}</p>
+        <p>{t("بحر السكون", "Tranquility Base")} · <bdi>{eagle.coordinates}</bdi></p>
+        <div className="hero-actions">
+          <a className="action action-solid" href={exploreHref("moon", "surface")}>
+            {t("شاهد مرحلة الهبوط على القمر", "Visit the descent stage on the Moon")} <Arrow />
+          </a>
+        </div>
+        <ul className="eagle-sources">
+          <li><a href={eagle.catalog} target="_blank" rel="noreferrer">NASA NSSDCA · 1969-059C</a></li>
+          <li><a href={eagle.coordinateSource} target="_blank" rel="noreferrer">{t("مرجع الإحداثيات · LROC", "Coordinate reference · LROC")}</a></li>
+          <li><a href={eagle.modelSource} target="_blank" rel="noreferrer">{t("المجسّم الأصلي · NASA", "Original model · NASA")}</a></li>
+          <li><a href={eagle.photoArchive} target="_blank" rel="noreferrer">{t("أرشيف صور أبولو 11 · NASA", "Apollo 11 photo archive · NASA")}</a></li>
+        </ul>
+      </section>
+      <section className="page-section" aria-labelledby="eagle-gallery-title">
+        <div className="section-heading">
+          <h2 id="eagle-gallery-title">{t("صور إيغل والرسم الهندسي", "Eagle photographs and technical diagram")}</h2>
+        </div>
+        <div className="eagle-gallery">
+          {eagleImages.map((image, index) => (
+            <figure key={image.id}>
+              <a href={image.src} target="_blank" rel="noreferrer" aria-label={t("افتح الصورة بحجمها الكامل", "Open full-size image") + " · " + image.id}>
+                <img src={image.src} alt={t(image.ar, image.en)} loading={index === 0 ? "eager" : "lazy"} decoding="async" />
+              </a>
+              <figcaption>
+                <span>{t(image.ar, image.en)}</span>
+                <a href={image.source} target="_blank" rel="noreferrer" dir="ltr">{image.id} <Arrow /></a>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
       </section>
     </main>
   );

@@ -1,3 +1,4 @@
+import { eagle } from "./eagle";
 import { LanguageToggle } from "./LanguageToggle";
 import { ExplorerLanguage, type Language } from "./explorer-language";
 import { Home, Archive, Guide, SiteHeader, SiteFooter } from "./Experience";
@@ -200,11 +201,17 @@ function App() {
                 <a className="action action-solid" href={exploreHref(body, "planet")}>{t("استكشف السطح", "Explore the surface")}</a>
               )}
               {mode === "planet" && (
-                <a className="action action-solid" href={exploreHref(body, "surface")}>{t("انزل للسطح", "Descend to the surface")}</a>
+                <a className="action action-solid" href={exploreHref(body, "surface")}>{body === "moon" ? t("انزل إلى موقع إيغل", "Descend to Eagle") : t("انزل للسطح", "Descend to the surface")}</a>
               )}
               {mode !== "overview" && (
                 <a className="action action-line" href={exploreHref(body, mode === "surface" ? "planet" : "overview")} aria-label={t("رجوع إلى منظر الجرم الكامل", "Back to the full globe")}>
                   <span aria-hidden="true">{t("→", "←")}</span> {t("رجوع", "Back")}
+                </a>
+              )}
+              {body === "moon" && mode === "surface" && (
+                <a className="action action-line eagle-explorer-link" href="#/archive?mission=apollo">
+                  {t("إيغل · الصور والمصادر", "Eagle · Photos and sources")}
+                  <bdi>{eagle.coordinates}</bdi>
                 </a>
               )}
             </div>
