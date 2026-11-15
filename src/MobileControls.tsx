@@ -33,9 +33,9 @@ export function MobileControls({mode,onCamera,onReset,onFocus}:Props){
  const moving=walkable&&settings.navigation!=='orbit';
  return <div className={'mobileControls'+(moving?' is-moving':'')} aria-label={t(t("التحكم باللمس", "Touch controls"), "Touch controls")}>
   <div className="mobileControlModes" role="group" aria-label={t(t("وضع الملاحة", "Navigation mode"), "Navigation mode")}>
-   <button className={settings.navigation==='orbit'?'selected':''} onClick={()=>configure({navigation:'orbit'})}>{t(t("تدوير", "Orbit"), "Orbit")}</button>
-   {walkable&&<><button className={settings.navigation==='walk'?'selected':''} onClick={()=>configure({navigation:'walk'})}>{t(t("مشي", "Walk"), "Walk")}</button>
-   <button className={settings.navigation==='drone'?'selected':''} onClick={()=>configure({navigation:'drone'})}>{t(t("طيران", "Fly"), "Fly")}</button></>}
+   <button aria-pressed={!moving} className={!moving?'selected':''} onClick={()=>configure({navigation:'orbit'})}>{t(t("تدوير", "Orbit"), "Orbit")}</button>
+   {walkable&&<><button aria-pressed={settings.navigation==='walk'} className={settings.navigation==='walk'?'selected':''} onClick={()=>configure({navigation:'walk'})}>{t(t("مشي", "Walk"), "Walk")}</button>
+   <button aria-pressed={settings.navigation==='drone'} className={settings.navigation==='drone'?'selected':''} onClick={()=>configure({navigation:'drone'})}>{t(t("طيران", "Fly"), "Fly")}</button></>}
   </div>
   <div className="mobileControlLayout">
    <div className="mobileDpad" role="group" aria-label={moving?t("اتجاه الحركة", "Movement direction"):t("تدوير الكاميرا", "Rotate camera")}>

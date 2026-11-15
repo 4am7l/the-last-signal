@@ -28,10 +28,16 @@ export function useEphemeris(date:string){
  return resolved?.epoch===epoch?resolved:fallback;
 }
 export type Telemetry={fps:number;frameMs:number;calls:number;triangles:number;textures:number;altitude:number;stars:string;terrain:string};
-export function SimulationPanel(){
+export function SimulationPanel({open,onToggle}:{open:boolean;onToggle:()=>void}){
  const t = useExplorerText();
  const settings=useSimulation(),ephemeris=useEphemeris(settings.date);
- return <details className="simulationPanel"><summary>{t(t("المحاكاة والإضاءة", "Simulation and lighting"), "Simulation and lighting")}</summary>
+ return <details className="simulationPanel" open={open}>
+ <summary onClick={event=>{event.preventDefault();onToggle()}}>
+  <span className="material-symbols-rounded" aria-hidden="true">tune</span>
+  {t("المحاكاة والإضاءة", "Simulation and lighting")}
+  <span className="material-symbols-rounded explorer-panel-chevron" aria-hidden="true">expand_more</span>
+ </summary>
+ <div className="explorer-panel-content">
  <label>{t(t("التاريخ الفلكي UTC", "Astronomical date (UTC)"), "Astronomical date (UTC)")}<input type="date" min="1800-01-01" max="2050-12-31" value={settings.date} onChange={e=>{const v=e.target.value;if(v>='1800-01-01'&&v<='2050-12-31')configure({date:v})}}/></label>
  <small>{ephemeris.source==='JPL Horizons'?t("المواقع: JPL Horizons", "Positions: JPL Horizons"):t("المواقع تقريبية — خدمة JPL غير متصلة", "Approximate positions · JPL unavailable")}</small>
  <label><input type="checkbox" checked={settings.inspection} onChange={e=>configure({inspection:e.target.checked})}/>{t(t("إضاءة معاينة صناعية", "Inspection lighting"), "Inspection lighting")}</label>
@@ -41,5 +47,6 @@ export function SimulationPanel(){
  <small>{t(t("الكمبيوتر: انقر المشهد لتفعيل الماوس، WASD للحركة، Shift للإسراع، Space للقفز، E/Q لارتفاع الدرون. الجوال: استخدم أزرار الحركة واسحب بإصبع واحد لتوجيه الكاميرا.", "Desktop: click the scene for mouse control. Use WASD to move, Shift to speed up, Space to jump and E/Q to change altitude. On mobile, use the movement buttons and drag to look around."), "Desktop: click the scene for mouse control. Use WASD to move, Shift to speed up, Space to jump and E/Q to change altitude. On mobile, use the movement buttons and drag to look around.")}</small>
  <small>{t(t("المشي محصور ضمن 200 م من الموقع. تفاصيل الأرض الصغيرة إعادة بناء بصرية.", "Walking is limited to 200 m around the site. Small terrain features are illustrative."), "Walking is limited to 200 m around the site. Small terrain features are illustrative.")}</small>
  <a href="https://github.com/astronexus/HYG-Database" target="_blank" rel="noreferrer">HYG · David Nash · CC BY-SA 4.0</a>
+ </div>
  </details>;
 }

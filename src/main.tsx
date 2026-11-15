@@ -8,7 +8,8 @@ import { NasaGallery } from "./NasaGallery";
 import { ThemeToggle } from "./ThemeToggle";
 import { PlanetLoadingIndicator } from "./PlanetLoadingIndicator";
 import { parseRoute, exploreHref } from "./navigation";
-import { SimulationPanel } from "./simulation";
+import { configure, SimulationPanel } from "./simulation";
+import { CameraDock } from "./CameraDock";
 import { MobileControls } from "./MobileControls";
 import React, { useState, useEffect, useMemo, useRef, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
@@ -28,7 +29,7 @@ import "./fullscreen-explorer.css";
 import "./motion.css";
 const Space = lazy(() => import("./Space").then((m) => ({ default: m.Space })));
 class Boundary extends React.Component<
-  { children: React.ReactNode; onError?: () => void; language: Language; view: Mode },
+  { children: React.ReactNode; onError?: () => void; onRetry: () => void; language: Language; view: Mode },
   { error: boolean }
 > {
   state = { error: false };
@@ -45,12 +46,18 @@ class Boundary extends React.Component<
   }
   render() {
     return this.state.error ? (
-      <div className="error">
+      <div className="error sceneError" role="status">
         {this.props.language === "en"
           ? "This browser could not start the 3D scene. Try a browser with WebGL and graphics acceleration."
           : "لم يتمكن المتصفح من تشغيل المشهد ثلاثي الأبعاد. جرّب متصفحًا يدعم WebGL مع تسريع الرسومات."}
-        <br />
-        <a href="#/archive">{this.props.language === "en" ? "View mission photos and records →" : "تابع صور المهمات وسجلات الرحلات في الأرشيف ←"}</a>
+        <div className="sceneError__actions">
+          <button type="button" className="action action-solid" onClick={this.props.onRetry}>
+            {this.props.language === "en" ? "Retry scene" : "إعادة تشغيل المشهد"}
+          </button>
+          <a className="action action-line" href="#/archive">
+            {this.props.language === "en" ? "Mission photos and records" : "صور المهمات وسجلاتها"}
+          </a>
+        </div>
       </div>
     ) : (
       this.props.children
@@ -118,7 +125,8 @@ function App() {
     [speed, setSpeed] = useState(1),
     [image, setImage] = useState<string | null>(null),
     [sources, setSources] = useState(false),
-    [reset, setReset] = useState(0);
+    [reset, setReset] = useState(0),
+    [sceneAttempt, setSceneAttempt] = useState(0);
   const m = missions[index],
     frames = useMemo(() => shotsFor(m), [m.id]),
     frameIndex = Math.min(frames.length - 1, Math.floor(film)),
@@ -150,11 +158,40 @@ function App() {
     setPlaying(false);
   }
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [compactDrawer, setCompactDrawer] = useState(() => window.matchMedia("(max-width: 900px)").matches);
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 900px)");
+    const sync = () => setCompactDrawer(media.matches);
+    media.addEventListener("change", sync);
+    sync();
+    return () => media.removeEventListener("change", sync);
+  }, []);
+  const [openPanel, setOpenPanel] = useState<"settings" | "timeline" | null>(null);
+  const togglePanel = (panel: "settings" | "timeline") =>
+    setOpenPanel((current) => current === panel ? null : panel);
+  const resetCamera = () => {
+    configure({ navigation: "orbit" });
+    setReset((value) => value + 1);
+  };
+  const focusEquipment = () => {
+    configure({ navigation: "orbit" });
+    change("model");
+  };
   const bodyView = mode === "planet";
   const detailsRef = useRef<HTMLElement>(null);
+  const detailsToggleRef = useRef<HTMLButtonElement>(null);
+  const drawerSelection = useRef(false);
   useEffect(() => {
     if (detailsRef.current) detailsRef.current.scrollTop = 0;
+    if (drawerSelection.current) {
+      drawerSelection.current = false;
+      detailsRef.current?.querySelector<HTMLElement>("#equipment-title")?.focus({ preventScroll: true });
+    }
   }, [bodyView, m.id]);
+  const closeDetails = () => {
+    if (detailsRef.current?.contains(document.activeElement)) detailsToggleRef.current?.focus();
+    setDetailsOpen(false);
+  };
   const isApollo = m.id === "apollo";
   const isFalcon = m.id === "apollo15";
 
@@ -184,20 +221,21 @@ function App() {
   }, [language, route.page]);
   useEffect(() => {
     setDetailsOpen(false);
+    setOpenPanel(null);
+    window.scrollTo({ top: 0, behavior: "instant" });
   }, [route.page, m.body]);
   useEffect(() => {
+    const nextIndex = Math.max(0, missions.findIndex((item) => item.id === route.mission));
+    if (route.mode === mode && nextIndex === index) return;
     setMode(route.mode);
-    setIndex(
-      Math.max(
-        0,
-        missions.findIndex((m) => m.id === route.mission),
-      ),
-    );
+    setIndex(nextIndex);
     setFilm(0);
     setPlaying(false);
     setReset((v) => v + 1);
-    window.scrollTo({ top: 0, behavior: "instant" });
-  }, [route.page, route.mode, route.mission]);
+  }, [route.mode, route.mission]);
+  useEffect(() => {
+    if (mode !== "story") setOpenPanel((current) => current === "timeline" ? null : current);
+  }, [mode]);
   useEffect(() => {
     if (!image && !sources) return;
     const previous = document.activeElement as HTMLElement | null;
@@ -249,7 +287,10 @@ function App() {
   useEffect(() => {
     const esc = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (!document.querySelector('.nasa-lightbox')) setDetailsOpen(false);
+        if (!document.querySelector('.nasa-lightbox')) {
+          closeDetails();
+          setOpenPanel(null);
+        }
         setImage(null);
         setSources(false);
         setPlaying(false);
@@ -258,7 +299,7 @@ function App() {
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
   }, []);
-  const sceneKey = `${mode === "story" ? "story" : "surface"}:${m.body}:${m.id}`;
+  const sceneKey = `${mode === "story" ? "story" : "surface"}:${m.body}:${m.id}:${sceneAttempt}`;
   const sceneLoading = readySceneKey !== sceneKey && failedSceneKey !== sceneKey;
   const years = Object.keys(annualStories(m)).map(Number);
   return (
@@ -290,7 +331,7 @@ function App() {
       {route.page === "guide" && <Guide />}
       {route.page === "explore" && (
         <div className={`exploration-page fullscreen-explorer${detailsOpen ? " details-dock-open" : ""}`}>
-          <div className="explorer-stage">
+          <div className="explorer-stage" data-panel-open={openPanel ?? undefined} inert={detailsOpen && compactDrawer}>
           <header className="fullscreen-toolbar">
             <a className="action action-line" href="#/">
               <span aria-hidden="true">{english ? "←" : "→"}</span> {t("الرئيسية", "Home")}
@@ -303,7 +344,7 @@ function App() {
                 <a
                   key={body}
                   href={exploreHref(mission, "planet")}
-                  aria-current={m.body === body ? "true" : undefined}
+                  aria-current={m.body === body ? "page" : undefined}
                 >
                   {label}
                 </a>
@@ -328,6 +369,118 @@ function App() {
                 </button>
               )}
             </div>
+            <div className="explorer-panels">
+              <SimulationPanel open={openPanel === "settings"} onToggle={() => togglePanel("settings")} />
+              {mode === "story" && (
+                <details className="timebar explorer-timeline" open={openPanel === "timeline"}>
+                  <summary onClick={(event) => { event.preventDefault(); togglePanel("timeline"); }}>
+                    <span className="material-symbols-rounded" aria-hidden="true">timeline</span>
+                    {t("مراحل الرحلة", "Mission timeline")}
+                    <span className="material-symbols-rounded explorer-panel-chevron" aria-hidden="true">expand_more</span>
+                  </summary>
+                  <div className="explorer-panel-content">
+                    <div className="timeTop">
+                      <button
+                        className="play"
+                        onClick={() => {
+                          if (film >= frames.length - 0.002) setFilm(0);
+                          setPlaying((v) => !v);
+                        }}
+                      >
+                        {playing ? t("Ⅱ إيقاف", "Ⅱ Pause") : t("▶ تشغيل", "▶ Play")}
+                      </button>
+                      <strong>{date}</strong>
+                      <label>
+                        {t("سرعة العرض", "Playback speed")}{" "}
+                        <select
+                          value={speed}
+                          onChange={(e) => setSpeed(Number(e.target.value))}
+                        >
+                          <option value={0.5}>0.5×</option>
+                          <option value={1}>1×</option>
+                          <option value={2}>2×</option>
+                          <option value={4}>4×</option>
+                        </select>
+                      </label>
+                      <button
+                        onClick={() => {
+                          setFilm(frames.length - 0.001);
+                          setPlaying(false);
+                        }}
+                      >
+                        {t("نهاية الرحلة ↗", "End of mission ↗")}
+                      </button>
+                    </div>
+                    <div className="filmControls">
+                      <span>{t("تفاصيل المرحلة:", "Phase:")} {displayedShot.title}</span>
+                      <input
+                        dir="ltr"
+                        type="range"
+                        aria-label={t("تقدم المشهد المتحرك", "Animation progress")}
+                        min={0}
+                        max={0.999}
+                        step={0.001}
+                        value={progress}
+                        onChange={(e) => {
+                          setPlaying(false);
+                          setFilm(frameIndex + Number(e.target.value));
+                        }}
+                      />
+                      <small>{t("اسحب لترى الإقلاع أو الفصل أو الهبوط خطوة بخطوة.", "Drag to step through launch, separation or landing.")}</small>
+                    </div>
+                    <input
+                      dir="ltr"
+                      aria-label={t("تاريخ الرحلة", "Mission date")}
+                      type="range"
+                      min={start}
+                      max={end}
+                      step={86400000}
+                      value={day}
+                      onChange={(e) => {
+                        setPlaying(false);
+                        setDay(Number(e.target.value));
+                      }}
+                    />
+                    <div className="yearTicks" dir="ltr">
+                      {years.map((y) => (
+                        <button
+                          key={y}
+                          onClick={() => {
+                            setPlaying(false);
+                            setFilm(
+                              Math.max(
+                                0,
+                                frames.findIndex(
+                                  (f) => Number(f.date.slice(0, 4)) === y,
+                                ),
+                              ),
+                            );
+                          }}
+                        >
+                          {y}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="chapters">
+                      {frames.map((x, i) => (
+                        <button
+                          key={`${x.date}-${i}`}
+                          className={frameIndex === i ? "selected" : ""}
+                          aria-current={frameIndex === i ? "step" : undefined}
+                          onClick={() => {
+                            setPlaying(false);
+                            setFilm(i);
+                          }}
+                        >
+                          <small>{x.date}</small>
+                          {english ? englishShot(x, m.id).title : x.title}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </details>
+              )}
+            </div>
           </div>
           <main
             id="main-content"
@@ -335,7 +488,8 @@ function App() {
             className={`universe ${mode}`}
           >
             <div className="canvas" aria-busy={sceneLoading}>
-              <Boundary key={sceneKey} view={mode} language={language} onError={() => setFailedSceneKey(sceneKey)}>
+              <Boundary key={sceneKey} view={mode} language={language} onError={() => setFailedSceneKey(sceneKey)}
+                onRetry={() => setSceneAttempt((attempt) => attempt + 1)}>
                 <Suspense fallback={null}>
                   <Space
                     mode={mode}
@@ -360,155 +514,31 @@ function App() {
             <MobileControls
               mode={mode}
               onCamera={cameraMove}
-              onReset={() => setReset((v) => v + 1)}
-              onFocus={() => change("model")}
+              onReset={resetCamera}
+              onFocus={focusEquipment}
             />
-            <SimulationPanel />
-            <div className="sceneTools">
-              <div
-                className="cameraButtons"
-                role="group"
-                aria-label={t("تحكم الكاميرا", "Camera controls")}
-              >
-                <button
-                  aria-label={t("تقريب الكاميرا", "Zoom in")}
-                  title={t("تقريب · + بعد اختيار المشهد", "Zoom in · + with the scene focused")}
-                  onClick={() => cameraMove("in")}
-                >
-                  ＋
-                </button>
-                <button
-                  aria-label={t("إبعاد الكاميرا", "Zoom out")}
-                  title={t("إبعاد · − بعد اختيار المشهد", "Zoom out · − with the scene focused")}
-                  onClick={() => cameraMove("out")}
-                >
-                  −
-                </button>
-                <button onClick={() => cameraMove("stop")}>{t("إيقاف الحركة", "Stop camera")}</button>
-                {(mode === "model" || mode === "location") && (
-                  <button onClick={() => change("model")}>{t("تركيز المعدة", "Focus on equipment")}</button>
-                )}
-              </div>
-              <button onClick={() => setReset((v) => v + 1)}>
-                {t("إعادة ضبط الكاميرا ⤾", "Reset camera ⤾")}
-              </button>
-            </div>
+            <CameraDock
+              onCamera={cameraMove}
+              onReset={resetCamera}
+              onFocus={mode === "model" || mode === "location" ? focusEquipment : undefined}
+            />
           </main>
-          {mode === "story" && (
-            <details className="timebar explorer-timeline">
-              <summary>{t("مراحل الرحلة", "Mission timeline")}</summary>
-              <div className="timeTop">
-                <button
-                  className="play"
-                  onClick={() => {
-                    if (film >= frames.length - 0.002) setFilm(0);
-                    setPlaying((v) => !v);
-                  }}
-                >
-                  {playing ? t("Ⅱ إيقاف", "Ⅱ Pause") : t("▶ تشغيل", "▶ Play")}
-                </button>
-                <strong>{date}</strong>
-                <label>
-                  {t("سرعة العرض", "Playback speed")}{" "}
-                  <select
-                    value={speed}
-                    onChange={(e) => setSpeed(Number(e.target.value))}
-                  >
-                    <option value={0.5}>0.5×</option>
-                    <option value={1}>1×</option>
-                    <option value={2}>2×</option>
-                    <option value={4}>4×</option>
-                  </select>
-                </label>
-                <button
-                  onClick={() => {
-                    setFilm(frames.length - 0.001);
-                    setPlaying(false);
-                  }}
-                >
-                  {t("نهاية الرحلة ↗", "End of mission ↗")}
-                </button>
-              </div>
-              <div className="filmControls">
-                <span>{t("تفاصيل المرحلة:", "Phase:")} {displayedShot.title}</span>
-                <input
-                  dir="ltr"
-                  type="range"
-                  aria-label={t("تقدم المشهد المتحرك", "Animation progress")}
-                  min={0}
-                  max={0.999}
-                  step={0.001}
-                  value={progress}
-                  onChange={(e) => {
-                    setPlaying(false);
-                    setFilm(frameIndex + Number(e.target.value));
-                  }}
-                />
-                <small>{t("اسحب لترى الإقلاع أو الفصل أو الهبوط خطوة بخطوة.", "Drag to step through launch, separation or landing.")}</small>
-              </div>
-              <input
-                dir="ltr"
-                aria-label={t("تاريخ الرحلة", "Mission date")}
-                type="range"
-                min={start}
-                max={end}
-                step={86400000}
-                value={day}
-                onChange={(e) => {
-                  setPlaying(false);
-                  setDay(Number(e.target.value));
-                }}
-              />
-              <div className="yearTicks" dir="ltr">
-                {years.map((y) => (
-                  <button
-                    key={y}
-                    onClick={() => {
-                      setPlaying(false);
-                      setFilm(
-                        Math.max(
-                          0,
-                          frames.findIndex(
-                            (f) => Number(f.date.slice(0, 4)) === y,
-                          ),
-                        ),
-                      );
-                    }}
-                  >
-                    {y}
-                  </button>
-                ))}
-              </div>
-              <div className="chapters">
-                {frames.map((x, i) => (
-                  <button
-                    key={`${x.date}-${i}`}
-                    className={frameIndex === i ? "selected" : ""}
-                    onClick={() => {
-                      setPlaying(false);
-                      setFilm(i);
-                    }}
-                  >
-                    <small>{x.date}</small>
-                    {english ? englishShot(x, m.id).title : x.title}
-                  </button>
-                ))}
-              </div>
-            </details>
-          )}
           </div>
+              {detailsOpen && compactDrawer && (
+                <div className="equipment-scrim" aria-hidden="true" onClick={closeDetails} />
+              )}
               <div className="equipment-dock">
-                <button type="button" className="equipment-details-toggle"
+                <button ref={detailsToggleRef} type="button" className="equipment-details-toggle"
                   aria-label={detailsOpen ? t("إغلاق التفاصيل", "Close details") : t("فتح التفاصيل", "Open details")}
                   aria-expanded={detailsOpen} aria-controls="equipment-details"
-                  onClick={() => setDetailsOpen((open) => !open)}>
+                  onClick={() => detailsOpen ? closeDetails() : setDetailsOpen(true)}>
                   <span className="equipment-details-chevron" aria-hidden="true">‹</span>
                   <span className="equipment-details-label">{t("التفاصيل", "Details")}</span>
                 </button>
                   <aside ref={detailsRef} id="equipment-details" className="equipment-details" aria-labelledby="equipment-title" inert={!detailsOpen}>
                     {bodyView ? (
                       <div className="drawer-content" key={m.body}>
-                        <h2 id="equipment-title">{bodyName}</h2>
+                        <h2 id="equipment-title" tabIndex={-1}>{bodyName}</h2>
                         <p>
                           {t("اسحب للدوران، وقرّب بإصبعين أو بعجلة الفأرة.", "Drag to rotate. Pinch or scroll to zoom.")}
                         </p>
@@ -520,7 +550,10 @@ function App() {
                         <h3>{t("مواقع المهمات", "Mission sites")}</h3>
                         <div className="missionList">
                           {missions.map((mission, i) => mission.body === m.body && (
-                            <button type="button" key={mission.id} onClick={() => select(i, "location")}>
+                            <button type="button" key={mission.id} onClick={() => {
+                              drawerSelection.current = true;
+                              select(i, "location");
+                            }}>
                               <span>{english ? mission.en : mission.name}</span>
                               <span aria-hidden="true">↗</span>
                             </button>
@@ -529,7 +562,7 @@ function App() {
                       </div>
                     ) : (
                       <div className="drawer-content" key={m.id}>
-                        <h2 id="equipment-title">{missionName}</h2>
+                        <h2 id="equipment-title" tabIndex={-1}>{missionName}</h2>
                         <p>{missionCopy.intro}</p>
                         <p>{missionCopy.site} · <bdi>{Math.abs(m.lat)}° {m.lat < 0 ? "S" : "N"}, {m.lon}° E</bdi></p>
                         <div className="equipment-actions">

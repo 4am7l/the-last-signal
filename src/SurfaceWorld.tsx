@@ -162,9 +162,12 @@ export function SurfaceWorld({mode,m,reset,onMission,language="ar"}:Parameters<t
  const hasFramedCamera=useRef(false);
  const previousDistance=useRef(Infinity),sky=useMemo(()=>new T.Color('#05070d'),[]),marsDaySky=useMemo(()=>new T.Color('#a17c69'),[]),marsTwilight=useMemo(()=>new T.Color('#74616b'),[]),marsNightSky=useMemo(()=>new T.Color('#111522'),[]),marsFog=useMemo(()=>new T.Color(),[]);
  useEffect(()=>{
+  SCENE_SUN_DIRECTION.copy(localSun);
+  scene.userData.skyRotation=localRotation.clone();
+ },[scene,localSun,localRotation]);
+ useEffect(()=>{
   const ctl=controls.current;if(!ctl)return;
-  camera.up.set(0,1,0); // Each body now owns an independent local scene.
-  SCENE_SUN_DIRECTION.copy(localSun);scene.userData.skyRotation=localRotation.clone();
+  camera.up.set(0,1,0);
   camera.far=10000;camera.near=.000005;camera.updateProjectionMatrix();
   guided.current=mode==='model'||mode==='location';setClose(false);
   const near=guided.current,reframe=near&&camera.position.length()<5;
@@ -184,7 +187,7 @@ export function SurfaceWorld({mode,m,reset,onMission,language="ar"}:Parameters<t
   previousDistance.current=Infinity;descentArmed.current=true;
   ctl.enabled=false;ctl.minDistance=.000001;ctl.maxDistance=Math.max(1800,globeDistance);
   if(mode==='planet')ctl.maxPolarAngle=Math.PI-.02;
- },[mode,reset,m.id,camera,scene,localSun,orbitFraming,moon,surface]);
+ },[mode,reset,m.id,camera,orbitFraming,moon,surface]);
  useEffect(()=>()=>{camera.up.set(0,1,0);SCENE_SUN_DIRECTION.copy(SUN_DIRECTION);delete scene.userData.skyRotation;scene.userData.skyVisibility=1},[scene]);
  useEffect(()=>{scene.userData.skyVisibility=1;scene.fog=null;if(scene.background instanceof T.Color)scene.background.copy(sky);return()=>{scene.fog=null;if(scene.background instanceof T.Color)scene.background.set('#eef3fc')}},[scene,sky]);
  useFrame((_,dt)=>{const ctl=controls.current;if(!ctl)return;
