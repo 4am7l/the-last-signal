@@ -1731,3 +1731,17 @@ body {
   width: fit-content;
   font-size: .84em;
 }
+
+.eagle-mission-list {
+  margin-block: .7rem 0;
+  padding-inline-start: 1.15rem;
+}
+.eagle-mission-list a {
+  color: var(--md-sys-color-primary);
+  text-decoration: underline;
+  text-underline-offset: .2em;
+}
+.destination__title-row > a {
+  display: inline-flex;
+  padding: .5rem;
+}

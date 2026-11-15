@@ -1,4 +1,6 @@
 export const eagle = {
+  archiveHref: "#/archive?mission=apollo",
+  simulationHref: "#/explore?body=moon&view=surface&mission=apollo",
   latitude: 0.67416,
   longitude: 23.47314,
   coordinates: "0.67416° N · 23.47314° E",

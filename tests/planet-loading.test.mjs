@@ -29,6 +29,9 @@ test("loader waits for the current scene assets and first visible render frames"
   const space = file("src/Space.tsx");
   const main = file("src/main.tsx");
   assert.match(space, /function SceneAssetsGate/);
+  assert.match(space, /body === "moon" && mode === "surface" \? <EagleAssets>/);
+  const surface = file("src/SurfaceWorld.tsx");
+  assert.match(surface, /mode==='surface'\|\|close\).*<EagleDescentStage/);
   assert.match(space, /useLoader\(T.TextureLoader, body === "mars" \? "\/mars-nasa-viking.jpg" : "\/moon.jpg"\)/);
   assert.match(space, /frames\.current === 2/);
   assert.match(space, /onReady\(sceneKey\)/);

@@ -3,6 +3,7 @@ import { Canvas, useFrame, useLoader } from "@react-three/fiber";
 import * as T from "three";
 import { BodyStudy } from "./BodyStudy";
 import { CameraCommands, type CameraCommand } from "./CameraCommands";
+import { useEagleModel } from "./EagleDescentStage";
 import { FixedStars } from "./FixedStars";
 import { RenderSettings } from "./RenderSettings";
 import { SurfaceWorld } from "./SurfaceWorld";
@@ -34,7 +35,7 @@ export function Space({ cameraCommand, ...props }: SceneProps & { cameraCommand:
 function SceneAssetsGate({ body, mode, reset, sceneKey, onSceneReady }: SceneProps) {
   useLoader(T.TextureLoader, body === "mars" ? "/mars-nasa-viking.jpg" : "/moon.jpg");
   useLoader(T.TextureLoader, "/moon-height.jpg");
-  return (
+  const scene = (
     <>
       {mode === "overview" ? <BodyStudy body={body} reset={reset} /> : (
         <>
@@ -45,6 +46,12 @@ function SceneAssetsGate({ body, mode, reset, sceneKey, onSceneReady }: ScenePro
       <FirstSceneFrame key={sceneKey} sceneKey={sceneKey} onReady={onSceneReady} />
     </>
   );
+  return body === "moon" && mode === "surface" ? <EagleAssets>{scene}</EagleAssets> : scene;
+}
+
+function EagleAssets({ children }: { children: React.ReactNode }) {
+  useEagleModel();
+  return children;
 }
 
 function FirstSceneFrame({ sceneKey, onReady }: { sceneKey: string; onReady: (key: string) => void }) {

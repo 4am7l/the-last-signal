@@ -85,7 +85,6 @@ export function Home() {
             <a className="action action-solid" href="#/explore">
               {t("افتح المحاكاة", "Open simulation")} <Arrow />
             </a>
-            <a className="text-link" href="#/archive?mission=apollo">{t("إيغل — أبولو 11", "Eagle — Apollo 11")}</a>
           </div>
         </div>
       </section>
@@ -95,14 +94,19 @@ export function Home() {
         </div>
         <div className="destinations">
           {destinations.map((body) => (
-            <a className={`destination destination--expressive ${body}`} href={exploreHref(body)} key={body}>
+            <article className={`destination destination--expressive ${body}`} key={body}>
               <div className="destination__content">
                 <div className="destination__title-row">
-                  <h3>{body === "moon" ? t("القمر", "Moon") : t("المريخ", "Mars")}</h3>
-                  <Arrow />
+                  <h3><a href={exploreHref(body)}>{body === "moon" ? t("القمر", "The Moon") : t("المريخ", "Mars")}</a></h3>
+                  <a href={exploreHref(body)} aria-label={body === "moon" ? t("استكشف القمر", "Explore the Moon") : t("استكشف المريخ", "Explore Mars")}><Arrow /></a>
                 </div>
+                {body === "moon" && (
+                  <ul className="eagle-mission-list">
+                    <li><a href={eagle.archiveHref}>{t("أبولو 11", "Apollo 11")}</a></li>
+                  </ul>
+                )}
               </div>
-            </a>
+            </article>
           ))}
         </div>
       </section>
@@ -110,11 +114,27 @@ export function Home() {
   );
 }
 
-export function Archive() {
+export function Archive({ mission }: { mission?: string }) {
   const t = useExplorerText();
+  if (mission !== "apollo") {
+    return (
+      <main id="main-content" className="editorial-page" tabIndex={-1}>
+        <section className="page-intro">
+          <h1>{t("أرشيف المهمات", "Mission archive")}</h1>
+        </section>
+        <section className="page-section" aria-labelledby="moon-archive-title">
+          <h2 id="moon-archive-title">{t("القمر", "The Moon")}</h2>
+          <ul className="eagle-mission-list">
+            <li><a href={eagle.archiveHref}>{t("أبولو 11", "Apollo 11")}</a></li>
+          </ul>
+        </section>
+      </main>
+    );
+  }
   return (
     <main id="main-content" className="editorial-page" tabIndex={-1}>
       <section className="page-intro">
+        <a className="text-link" href="#/archive">{t("القمر · أرشيف المهمات", "The Moon · Mission archive")}</a>
         <p>{t("أبولو 11 · 20 تموز 1969", "Apollo 11 · July 20, 1969")}</p>
         <h1>{t("إيغل — مرحلة الهبوط", "Eagle — Descent Stage")}</h1>
         <p>{t(
@@ -123,8 +143,8 @@ export function Archive() {
         )}</p>
         <p>{t("بحر السكون", "Tranquility Base")} · <bdi>{eagle.coordinates}</bdi></p>
         <div className="hero-actions">
-          <a className="action action-solid" href={exploreHref("moon", "surface")}>
-            {t("شاهد مرحلة الهبوط على القمر", "Visit the descent stage on the Moon")} <Arrow />
+          <a className="action action-solid" href={eagle.simulationHref}>
+            {t("شغّل محاكاة أبولو 11", "Open Apollo 11 simulation")} <Arrow />
           </a>
         </div>
         <ul className="eagle-sources">

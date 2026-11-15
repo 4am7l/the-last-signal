@@ -15,7 +15,7 @@ export function EagleDescentStage({ unit, ground, night }: {
   ground: (x: number, z: number) => number;
   night: number;
 }) {
-  const { scene } = useGLTF(modelPath, decoderPath);
+  const { scene } = useEagleModel();
   const stage = useMemo(() => {
     const object = scene.clone(true);
     const ascentParts: Mesh[] = [];
@@ -43,16 +43,12 @@ export function EagleDescentStage({ unit, ground, night }: {
   return (
     <group position={[0, ground(0, 0), 0]} scale={unit}>
       <primitive object={stage} />
-      {night > .001 && (
-        <>
-          <pointLight position={[8, 10, 8]} color="#fff0d7" intensity={390 * unit ** 2 * night} distance={36 * unit} />
-          <pointLight position={[-7, 6, -7]} color="#c6ddff" intensity={180 * unit ** 2 * night} distance={30 * unit} />
-        </>
-      )}
+      <pointLight position={[8, 10, 8]} color="#fff0d7" intensity={(110 + 390 * night) * unit ** 2} distance={36 * unit} />
+      <pointLight position={[-7, 6, -7]} color="#c6ddff" intensity={(55 + 180 * night) * unit ** 2} distance={30 * unit} />
     </group>
   );
 }
 
-export function preloadEagle() {
-  useGLTF.preload(modelPath, decoderPath);
+export function useEagleModel() {
+  return useGLTF(modelPath, decoderPath);
 }

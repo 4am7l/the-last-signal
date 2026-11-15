@@ -107,7 +107,7 @@ function App() {
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [route.page]);
 
-  const sceneKey = `${mode === "overview" ? "overview" : "terrain"}:${body}`;
+  const sceneKey = `${mode}:${body}`;
   useEffect(() => {
     setReadySceneKey(null);
     setFailedSceneKey(null);
@@ -174,7 +174,7 @@ function App() {
         <SiteHeader page={route.page} onSources={() => setSources(true)} onLanguageToggle={toggleLanguage} />
       )}
       {route.page === "home" && <Home />}
-      {route.page === "archive" && <Archive />}
+      {route.page === "archive" && <Archive mission={new URLSearchParams(window.location.hash.split("?")[1]).get("mission") ?? undefined} />}
       {route.page === "guide" && <Guide />}
       {route.page === "explore" && (
         <div className="exploration-page fullscreen-explorer">
@@ -201,17 +201,17 @@ function App() {
                 <a className="action action-solid" href={exploreHref(body, "planet")}>{t("استكشف السطح", "Explore the surface")}</a>
               )}
               {mode === "planet" && (
-                <a className="action action-solid" href={exploreHref(body, "surface")}>{body === "moon" ? t("انزل إلى موقع إيغل", "Descend to Eagle") : t("انزل للسطح", "Descend to the surface")}</a>
+                <a className="action action-solid" href={body === "moon" ? eagle.simulationHref : exploreHref(body, "surface")}>{body === "moon" ? t("انزل إلى موقع إيغل", "Descend to Eagle") : t("انزل للسطح", "Descend to the surface")}</a>
               )}
               {mode !== "overview" && (
                 <a className="action action-line" href={exploreHref(body, mode === "surface" ? "planet" : "overview")} aria-label={t("رجوع إلى منظر الجرم الكامل", "Back to the full globe")}>
                   <span aria-hidden="true">{t("→", "←")}</span> {t("رجوع", "Back")}
                 </a>
               )}
-              {body === "moon" && mode === "surface" && (
-                <a className="action action-line eagle-explorer-link" href="#/archive?mission=apollo">
-                  {t("إيغل · الصور والمصادر", "Eagle · Photos and sources")}
-                  <bdi>{eagle.coordinates}</bdi>
+              {body === "moon" && (
+                <a className="action action-line eagle-explorer-link" href={eagle.archiveHref}>
+                  {t("أبولو 11", "Apollo 11")}
+                  {mode === "surface" && <bdi>{eagle.coordinates}</bdi>}
                 </a>
               )}
             </div>

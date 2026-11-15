@@ -37,9 +37,13 @@ test("the Eagle archive includes the supplied and historical photographs", () =>
   const data = file("src/eagle.ts");
   assert.match(editorial, /<ThemeToggle\s*\/>/);
   assert.match(editorial, /eagleImages\.map/);
+  assert.match(editorial, /id="moon-archive-title"/);
+  assert.match(editorial, /href=\{eagle.archiveHref\}/);
+  assert.match(editorial, /href=\{eagle.simulationHref\}/);
   assert.match(data, /1969-059C/);
   assert.match(data, /AS11-40-5927/);
   assert.match(data, /apollo_lm_diagram\.gif/);
+  assert.match(data, /body=moon&view=surface&mission=apollo/);
 });
 
 test("The local Samsung font supplies Arabic and English text while Material icons keep their font", () => {
