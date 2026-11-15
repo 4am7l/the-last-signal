@@ -4,7 +4,7 @@ import * as T from "three";
 import { WebGLUnavailableError } from "./scene-errors";
 import { BodyStudy } from "./BodyStudy";
 import { CameraCommands, type CameraCommand } from "./CameraCommands";
-import { useEagleModel } from "./EagleDescentStage";
+import { useEagleModel } from "./EagleModel";
 import { FixedStars } from "./FixedStars";
 import { RenderSettings } from "./RenderSettings";
 import { SurfaceWorld } from "./SurfaceWorld";

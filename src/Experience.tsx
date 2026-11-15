@@ -136,12 +136,13 @@ export function Archive({ mission }: { mission?: string }) {
       <section className="page-intro">
         <a className="text-link" href="#/archive">{t("القمر · أرشيف المهمات", "The Moon · Mission archive")}</a>
         <p>{t("أبولو 11 · 20 تموز 1969", "Apollo 11 · July 20, 1969")}</p>
-        <h1>{t("إيغل — مرحلة الهبوط", "Eagle — Descent Stage")}</h1>
+        <h1>{t("إيغل — الوحدة القمرية", "Eagle — Lunar Module")}</h1>
         <p>{t(
           "هبطت إيغل في بحر السكون وعلى متنها نيل أرمسترونغ وباز ألدرين. في اليوم التالي أقلعت مرحلة الصعود للالتحام بكولومبيا، وبقيت مرحلة الهبوط بأرجلها الأربع ومحرّكها على القمر.",
           "Eagle landed in the Sea of Tranquility carrying Neil Armstrong and Buzz Aldrin. The next day its ascent stage lifted off to dock with Columbia, leaving the descent stage, its four legs and its engine on the Moon.",
         )}</p>
         <p>{t("بحر السكون", "Tranquility Base")} · <bdi>{eagle.coordinates}</bdi></p>
+        <p>{t("تعرض المحاكاة مجسّم إيغل الكامل كما ظهر وقت الهبوط.", "The simulation shows the complete Eagle lunar module as it appeared at touchdown.")}</p>
         <div className="hero-actions">
           <a className="action action-solid" href={eagle.simulationHref}>
             {t("شغّل محاكاة أبولو 11", "Open Apollo 11 simulation")} <Arrow />
@@ -153,6 +154,17 @@ export function Archive({ mission }: { mission?: string }) {
           <li><a href={eagle.modelSource} target="_blank" rel="noreferrer">{t("المجسّم الأصلي · NASA", "Original model · NASA")}</a></li>
           <li><a href={eagle.photoArchive} target="_blank" rel="noreferrer">{t("أرشيف صور أبولو 11 · NASA", "Apollo 11 photo archive · NASA")}</a></li>
         </ul>
+      </section>
+      <section className="page-section" aria-labelledby="eagle-timeline-title">
+        <div className="section-heading">
+          <h2 id="eagle-timeline-title">{t("مراحل الرحلة", "Mission timeline")}</h2>
+          <a className="text-link" href={eagle.missionSource} target="_blank" rel="noreferrer">{t("سجل المهمة · ناسا", "Mission record · NASA")}</a>
+        </div>
+        <ol>
+          {eagle.missionEvents.map(([date, ar, en]) => (
+            <li key={date}><time dateTime={date}><bdi>{date}</bdi></time> · {t(ar, en)}</li>
+          ))}
+        </ol>
       </section>
       <section className="page-section" aria-labelledby="eagle-gallery-title">
         <div className="section-heading">

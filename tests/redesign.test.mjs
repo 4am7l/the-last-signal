@@ -75,17 +75,12 @@ test("Moon and Mars destination cards retain functional exploration links", () =
   assert.match(page, /href=\{exploreHref\(body\)\}/);
 });
 
-test("Eagle retains named landing strut groups with multiple material primitives", () => {
+test("Apollo uses the complete historical NASA module with both original stages", () => {
   const glb = readFileSync(new URL("../public/models/apollo.glb", import.meta.url));
-  const { nodes, meshes } = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)));
-  const model = file("src/EagleDescentStage.tsx");
-  const filter = new RegExp(model.match(/const descentParts = \/(.+)\/;/)[1]);
-  for (const name of ["group31 15", "group31 16"]) {
-    const node = nodes.find((item) => item.name === name);
-    assert.ok(meshes[node.mesh].primitives.length > 1);
-    assert.ok(filter.test(node.name));
-  }
-  const removalPass = model.split("ascentParts.forEach")[0];
-  assert.match(removalPass, /part.userData.name/);
-  assert.doesNotMatch(removalPass, /part instanceof Mesh/);
+  const { nodes } = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)));
+  assert.ok(nodes.some((node) => node.name === "group31 15"));
+  assert.ok(nodes.some((node) => node.name === "group51 g1"));
+  const model = file("src/EagleModel.tsx");
+  assert.match(model, /scene\.clone\(true\)/);
+  assert.doesNotMatch(model, /removeFromParent/);
 });

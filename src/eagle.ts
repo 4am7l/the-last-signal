@@ -1,4 +1,13 @@
 export const eagle = {
+  missionEvents: [
+    ["1969-07-16", "انطلاق ساتورن 5 نحو القمر", "Saturn V launches Apollo 11 toward the Moon"],
+    ["1969-07-17", "العبور إلى القمر", "Outbound journey to the Moon"],
+    ["1969-07-19", "دخول المدار القمري", "Apollo 11 enters lunar orbit"],
+    ["1969-07-20", "إيغل تهبط في بحر السكون", "Eagle lands in the Sea of Tranquility"],
+    ["1969-07-21", "الخطوة الأولى على القمر ثم إقلاع مرحلة الصعود", "First steps on the Moon, followed by ascent-stage liftoff"],
+    ["1969-07-24", "عودة الطاقم إلى الأرض", "The crew returns to Earth"],
+  ],
+  missionSource: "https://nssdc.gsfc.nasa.gov/planetary/lunar/apollo11info.html",
   archiveHref: "#/archive?mission=apollo",
   simulationHref: "#/explore?body=moon&view=surface&mission=apollo",
   latitude: 0.67416,

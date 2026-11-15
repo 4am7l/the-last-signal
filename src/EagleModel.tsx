@@ -1,16 +1,12 @@
 import { useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
-import { Box3, Mesh, Object3D, Vector3 } from "three";
+import { Box3, Mesh, Vector3 } from "three";
 import { eagle } from "./eagle";
 
 const modelPath = "/models/apollo.glb";
 const decoderPath = "/draco/";
 
-// Mesh names in the NASA/Michael D. Carbajal GLB for the landing gear,
-// descent body and engine, ladder, forward platform, and descent-stage hardware.
-const descentParts = /^(group31 |group13 p2$|group13 pC$|pCylinder[12367]$|pCube3$|pCylinde11$|polySurfa1$|pPlane[12]$)/;
-
-export function EagleDescentStage({ unit, ground, night }: {
+export function EagleModel({ unit, ground, night }: {
   unit: number;
   ground: (x: number, z: number) => number;
   night: number;
@@ -18,16 +14,6 @@ export function EagleDescentStage({ unit, ground, night }: {
   const { scene } = useEagleModel();
   const stage = useMemo(() => {
     const object = scene.clone(true);
-    const ascentParts: Object3D[] = [];
-    object.traverse((part) => {
-      // GLTFLoader wraps nodes with multiple material primitives in a Group.
-      // The original part name is on that group, above its renderable meshes.
-      const originalName = part.userData.name;
-      if (typeof originalName === "string" && originalName !== "lunarlande" && !descentParts.test(originalName)) {
-        ascentParts.push(part);
-      }
-    });
-    ascentParts.forEach((part) => part.removeFromParent());
     object.traverse((part) => {
       if (part instanceof Mesh) {
         part.castShadow = true;

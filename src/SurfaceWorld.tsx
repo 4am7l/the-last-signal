@@ -17,7 +17,7 @@ import {surfaceDetail,noise3,cameraTuning} from './sceneMath';
 import type {Destination} from './navigation';
 import {createMarsRelief} from './marsGeology';
 import {MarsRocks} from './MarsSurfaceDetails';
-import {EagleDescentStage} from './EagleDescentStage';
+import {EagleModel} from './EagleModel';
 import {eagle} from './eagle';
 import {LunarRocks} from './LunarSurfaceDetails';
 import {MOON_RENDER_RADIUS as R,MOON_RADIUS_METRES,MARS_RADIUS_METRES,localRelief,ringAngle} from './lunarTerrain';
@@ -25,7 +25,8 @@ import {MOON_RENDER_RADIUS as R,MOON_RADIUS_METRES,MARS_RADIUS_METRES,localRelie
 export function SurfaceWorld({mode,body,reset}: {mode:'planet'|'surface';body:Destination;reset:number}){
  const lat=body==='moon'?eagle.latitude:0,lon=body==='moon'?eagle.longitude:0;
  const landingRadius=9;
- const surfaceDistance=24;
+ const surfaceDistance=body==='moon'?eagle.footpadSpan*3:24;
+ const focusHeight=body==='moon'?eagle.footpadSpan*.22:1.7;
  const settings=useSimulation(),preset=PRESETS[settings.quality],ephemeris=useEphemeris(settings.date);
  const bodyToSystem=useMemo(()=>bodyOrientation(body,ephemeris.epoch),[body,ephemeris.epoch]);
  const moon=body==='moon',radiusMetres=moon?MOON_RADIUS_METRES:MARS_RADIUS_METRES,UNIT=R/radiusMetres;
@@ -159,25 +160,9 @@ export function SurfaceWorld({mode,body,reset}: {mode:'planet'|'surface';body:De
   camera.up.set(0,1,0); // Each body now owns an independent local scene.
   camera.far=10000;camera.near=.000005;camera.updateProjectionMatrix();
   guided.current=mode==='surface';
-  if(moon&&guided.current){
-   const height=surface.ground(0,0);
-   camera.position.set(8,5,13).multiplyScalar(UNIT*orbitFraming);
-   camera.position.y+=height;
-   ctl.target.set(0,height+1.8*UNIT,0);
-   ctl.minDistance=1.2*UNIT;
-   ctl.maxDistance=1800;
-   ctl.maxPolarAngle=Math.PI/2-.035;
-   ctl.enabled=settings.navigation==='orbit';
-   camera.near=.000005;
-   camera.updateProjectionMatrix();
-   ctl.update();
-   flight.current=null;
-   setClose(true);
-   return;
-  }
   setClose(false);
   const near=guided.current,reframe=near&&camera.position.length()<5;
-  const focusPosition=new T.Vector3(22,9,32).normalize().multiplyScalar(surfaceDistance*UNIT),focusTarget=new T.Vector3(0,1.7*UNIT,0);
+  const focusPosition=new T.Vector3(22,9,32).normalize().multiplyScalar(surfaceDistance*UNIT),focusTarget=new T.Vector3(0,focusHeight*UNIT,0);
   const orbitOffset=new T.Vector3(160,170,680).sub(surface.center);
   const globeDistance=orbitOffset.length()*orbitFraming;
   const globePosition=orbitOffset.multiplyScalar(orbitFraming).add(surface.center);
@@ -185,7 +170,7 @@ export function SurfaceWorld({mode,body,reset}: {mode:'planet'|'surface';body:De
   previousDistance.current=Infinity;descentArmed.current=true;
   ctl.enabled=false;ctl.minDistance=.000001;ctl.maxDistance=Math.max(1800,globeDistance);
   if(mode==='planet')ctl.maxPolarAngle=Math.PI-.02;
- },[mode,reset,camera,surface,orbitFraming,UNIT,moon]);
+ },[mode,reset,camera,surface,orbitFraming,UNIT,surfaceDistance,focusHeight]);
  useEffect(()=>{
   SCENE_SUN_DIRECTION.copy(localSun);
   scene.userData.skyRotation=localRotation.clone();
@@ -204,7 +189,7 @@ export function SurfaceWorld({mode,body,reset}: {mode:'planet'|'surface';body:De
   if(flight.current){ctl.minDistance=.000001;const f=flight.current;f.t=Math.min(1,f.t+Math.min(dt,.05)/(f.stage==='descent'?5:2));if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)f.t=1;const s=f.t*f.t*(3-2*f.t);
    if(f.stage==='descent'){const ratio=Math.pow(f.to.length()/Math.max(f.from.length(),.00001),s);camera.position.copy(f.from).multiplyScalar(ratio).lerp(f.to,s);ctl.target.copy(f.target).multiplyScalar(ratio*(1-s)).addScaledVector(f.look,s)}
    else{const a=f.from.clone().sub(surface.center),b=f.to.clone().sub(surface.center);const q=new T.Quaternion().setFromUnitVectors(a.clone().normalize(),b.clone().normalize());const turn=new T.Quaternion().slerp(q,s);const distance=T.MathUtils.lerp(a.length(),b.length(),s);camera.position.copy(a.normalize().applyQuaternion(turn)).multiplyScalar(f.stage==='align'?Math.max(430,distance):distance).add(surface.center);ctl.target.lerpVectors(f.target,f.look,s)}
-   ctl.update();if(f.t===1){flight.current=f.stage==='align'?{from:camera.position.clone(),target:ctl.target.clone(),to:new T.Vector3(22,9,32).normalize().multiplyScalar(surfaceDistance*UNIT),look:new T.Vector3(0,1.7*UNIT,0),t:0,stage:'descent'}:null}
+   ctl.update();if(f.t===1){flight.current=f.stage==='align'?{from:camera.position.clone(),target:ctl.target.clone(),to:new T.Vector3(22,9,32).normalize().multiplyScalar(surfaceDistance*UNIT),look:new T.Vector3(0,focusHeight*UNIT,0),t:0,stage:'descent'}:null}
   }else{let distance=camera.position.distanceTo(surface.center);if(!guided.current&&distance<R+5){camera.position.sub(surface.center).normalize().multiplyScalar(R+5).add(surface.center);distance=R+5;ctl.update()}if(distance>500)descentArmed.current=true;if(!guided.current&&descentArmed.current&&distance<430&&distance<previousDistance.current-.00001){guided.current=true;flight.current={from:camera.position.clone(),target:ctl.target.clone(),to:new T.Vector3(0,150,250),look:surface.center.clone(),t:0,stage:'align'}}previousDistance.current=distance}
   // Return to globe-centred orbit before surface orbit can swing through the planet.
   if(guided.current&&!flight.current&&camera.position.length()>R*.35){
@@ -246,7 +231,7 @@ export function SurfaceWorld({mode,body,reset}: {mode:'planet'|'surface';body:De
   <SurfaceNavigation active={mode==='surface'&&close&&!flight.current} body={body} unit={UNIT} ground={surface.ground} center={surface.center} clearance={moon?eagle.footpadSpan/2:0}/><OrbitControls ref={controls} makeDefault enabled={mode==='planet'||settings.navigation==='orbit'||!close||!!flight.current} enableDamping dampingFactor={.085} rotateSpeed={coarsePointer?.65:.4} enablePan={close} screenSpacePanning={false} panSpeed={.4} minPolarAngle={.04} maxPolarAngle={close?Math.PI/2-.035:Math.PI-.02} minDistance={1.2*UNIT} maxDistance={Math.max(1800,950*orbitFraming)} zoomSpeed={.6} onStart={()=>{if(flight.current){descentArmed.current=false;guided.current=flight.current.stage==='descent';}flight.current=null;}}/>{/* Uniform bounced light lifts the unlit terrain without introducing a second shadow direction. */}<ambientLight intensity={daylight*(moon?.26:.34)+night*(moon?.028:.045)} color={moon?'#c3d0e5':'#e6c6ae'}/><hemisphereLight args={[moon?'#c8d6ee':'#e9c6aa',moon?'#798295':'#9b7360',daylight*(moon?.14:.19)+night*.018]}/>{night>.001&&<directionalLight castShadow position={nightDirection.clone().multiplyScalar(350*UNIT)} color={moon?'#a8c5ee':'#b4c5dc'} intensity={night*(moon?.13:.095)} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-normalBias={.004*UNIT} shadow-bias={-.000015} shadow-radius={0}/>}<directionalLight castShadow position={localSun.clone().multiplyScalar(350*UNIT)} color={moon?'#fff8ee':'#fff0dc'} intensity={4.0*solarIrradiance(ephemeris[body])/1361} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-bias={-.000015} shadow-normalBias={.004*UNIT} shadow-radius={0}/><mesh geometry={surface.geometry} receiveShadow><RegolithMaterial map={map} nasaPatch={nasaPatch} nasaPatchFade={nasaPatchFade} unit={UNIT} moon={moon} centerY={surface.center.y} rotation={surface.rotation} landingRadius={landingRadius}/></mesh>{globeOnly ? null : moon
     ? <LunarRocks ground={surface.ground} unit={UNIT} clearance={6} count={preset.rocks}/>
     : <MarsRocks ground={surface.ground} unit={UNIT} clearance={3} count={preset.rocks} lat={lat} lon={lon} landingRadius={landingRadius}/>}
-   {moon&&(mode==='surface'||close)&&<Suspense fallback={null}><EagleDescentStage unit={UNIT} ground={surface.ground} night={night}/></Suspense>}
+   {moon&&(mode==='surface'||close)&&<Suspense fallback={null}><EagleModel unit={UNIT} ground={surface.ground} night={night}/></Suspense>}
    {!moon && <group position={surface.center}><Atmosphere r={R}/></group>}
  </>;
 }
