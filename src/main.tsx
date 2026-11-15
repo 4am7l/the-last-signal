@@ -1,5 +1,6 @@
 import { Home, Archive, Guide, SiteHeader, SiteFooter } from "./Experience";
 import { NasaGallery } from "./NasaGallery";
+import { PlanetLoadingIndicator } from "./PlanetLoadingIndicator";
 import { parseRoute, exploreHref } from "./navigation";
 import { SimulationPanel } from "./simulation";
 import { MobileControls } from "./MobileControls";
@@ -16,14 +17,18 @@ import "./science-theme.css";
 import "./material-theme.css";
 import "./nasa-gallery.css";
 import "./expressive-polish.css";
+import "./planet-loader.css";
 const Space = lazy(() => import("./Space").then((m) => ({ default: m.Space })));
 class Boundary extends React.Component<
-  { children: React.ReactNode },
+  { children: React.ReactNode; onError?: () => void },
   { error: boolean }
 > {
   state = { error: false };
   static getDerivedStateFromError() {
     return { error: true };
+  }
+  componentDidCatch() {
+    this.props.onError?.();
   }
   render() {
     return this.state.error ? (
@@ -63,10 +68,10 @@ function App() {
   });
   const cameraMove = (kind: CameraCommand["kind"]) =>
     setCameraCommand((previous) => ({ id: previous.id + 1, kind }));
-  const [overviewBody, setOverviewBody] = useState<"earth" | "moon" | "mars">(
-    "earth",
-  );
+  const [overviewBody, setOverviewBody] = useState<"moon" | "mars">("moon");
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+  const [readySceneKey, setReadySceneKey] = useState<string | null>(null);
+  const [failedSceneKey, setFailedSceneKey] = useState<string | null>(null);
   const [mode, setMode] = useState<Mode>("overview"),
     [index, setIndex] = useState(0),
     [film, setFilm] = useState(0),
@@ -200,6 +205,11 @@ function App() {
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
   }, []);
+  const sceneKey = mode === "overview"
+    ? `overview:${overviewBody}`
+    : `${mode}:${m.body}:${m.id}`;
+  const sceneBody = mode === "overview" ? overviewBody : m.body;
+  const sceneLoading = readySceneKey !== sceneKey && failedSceneKey !== sceneKey;
   const years = Object.keys(annualStories(m)).map(Number);
   return (
     <>
@@ -285,10 +295,8 @@ function App() {
               <span className="arrival-line" />
             </div>
             <div className="canvas">
-              <Boundary>
-                <Suspense
-                  fallback={<div className="loading">جارٍ تجهيز الرحلة…</div>}
-                >
+              <Boundary key={sceneKey} onError={() => setFailedSceneKey(sceneKey)}>
+                <Suspense fallback={null}>
                   <Space
                     mode={mode}
                     m={m}
@@ -301,21 +309,22 @@ function App() {
                     reset={reset}
                     overviewBody={overviewBody}
                     cameraCommand={cameraCommand}
+                    sceneKey={sceneKey}
+                    onSceneReady={setReadySceneKey}
                   />
                 </Suspense>
               </Boundary>
             </div>
+            {sceneLoading && (
+              <PlanetLoadingIndicator key={sceneKey} body={sceneBody} mission={mode === "overview" ? undefined : m.name} />
+            )}
             {mode === "overview" ? (
               <section className="welcome body-study-panel">
                 <div className="eyebrow">
                   مختبر الكواكب · نموذج ثلاثي الأبعاد
                 </div>
                 <h1>
-                  {overviewBody === "earth"
-                    ? "الأرض"
-                    : overviewBody === "moon"
-                      ? "القمر"
-                      : "المريخ"}
+                  {overviewBody === "moon" ? "القمر" : "المريخ"}
                 </h1>
                 <p>جرم واحد، بتفاصيله. اسحب لتدوير النموذج وقرّب لفحص السطح.</p>
                 <div
@@ -325,7 +334,6 @@ function App() {
                 >
                   {(
                     [
-                      ["earth", "الأرض"],
                       ["moon", "القمر"],
                       ["mars", "المريخ"],
                     ] as const
@@ -339,19 +347,15 @@ function App() {
                     </button>
                   ))}
                 </div>
-                {overviewBody !== "earth" && (
-                  <button
-                    className="primary"
-                    onClick={() =>
-                      select(overviewBody === "mars" ? 0 : 4, "planet")
-                    }
-                  >
-                    استكشف السطح والمعدات ↗
-                  </button>
-                )}
+                <button
+                  className="primary"
+                  onClick={() => select(overviewBody === "mars" ? 0 : 4, "planet")}
+                >
+                  استكشف السطح والمعدات ↗
+                </button>
                 <p className="hint">
                   حجم العرض موحّد لتسهيل الفحص؛ ليس مقارنة بين الأحجام الحقيقية.
-                  الأرض متاحة للدوران والفحص، والهبوط متاح للقمر والمريخ.
+                  يمكنك استكشاف القمر والمريخ فقط، من المدار حتى مواقع المعدات.
                 </p>
               </section>
             ) : (
@@ -378,9 +382,8 @@ function App() {
                     </p>
                     {m.body === "moon" && (
                       <p className="disclosure">
-                        قطر القمر المرجعي: ٣٬٤٧٤٫٨ كم · الأرض أكبر منه بنحو ٣٫٦٧
-                        مرة في القطر. يعرض هذا المشهد القمر وحده. الحفر الصغيرة
-                        قرب المعدات توضيحية.
+                        قطر القمر المرجعي: ٣٬٤٧٤٫٨ كم. يعرض هذا المشهد القمر وحده،
+                        مع تضاريس صغيرة توضيحية قرب المعدات.
                       </p>
                     )}
                     <div className="missionList">
@@ -785,7 +788,7 @@ function App() {
               مجسّمات المركبات وصور المهمات من ناسا وJPL. ارتفاعات القمر الأساسية
               من NASA LRO، وتُحمّل خرائط ألوان 8K من Solar System Scope تدريجيًا
               عند توفرها. خريطة JPEG الحالية تعرض شكل التضاريس العام، ولا تعطي
-              ارتفاعات معايرة بالمتر. أبعاد القمر والأرض والمعدات متناسبة، أما
+              ارتفاعات معايرة بالمتر. يعرض الموقع القمر والمريخ فقط، أما
               حفر وصخور الموقع الصغيرة فهي توضيحية. تضاريس المريخ والجبال والحفر
               المحلية على الجرمين توضيحية وليست مسحًا لمواقع المهمات. عرض
               الاستكشاف يضغط المسافات؛ وضع المقياس الفعلي يستخدم متوسط مسافة
@@ -833,15 +836,7 @@ function App() {
               تقريبية عند التعذر. إضاءة فحص النماذج محسّنة لإظهار التفاصيل.
             </p>
             <p>
-              Earth texture:{" "}
-              <a
-                href="https://www.solarsystemscope.com/textures/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Solar System Scope
-              </a>{" "}
-              · CC BY 4.0. Mars texture:{" "}
+              Mars texture:{" "}
               <a
                 href="https://science.nasa.gov/3d-resources/mars/"
                 target="_blank"
