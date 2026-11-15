@@ -25,7 +25,7 @@ import "./planet-loader.css";
 import "./fullscreen-explorer.css";
 const Space = lazy(() => import("./Space").then((m) => ({ default: m.Space })));
 class Boundary extends React.Component<
-  { children: React.ReactNode; onError?: () => void; language: Language },
+  { children: React.ReactNode; onError?: () => void; language: Language; view: Mode },
   { error: boolean }
 > {
   state = { error: false };
@@ -34,6 +34,11 @@ class Boundary extends React.Component<
   }
   componentDidCatch() {
     this.props.onError?.();
+  }
+  componentDidUpdate(previous: Readonly<{ view: Mode }>) {
+    if (this.state.error && previous.view !== this.props.view) {
+      this.setState({ error: false });
+    }
   }
   render() {
     return this.state.error ? (
@@ -243,7 +248,7 @@ function App() {
   }, []);
   const sceneKey = mode === "overview"
     ? `overview:${m.body}`
-    : `${mode}:${m.body}:${m.id}`;
+    : `${mode === "story" ? "story" : "surface"}:${m.body}:${m.id}`;
   const sceneLoading = readySceneKey !== sceneKey && failedSceneKey !== sceneKey;
   const years = Object.keys(annualStories(m)).map(Number);
   return (
@@ -318,7 +323,7 @@ function App() {
                   <button
                     type="button"
                     className="explorer-back"
-                    aria-label={t(`رجوع إلى مواقع المهمات على ${bodyName}`, `Back to ${bodyName} mission sites`)}
+                    aria-label={t(`رجوع إلى منظر ${bodyName} الكامل`, `Back to the full ${bodyName} view`)}
                     onClick={() => change("planet")}
                   >
                     <span aria-hidden="true">{english ? "←" : "→"}</span>
@@ -350,7 +355,7 @@ function App() {
             className={`universe ${mode}${mobilePanelOpen ? " has-panel" : ""}`}
           >
             <div className="canvas" aria-busy={sceneLoading}>
-              <Boundary key={sceneKey} language={language} onError={() => setFailedSceneKey(sceneKey)}>
+              <Boundary key={sceneKey} view={mode} language={language} onError={() => setFailedSceneKey(sceneKey)}>
                 <Suspense fallback={null}>
                   <Space
                     mode={mode}
