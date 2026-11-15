@@ -36,7 +36,10 @@ test("the Eagle archive includes the supplied and historical photographs", () =>
   const editorial = file("src/Experience.tsx");
   const data = file("src/eagle.ts");
   assert.match(editorial, /<ThemeToggle\s*\/>/);
-  assert.match(editorial, /eagleImages\.map/);
+  assert.match(editorial, /<EagleGallery \/>/);
+  const details = file("src/EagleDetails.tsx");
+  assert.match(details, /eagleImages\.map/);
+  assert.match(details, /<EagleGallery compact \/>/);
   assert.match(editorial, /id="moon-archive-title"/);
   assert.match(editorial, /href=\{eagle.archiveHref\}/);
   assert.match(editorial, /href=\{eagle.simulationHref\}/);

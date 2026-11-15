@@ -1,5 +1,6 @@
 import { WebGLUnavailableError } from "./scene-errors";
 import { eagle } from "./eagle";
+import { EagleSidebar } from "./EagleDetails";
 import { LanguageToggle } from "./LanguageToggle";
 import { ExplorerLanguage, type Language } from "./explorer-language";
 import { Home, Archive, Guide, SiteHeader, SiteFooter } from "./Experience";
@@ -233,6 +234,7 @@ function App() {
               </Boundary>
             </div>
             {sceneLoading && <PlanetLoadingIndicator key={sceneKey} body={body} />}
+            {body === "moon" && mode === "surface" && !sceneLoading && <EagleSidebar />}
             {!sceneFailed && (
               <>
                 <MobileControls mode={mode} onCamera={cameraMove} onReset={() => setReset((v) => v + 1)} />

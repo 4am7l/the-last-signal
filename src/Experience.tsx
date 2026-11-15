@@ -1,4 +1,5 @@
-import { eagle, eagleImages } from "./eagle";
+import { eagle } from "./eagle";
+import { EagleGallery, EagleSummary } from "./EagleDetails";
 import { LanguageToggle } from "./LanguageToggle";
 import { ThemeToggle } from "./ThemeToggle";
 import { useLanguage, useExplorerText } from "./explorer-language";
@@ -137,12 +138,7 @@ export function Archive({ mission }: { mission?: string }) {
         <a className="text-link" href="#/archive">{t("القمر · أرشيف المهمات", "The Moon · Mission archive")}</a>
         <p>{t("أبولو 11 · 20 تموز 1969", "Apollo 11 · July 20, 1969")}</p>
         <h1>{t("إيغل — الوحدة القمرية", "Eagle — Lunar Module")}</h1>
-        <p>{t(
-          "هبطت إيغل في بحر السكون وعلى متنها نيل أرمسترونغ وباز ألدرين. في اليوم التالي أقلعت مرحلة الصعود للالتحام بكولومبيا، وبقيت مرحلة الهبوط بأرجلها الأربع ومحرّكها على القمر.",
-          "Eagle landed in the Sea of Tranquility carrying Neil Armstrong and Buzz Aldrin. The next day its ascent stage lifted off to dock with Columbia, leaving the descent stage, its four legs and its engine on the Moon.",
-        )}</p>
-        <p>{t("بحر السكون", "Tranquility Base")} · <bdi>{eagle.coordinates}</bdi></p>
-        <p>{t("تعرض المحاكاة مجسّم إيغل الكامل كما ظهر وقت الهبوط.", "The simulation shows the complete Eagle lunar module as it appeared at touchdown.")}</p>
+        <EagleSummary />
         <div className="hero-actions">
           <a className="action action-solid" href={eagle.simulationHref}>
             {t("شغّل محاكاة أبولو 11", "Open Apollo 11 simulation")} <Arrow />
@@ -170,19 +166,7 @@ export function Archive({ mission }: { mission?: string }) {
         <div className="section-heading">
           <h2 id="eagle-gallery-title">{t("صور إيغل والرسم الهندسي", "Eagle photographs and technical diagram")}</h2>
         </div>
-        <div className="eagle-gallery">
-          {eagleImages.map((image, index) => (
-            <figure key={image.id}>
-              <a href={image.src} target="_blank" rel="noreferrer" aria-label={t("افتح الصورة بحجمها الكامل", "Open full-size image") + " · " + image.id}>
-                <img src={image.src} alt={t(image.ar, image.en)} loading={index === 0 ? "eager" : "lazy"} decoding="async" />
-              </a>
-              <figcaption>
-                <span>{t(image.ar, image.en)}</span>
-                <a href={image.source} target="_blank" rel="noreferrer" dir="ltr">{image.id} <Arrow /></a>
-              </figcaption>
-            </figure>
-          ))}
-        </div>
+        <EagleGallery />
       </section>
     </main>
   );
