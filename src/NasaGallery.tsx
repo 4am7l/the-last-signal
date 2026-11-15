@@ -1,5 +1,6 @@
 import { apolloGallery, apolloImageArchive } from "./apollo";
 import { missions } from "./data";
+import { createPortal } from "react-dom";
 import { useExplorerText } from "./explorer-language";
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -234,7 +235,7 @@ export function NasaGallery({
       <p className="nasa-gallery__disclaimer">
         {apolloPhotos ? t("المصادر: مكتب تاريخ ناسا وأرشيف NSSDCA.", "Sources: NASA History Office and NSSDCA.") : t("المصدر: NASA Image and Video Library. بعض المواد قد تتضمن حقوقًا لطرف ثالث؛ راجع سجل الصورة الأصلي. الموقع مشروع تعليمي مستقل وغير معتمد من NASA.", "Source: NASA Image and Video Library. Consult the original photo record for rights information. This is an independent educational project.")}
       </p>
-      {open && (
+      {open && createPortal(
         <div className="nasa-lightbox" role="dialog" aria-modal="true" aria-label={t("صورة NASA: ", "NASA photo: ") + open.title}>
           <button
             className="nasa-lightbox__backdrop"
@@ -257,7 +258,8 @@ export function NasaGallery({
               </a>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
     </section>
   );

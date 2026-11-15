@@ -326,12 +326,13 @@
   position: absolute;
   z-index: 95;
   inset-block: 0;
-  right: calc(0px - var(--equipment-drawer-width));
+  right: 0;
+  translate: 100% 0;
   width: var(--equipment-drawer-width);
-  transition: right 230ms var(--md-sys-motion-easing, ease);
+  transition: translate 230ms var(--md-sys-motion-easing, ease);
   pointer-events: none;
 }
-.details-dock-open .equipment-dock { right: 0; }
+.details-dock-open .equipment-dock { translate: 0 0; }
 .equipment-details-toggle {
   position: absolute;
   top: 50%;
