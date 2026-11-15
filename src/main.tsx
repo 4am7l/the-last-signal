@@ -1,4 +1,5 @@
 import { Home, Archive, Guide, SiteHeader, SiteFooter } from "./Experience";
+import { NasaGallery } from "./NasaGallery";
 import { parseRoute, exploreHref } from "./navigation";
 import { SimulationPanel } from "./simulation";
 import { MobileControls } from "./MobileControls";
@@ -737,6 +738,7 @@ function App() {
               ))}
             </div>
           </section>
+          <NasaGallery mission={m.id} compact />
         </div>
       )}
       <SiteFooter onSources={() => setSources(true)} />
