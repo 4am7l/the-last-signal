@@ -22,13 +22,22 @@
   border: 0;
   border-radius: 0 !important;
   animation: none;
+  overflow: visible;
 }
 
+/* Keep the WebGL viewport at a constant size during the drawer slide.
+   Moving the canvas also moves its projected labels and pointer coordinates. */
 .exploration-page.fullscreen-explorer .universe .canvas {
-  inset: 0;
-  width: auto;
+  inset: 0 auto 0 0;
+  width: 100vw;
   height: auto;
   transform: none;
+  translate: 0 0;
+  transition: translate var(--equipment-slide-duration) var(--equipment-slide-easing);
+}
+
+.details-dock-open.fullscreen-explorer .universe .canvas {
+  translate: calc(var(--equipment-drawer-width) / -2) 0;
 }
 
 .fullscreen-explorer .universe .error {
@@ -391,9 +400,11 @@
   --drawer-padding: 18px;
   padding: max(20px, env(safe-area-inset-top)) max(var(--drawer-padding), env(safe-area-inset-right))
     max(20px, env(safe-area-inset-bottom)) var(--drawer-padding);
-  border-left: 1px solid var(--line);
+  border: 1px solid var(--line);
+  border-right-width: 0;
   border-radius: var(--tls-shape-sheet) 0 0 var(--tls-shape-sheet);
   background: var(--paper);
+  background-clip: padding-box;
   color: var(--ink);
   pointer-events: auto;
   transition: visibility 0s;
