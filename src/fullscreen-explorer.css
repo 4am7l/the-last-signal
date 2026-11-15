@@ -290,3 +290,56 @@
   .fullscreen-toolbar .body-picker a { font-size: 12px; padding-inline: 8px; }
   .fullscreen-toolbar .action { font-size: 12px; padding-inline: 8px; gap: 4px; }
 }
+
+.fullscreen-explorer .explorer-entry,
+.apollo-explorer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.fullscreen-explorer .explorer-navigation .action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 12px;
+  min-height: 44px;
+  line-height: 1.25;
+  text-align: center;
+}
+.fullscreen-explorer .explorer-navigation .action-line {
+  background: var(--paper);
+}
+.apollo-details-toggle {
+  flex: none;
+  margin-inline-start: auto;
+  pointer-events: auto;
+}
+.apollo-details-toggle .material-symbols-rounded { font-size: 18px; }
+.apollo-explorer-details {
+  position: absolute;
+  z-index: 24;
+  inset-block-start: calc(var(--explorer-content-top) + 4px);
+  inset-inline-end: var(--explorer-gap);
+  width: min(450px, calc(100% - 2 * var(--explorer-gap)));
+  max-height: min(72dvh, calc(100dvh - var(--explorer-content-top) - 60px));
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--tls-shape-field);
+  background: var(--paper);
+  color: var(--ink);
+}
+.apollo-explorer-details h2 { margin: 0; }
+.apollo-explorer-details .apollo-brief p { line-height: 1.65; }
+.apollo-explorer-photos { margin-block: 14px; border-block: 1px solid var(--line); }
+.apollo-explorer-photos summary { padding: 12px 0; cursor: pointer; }
+.apollo-explorer-photos .nasa-gallery { margin: 0; }
+@media (max-width: 550px) {
+  .fullscreen-explorer .explorer-navigation { gap: 4px; }
+  .fullscreen-explorer .explorer-navigation .action { font-size: 11px; padding-inline: 7px; }
+  .apollo-details-toggle .material-symbols-rounded { display: none; }
+  .apollo-explorer-details { inset-block-start: calc(var(--explorer-content-top) + 45px); max-height: min(65dvh, calc(100dvh - var(--explorer-content-top) - 52px)); }
+}

@@ -148,6 +148,9 @@ function App() {
     setFilm(n);
     setPlaying(false);
   }
+  const [apolloDetailsOpen, setApolloDetailsOpen] = useState(false);
+  const isApollo = m.id === "apollo";
+
   function select(i: number, next: Mode = "model") {
     window.location.hash = exploreHref(missions[i].id, next);
     setIndex(i);
@@ -175,6 +178,7 @@ function App() {
     }[route.page];
   }, [language, route.page]);
   useEffect(() => {
+    setApolloDetailsOpen(false);
     setMode(route.mode);
     setIndex(
       Math.max(
@@ -239,6 +243,7 @@ function App() {
   useEffect(() => {
     const esc = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
+        if (!document.querySelector('.nasa-lightbox')) setApolloDetailsOpen(false);
         setImage(null);
         setSources(false);
         setPlaying(false);
@@ -313,30 +318,26 @@ function App() {
                 </a>
               </div>
             ) : (
-              <nav className="breadcrumb" aria-label={t("مسار الاستكشاف", "Exploration path")}>
-                {mode === "planet" ? (
-                  <>
-                    <button onClick={() => change("overview")}>{t("الأجرام", "Moon and Mars")}</button>
-                    <span aria-hidden="true">/</span>
-                    <span>{bodyName}</span>
-                  </>
-                ) : (
-                  <button
-                    type="button"
-                    className="explorer-back"
-                    aria-label={t(`رجوع إلى منظر ${bodyName} الكامل`, `Back to the full ${bodyName} view`)}
-                    onClick={() => change("planet")}
-                  >
-                    <span aria-hidden="true">{english ? "←" : "→"}</span>
-                    {t("رجوع", "Back")}
+              <div className="explorer-entry explorer-route-actions">
+                <button type="button" className="action action-line" onClick={() => change(mode === "planet" ? "overview" : "planet")}>
+                  <span aria-hidden="true">{english ? "←" : "→"}</span>
+                  {mode === "planet" ? t("المعاينة", "Preview") : t("الرجوع للمواقع", "Back to sites")}
+                </button>
+                {isApollo && mode === "planet" && (
+                  <button type="button" className="action action-solid" onClick={() => change("location")}>
+                    {t("اهبط عند أبولو 11", "Land at Apollo 11")} <span aria-hidden="true">↓</span>
                   </button>
                 )}
-                <span aria-hidden="true">/</span>
-                <span className="breadcrumb__current">
-                  {mode === "planet" ? t("اختر مهمة", "Select a mission") : missionName}
-                </span>
-              </nav>
+              </div>
             )}
+            {isApollo ? (
+              <button type="button" className="action action-line apollo-details-toggle"
+                aria-expanded={apolloDetailsOpen} aria-controls={apolloDetailsOpen ? "apollo-explorer-details" : undefined}
+                onClick={() => setApolloDetailsOpen((open) => !open)}>
+                <span className="material-symbols-rounded" aria-hidden="true">{apolloDetailsOpen ? "close" : "info"}</span>
+                {apolloDetailsOpen ? t("إغلاق التفاصيل", "Close details") : t("تفاصيل أبولو 11", "Apollo 11 details")}
+              </button>
+            ) : (
             <details className="explorer-resources">
               <summary>{t("أرشيف وصور", "Archive and photos")}</summary>
               <div className="explorer-resources__content">
@@ -346,15 +347,15 @@ function App() {
                 <button className="source-link" onClick={() => setSources(true)}>
                   {t("المصادر والدقة", "Sources and accuracy")}
                 </button>
-                {m.id === "apollo" && <ApolloBrief />}
                 <NasaGallery mission={m.id} compact />
               </div>
             </details>
+            )}
           </div>
           <main
             id="main-content"
             tabIndex={-1}
-            className={`universe ${mode}${mobilePanelOpen ? " has-panel" : ""}`}
+            className={`universe ${mode}${!isApollo && mobilePanelOpen ? " has-panel" : ""}`}
           >
             <div className="canvas" aria-busy={sceneLoading}>
               <Boundary key={sceneKey} view={mode} language={language} onError={() => setFailedSceneKey(sceneKey)}>
@@ -383,7 +384,7 @@ function App() {
             )}
             {mode !== "overview" && (
               <>
-                {mode === "planet" ? (
+                {mode === "planet" ? (!isApollo && (
                   <section className="welcome">
                     <h1>{bodyName}</h1>
                     <p>
@@ -409,7 +410,7 @@ function App() {
                       )}
                     </div>
                   </section>
-                ) : (
+                )) : (!isApollo && (
                   <aside
                     className={
                       "information " +
@@ -568,8 +569,25 @@ function App() {
                     </button>
                     <small>{missionCopy.photoCaption}</small>
                   </aside>
-                )}
+                ))}
               </>
+            )}
+            {isApollo && apolloDetailsOpen && (
+              <aside id="apollo-explorer-details" className="apollo-explorer-details" aria-labelledby="apollo-explorer-title">
+                <h2 id="apollo-explorer-title">{t("أبولو 11", "Apollo 11")}</h2>
+                <p>{missionCopy.site} · <bdi>{m.lat}° N, {m.lon}° E</bdi></p>
+                <div className="apollo-explorer-actions">
+                  <button type="button" className="action action-solid" onClick={() => change("location")}>{t("موقع الهبوط", "Landing site")}</button>
+                  <button type="button" className="action action-line" onClick={() => change("model")}>{t("المجسّم", "3D model")}</button>
+                  <button type="button" className="action action-line" onClick={() => change("story")}>{t("قصة الرحلة", "Mission story")}</button>
+                </div>
+                <details className="apollo-explorer-photos">
+                  <summary>{t("الصور والمصادر", "Photos and sources")}</summary>
+                  <NasaGallery mission={m.id} compact />
+                </details>
+                <ApolloBrief />
+                <a className="action action-line" href={`#/archive?mission=${m.id}`}>{t("سجل المهمة الكامل", "Full mission record")}</a>
+              </aside>
             )}
             <MobileControls
               mode={mode}
@@ -577,7 +595,7 @@ function App() {
               onCamera={cameraMove}
               onReset={() => setReset((v) => v + 1)}
               onFocus={() => change("model")}
-              onTogglePanel={() => setMobilePanelOpen((v) => !v)}
+              onTogglePanel={isApollo ? undefined : () => setMobilePanelOpen((v) => !v)}
             />
             <SimulationPanel />
             <div className="sceneTools">
@@ -601,7 +619,7 @@ function App() {
                   −
                 </button>
                 <button onClick={() => cameraMove("stop")}>{t("إيقاف الحركة", "Stop camera")}</button>
-                {mode !== "overview" && mode !== "story" && (
+                {(mode === "model" || mode === "location") && (
                   <button onClick={() => change("model")}>{t("تركيز المعدة", "Focus on equipment")}</button>
                 )}
               </div>

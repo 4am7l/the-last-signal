@@ -11,7 +11,7 @@ type Props={
  onCamera:(direction:Direction)=>void;
  onReset:()=>void;
  onFocus:()=>void;
- onTogglePanel:()=>void;
+ onTogglePanel?:()=>void;
 };
 function movementSignal(code:string,pressed:boolean){
  window.dispatchEvent(new CustomEvent('mobile-navigation',{detail:{code,pressed}}));
@@ -38,7 +38,7 @@ export function MobileControls({mode,panelOpen,onCamera,onReset,onFocus,onToggle
    <button className={settings.navigation==='orbit'?'selected':''} onClick={()=>configure({navigation:'orbit'})}>{t(t("تدوير", "Orbit"), "Orbit")}</button>
    {walkable&&<><button className={settings.navigation==='walk'?'selected':''} onClick={()=>configure({navigation:'walk'})}>{t(t("مشي", "Walk"), "Walk")}</button>
    <button className={settings.navigation==='drone'?'selected':''} onClick={()=>configure({navigation:'drone'})}>{t(t("طيران", "Fly"), "Fly")}</button></>}
-   {(mode==='model'||mode==='location'||mode==='story')&&<button className="mobileDetails" onClick={onTogglePanel}>{panelOpen?t("إخفاء التفاصيل", "Hide details"):t("تفاصيل المهمة", "Mission details")}</button>}
+   {onTogglePanel&&(mode==='model'||mode==='location'||mode==='story')&&<button className="mobileDetails" onClick={onTogglePanel}>{panelOpen?t("إخفاء التفاصيل", "Hide details"):t("تفاصيل المهمة", "Mission details")}</button>}
   </div>
   <div className="mobileControlLayout">
    <div className="mobileDpad" role="group" aria-label={moving?t("اتجاه الحركة", "Movement direction"):t("تدوير الكاميرا", "Rotate camera")}>
