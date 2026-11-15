@@ -41,3 +41,12 @@ No reference code, assets, branding or prose was copied. Photography is from the
 - Each mission dossier answers why it was sent, what it teaches us and how its mission ended, before the retained equipment details and timeline.
 - Removed decorative editorial entrance effects and prioritized reading order; simulation transitions and rendering are unchanged.
 - Reviewed light desktop home and mission dossier, plus narrow mobile layouts down to 320 px with no horizontal overflow.
+
+## Independent body studies — 2026-11-15
+
+- Replaced the system overview with one normalized globe at a time: Earth, Moon or Mars, using the existing textured Planet renderer. Controls reset around the selected body. The display explicitly states that normalized sizes are not a physical comparison.
+- Removed star-field and Sun-disc mounts, distant bodies in surface scenes, and the extra Earth in the cruise illustration. Backgrounds are light and neutral; local Mars haze is retained.
+- Removed interplanetary distance controls. Moon/Mars surface entry, mission models, landing narratives and equipment controls remain. Earth is an inspection globe only.
+- Kept surface camera coordinates local and bounded zoom to the selected body rather than the old solar-system extent.
+- Added a consistent light Material-inspired shape and color system across navigation, reading pages, archive, dialogs and simulator panels. Reference typography remains.
+- Production build and nine existing tests pass. Browser verified body selection, Moon surface link, home appearance and 390 px mobile layout without horizontal overflow. GPU render verification remains blocked by the QA browser's unavailable WebGL context.

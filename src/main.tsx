@@ -12,6 +12,7 @@ import "./style.css";
 import "./mobile.css";
 import "./experience.css";
 import "./science-theme.css";
+import "./material-theme.css";
 const Space = lazy(() => import("./Space").then((m) => ({ default: m.Space })));
 class Boundary extends React.Component<
   { children: React.ReactNode },
@@ -24,8 +25,8 @@ class Boundary extends React.Component<
   render() {
     return this.state.error ? (
       <div className="error">
-        لم يتمكن المتصفح من تشغيل المشهد ثلاثي الأبعاد. جرّب متصفحًا يدعم WebGL
-        مع تسريع الرسومات.
+        لم يتمكن المتصفح من تشغيل المشهد ثلاثي الأبعاد. جرّب متصفحًا يدعم WebGL مع
+        تسريع الرسومات.
         <br />
         <a href="#/archive">تابع صور المهمات وسجلات الرحلات في الأرشيف ←</a>
       </div>
@@ -59,9 +60,10 @@ function App() {
   });
   const cameraMove = (kind: CameraCommand["kind"]) =>
     setCameraCommand((previous) => ({ id: previous.id + 1, kind }));
-  const [physicalDistances, setPhysicalDistances] = useState(false),
-    [focusPair, setFocusPair] = useState(true),
-    [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+  const [overviewBody, setOverviewBody] = useState<"earth" | "moon" | "mars">(
+    "earth",
+  );
+  const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [mode, setMode] = useState<Mode>("overview"),
     [index, setIndex] = useState(0),
     [film, setFilm] = useState(0),
@@ -233,7 +235,7 @@ function App() {
                 href={exploreHref(m.id, "overview")}
                 aria-current={mode === "overview" ? "page" : undefined}
               >
-                الفضاء
+                الكواكب
               </a>
               <a
                 href={exploreHref("opportunity", "planet")}
@@ -270,7 +272,7 @@ function App() {
               </small>
               <strong>
                 {mode === "overview"
-                  ? "كل رحلة تبدأ من هنا"
+                  ? "استكشف جرمًا واحدًا"
                   : mode === "planet"
                     ? m.body === "moon"
                       ? "في مدار القمر"
@@ -294,62 +296,65 @@ function App() {
                     onWorld={(b) => select(b === "mars" ? 0 : 4, "planet")}
                     onMission={(i) => select(i, "location")}
                     reset={reset}
-                    physicalDistances={physicalDistances}
-                    focusPair={focusPair}
+                    overviewBody={overviewBody}
                     cameraCommand={cameraCommand}
                   />
                 </Suspense>
               </Boundary>
             </div>
             {mode === "overview" ? (
-              <section className="welcome">
+              <section className="welcome body-study-panel">
                 <div className="eyebrow">
-                  بعيداً عن الأرض. قريباً من الذاكرة.
+                  مختبر الكواكب · نموذج ثلاثي الأبعاد
                 </div>
                 <h1>
-                  انقطعت الإشارة.
-                  <br />
-                  <em>وبقيت الحكاية.</em>
+                  {overviewBody === "earth"
+                    ? "الأرض"
+                    : overviewBody === "moon"
+                      ? "القمر"
+                      : "المريخ"}
                 </h1>
-                <p>
-                  سافر إلى عوالم بعيدة، اقترب من مستكشفينا،
-                  <br />
-                  واستعد رحلاتهم عبر الزمن.
-                </p>
-                <button className="primary" onClick={() => select(0, "planet")}>
-                  ابدأ من المريخ ↗
-                </button>
-                <div className="distanceControls">
-                  <button
-                    aria-pressed={!physicalDistances}
-                    onClick={() => setPhysicalDistances(false)}
-                  >
-                    عرض الاستكشاف
-                  </button>
-                  <button
-                    aria-pressed={physicalDistances}
-                    onClick={() => setPhysicalDistances(true)}
-                  >
-                    مقياس المسافات الفعلي
-                  </button>
-                  {physicalDistances && (
-                    <button onClick={() => setFocusPair((v) => !v)}>
-                      {focusPair
-                        ? "إظهار المسافة إلى المريخ"
-                        : "تكبير الأرض والقمر"}
+                <p>جرم واحد، بتفاصيله. اسحب لتدوير النموذج وقرّب لفحص السطح.</p>
+                <div
+                  className="body-picker"
+                  role="group"
+                  aria-label="اختر الجرم"
+                >
+                  {(
+                    [
+                      ["earth", "الأرض"],
+                      ["moon", "القمر"],
+                      ["mars", "المريخ"],
+                    ] as const
+                  ).map(([body, label]) => (
+                    <button
+                      key={body}
+                      aria-pressed={overviewBody === body}
+                      onClick={() => setOverviewBody(body)}
+                    >
+                      {label}
                     </button>
-                  )}
+                  ))}
                 </div>
+                {overviewBody !== "earth" && (
+                  <button
+                    className="primary"
+                    onClick={() =>
+                      select(overviewBody === "mars" ? 0 : 4, "planet")
+                    }
+                  >
+                    استكشف السطح والمعدات ↗
+                  </button>
+                )}
                 <p className="hint">
-                  {physicalDistances
-                    ? "أحجام ومسافات فيزيائية. المواقع بحسب التاريخ وخدمة JPL؛ يظهر تنبيه عند استخدام الحساب التقريبي."
-                    : "مقياس استكشاف: المسافات مضغوطة مع الحفاظ على الاتجاهات. القيم الرقمية تبقى بالكيلومتر الحقيقي."}
+                  حجم العرض موحّد لتسهيل الفحص؛ ليس مقارنة بين الأحجام الحقيقية.
+                  الأرض متاحة للدوران والفحص، والهبوط متاح للقمر والمريخ.
                 </p>
               </section>
             ) : (
               <>
                 <div className="breadcrumb">
-                  <button onClick={() => change("overview")}>الفضاء</button>
+                  <button onClick={() => change("overview")}>الكواكب</button>
                   <span>/</span>
                   <button onClick={() => change("planet")}>
                     {m.body === "mars" ? "المريخ" : "القمر"}
@@ -362,8 +367,8 @@ function App() {
                     <div className="eyebrow">أطلس المعدات البشرية</div>
                     <h1>{m.body === "mars" ? "المريخ" : "القمر"}</h1>
                     <p>
-                      اسحب للدوران، وقرّب بإصبعين أو بعجلة الفأرة. اختر موقع
-                      مهمة وتابع التقريب إلى المعدات. أي سحب يوقف حركة الكاميرا
+                      اسحب للدوران، وقرّب بإصبعين أو بعجلة الفأرة. اختر موقع مهمة
+                      وتابع التقريب إلى المعدات. أي سحب يوقف حركة الكاميرا
                       التلقائية.
                       <br />
                       العلامات تمثل مواقع الهبوط المشار إليها بمصادرها.
@@ -371,9 +376,8 @@ function App() {
                     {m.body === "moon" && (
                       <p className="disclosure">
                         قطر القمر المرجعي: ٣٬٤٧٤٫٨ كم · الأرض أكبر منه بنحو ٣٫٦٧
-                        مرة في القطر. الأحجام متناسبة؛ الأرض في سماء القمر على
-                        متوسط مسافتها المرجعية. الحفر الصغيرة قرب المعدات
-                        توضيحية.
+                        مرة في القطر. يعرض هذا المشهد القمر وحده. الحفر الصغيرة
+                        قرب المعدات توضيحية.
                       </p>
                     )}
                     <div className="missionList">
@@ -600,9 +604,7 @@ function App() {
               </button>
               <span>
                 {mode === "overview"
-                  ? physicalDistances
-                    ? "مقياس فعلي · مثال مداري غير حي"
-                    : "أحجام متناسبة · مسافات مضغوطة"
+                  ? "نموذج مستقل · حجم عرض موحّد"
                   : mode === "planet" || mode === "location"
                     ? "أطلس مداري · علامات بإحداثيات الهبوط"
                     : "أفق ممتد · تضاريس محلية توضيحية"}
@@ -776,15 +778,15 @@ function App() {
               ودقة موضّحة.
             </h2>
             <p>
-              مجسّمات المركبات وصور المهمات من ناسا وJPL. ارتفاعات القمر
-              الأساسية من NASA LRO، وتُحمّل خرائط ألوان 8K من Solar System Scope
-              تدريجيًا عند توفرها. خريطة JPEG الحالية تعرض شكل التضاريس العام،
-              ولا تعطي ارتفاعات معايرة بالمتر. أبعاد القمر والأرض والمعدات
-              متناسبة، أما حفر وصخور الموقع الصغيرة فهي توضيحية. تضاريس المريخ
-              والجبال والحفر المحلية على الجرمين توضيحية وليست مسحًا لمواقع
-              المهمات. عرض الاستكشاف يضغط المسافات؛ وضع المقياس الفعلي يستخدم
-              متوسط مسافة القمر ومثالًا لمسافة المريخ (٢٢٥ مليون كم)، وليس
-              بيانات مدارية حية. مسافة المريخ تتغير مع المدار.
+              مجسّمات المركبات وصور المهمات من ناسا وJPL. ارتفاعات القمر الأساسية
+              من NASA LRO، وتُحمّل خرائط ألوان 8K من Solar System Scope تدريجيًا
+              عند توفرها. خريطة JPEG الحالية تعرض شكل التضاريس العام، ولا تعطي
+              ارتفاعات معايرة بالمتر. أبعاد القمر والأرض والمعدات متناسبة، أما
+              حفر وصخور الموقع الصغيرة فهي توضيحية. تضاريس المريخ والجبال والحفر
+              المحلية على الجرمين توضيحية وليست مسحًا لمواقع المهمات. عرض
+              الاستكشاف يضغط المسافات؛ وضع المقياس الفعلي يستخدم متوسط مسافة
+              القمر ومثالًا لمسافة المريخ (٢٢٥ مليون كم)، وليس بيانات مدارية حية.
+              مسافة المريخ تتغير مع المدار.
             </p>
             <p>
               الشريط يعرض تسلسل المحطات المؤرخة من الانطلاق إلى نهاية المهمة. كل
@@ -817,30 +819,14 @@ function App() {
               </div>
             ))}
             <p>
-              خلفية المجرّة:{" "}
-              <a
-                href="https://www.eso.org/public/images/eso0932a/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                ESO/S. Brunier · Milky Way panorama
-              </a>
-              ، بزاوية عرض وتعريض وتباين وألوان محسّنة فنيًا لمقاربة المرجع
-              البصري. هذه معالجة سينمائية وليست محاكاة لما تراه العين المجردة.
-              الصورة الأصلية بترخيص CC BY 4.0، وتتوفر نسخة بديلة عبر مشروع Sky3D
-              المفتوح؛ لم نستخدم أصول SpaceEngine. في حال تعذّر تحميلها تظهر
-              خلفية توضيحية. النجوم الإضافية توضيحية وليست كتالوجًا فلكيًا. سطوع
-              النجوم يتدرّج حسب إضاءة السطح والغبار؛ التعريض محسّن تعليميًا لعرض
-              السطح والسماء معًا. التفاصيل الدقيقة مولّدة ولا تمثل دقة تصوير غير
-              محدودة. تفاصيل المريخ المحلية تشمل تموّجات رملية وطبقات صخرية
-              مولّدة وليست بيانات MOLA.
+              يعرض المختبر جرمًا واحدًا بخلفية محايدة دون نجوم أو مشهد للمجموعة
+              الشمسية. أحجام النماذج في شاشة الاختيار موحّدة للفحص ولا تمثل
+              مقارنة للأحجام الفعلية. تضاريس مواقع المعدات إعادة بناء تعليمية
+              وليست مسحًا دقيقًا كاملًا.
             </p>
             <p>
-              المواقع: JPL Horizons عبر خدمة الخادم، وحسابات JPL التقريبية عند
-              التعذر. اتجاهات الدوران تقريب IAU 2009؛ ليست نوى SPICE كاملة.
-              النجوم: HYG v4.1 / David Nash، ترخيص CC BY-SA 4.0؛ ليست Gaia.
-              مواقع النجوم J2000 دون حركة خاصة. التضاريس المحلية إعادة بناء، ولا
-              تتوفر بيانات MOLA أو DTM محلية مؤكدة بعد.
+              تستخدم إضاءة السطح اتجاهات مبنية على JPL Horizons مع حسابات
+              تقريبية عند التعذر. إضاءة فحص النماذج محسّنة لإظهار التفاصيل.
             </p>
             <p>
               Earth texture:{" "}

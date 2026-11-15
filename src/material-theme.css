@@ -1,0 +1,404 @@
+/* Rounded, light Material-inspired surfaces across the entire experience. */
+:root {
+  --paper: #f8fafd;
+  --ink: #202124;
+  --muted: #5f6368;
+  --accent: #1967d2;
+  --line: #dce3ee;
+  --surface: #fff;
+}
+body,
+.editorial-page,
+.exploration-page {
+  background: var(--paper);
+}
+.site-header {
+  margin: 12px 20px 0;
+  border-radius: 28px;
+  background: #edf2fa;
+  border: 0;
+  padding-inline: 28px;
+}
+.site-header nav {
+  gap: 6px;
+}
+.site-header nav a,
+.explore-toolbar nav a {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 18px;
+}
+.site-header nav a[aria-current],
+.explore-toolbar nav a[aria-current] {
+  background: #d3e3fd;
+  color: #0842a0;
+}
+.site-header nav a:after {
+  display: none;
+}
+button,
+.action,
+.source-link,
+.text-link,
+.record-actions a,
+.guide-start a {
+  border-radius: 999px !important;
+  min-height: 44px;
+}
+button {
+  transition:
+    background 0.18s,
+    box-shadow 0.18s,
+    transform 0.18s;
+}
+button:hover,
+.action:hover {
+  box-shadow: 0 2px 8px #1f31551a;
+}
+button:active,
+.action:active {
+  transform: scale(0.98);
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid #1967d2;
+  outline-offset: 4px;
+}
+.action-solid,
+.primary,
+.welcome .primary,
+.play {
+  background: #0b57d0 !important;
+  color: #fff !important;
+  border-color: transparent !important;
+}
+.action-line,
+.source-link {
+  background: #e8eef8;
+  color: #174ea6;
+  border: 0;
+}
+.signal-hero {
+  margin: 20px;
+  border-radius: 36px;
+  overflow: hidden;
+  background: #edf3fc;
+}
+.hero-photo {
+  border-radius: 28px;
+  overflow: hidden;
+}
+.hero-copy h1 em,
+.section-heading h2 em,
+.page-intro h1 em {
+  color: #1967d2;
+}
+.feature-card,
+.record-card,
+.dossier,
+.guide-notes,
+.guide-start,
+.closing-section,
+.reading-note,
+.reading-conclusion {
+  border-radius: 28px !important;
+  background: #edf2fa;
+  border: 0 !important;
+  overflow: hidden;
+}
+.feature-card,
+.record-card {
+  box-shadow: 0 2px 6px #2538560a;
+}
+.record-card {
+  padding: 8px;
+}
+.record-photo,
+.feature-image,
+.dossier-photo img,
+.photo img {
+  border-radius: 22px;
+  overflow: hidden;
+}
+.record-actions {
+  gap: 8px;
+  padding: 12px;
+}
+.record-actions a {
+  background: #dce8fc;
+  border: 0;
+  padding: 10px 16px;
+  color: #174ea6;
+}
+.record-open {
+  border-radius: 22px !important;
+}
+.archive-controls {
+  border-radius: 28px;
+  padding: 20px;
+  background: #edf2fa;
+  border: 0;
+}
+.search-field input,
+.sort-field select,
+input[type="search"],
+select {
+  border-radius: 18px !important;
+  background: #fff !important;
+  border: 1px solid #c4c7c5 !important;
+  min-height: 48px;
+  padding-inline: 16px;
+}
+.filter-group {
+  gap: 6px;
+  border: 0;
+}
+.filter-group button {
+  border: 0;
+  background: #fff;
+  padding-inline: 18px;
+}
+.filter-group button[aria-pressed="true"],
+.tabs button.active,
+.body-picker button[aria-pressed="true"] {
+  background: #d3e3fd !important;
+  color: #0842a0 !important;
+  border-color: transparent !important;
+}
+.science-reading {
+  gap: 32px;
+}
+.reading-note,
+.reading-conclusion {
+  padding: 24px;
+}
+.guide-steps article {
+  border-radius: 24px;
+  background: #edf2fa;
+  padding: 24px;
+  border: 0;
+}
+.site-footer {
+  margin: 20px;
+  border-radius: 32px;
+  background: #edf2fa;
+  border: 0;
+  padding: 36px;
+}
+.explore-toolbar {
+  margin: 16px 20px;
+  border: 0;
+  border-radius: 24px;
+  background: #edf2fa;
+  padding: 14px 24px;
+}
+.exploration-page .universe {
+  margin: 0 20px 20px;
+  border-radius: 32px;
+  overflow: hidden;
+  background: #eef3fc;
+  border: 1px solid #dce3ee;
+}
+.welcome,
+.exploration-page .planet .welcome,
+.exploration-page .overview .welcome {
+  border-radius: 28px !important;
+  background: #ffffffed !important;
+  color: #202124;
+  border: 0 !important;
+  padding: 24px;
+  box-shadow: 0 4px 24px #2538560d;
+}
+.welcome p,
+.welcome .hint {
+  color: #5f6368 !important;
+}
+.body-picker {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 16px 0;
+  pointer-events: auto;
+}
+.body-picker button {
+  background: #edf2fa;
+  border: 0;
+  padding: 10px 22px;
+  color: #202124;
+}
+.exploration-page .overview .canvas {
+  position: absolute;
+  inset: 0 36% 0 0;
+  width: 64%;
+  height: 100%;
+  transform: none;
+}
+.exploration-page .overview .body-study-panel {
+  right: 24px;
+  left: auto;
+  top: 28px;
+  width: 30%;
+  max-width: 400px;
+  pointer-events: auto;
+}
+.body-study-panel h1 {
+  font-size: 48px !important;
+  margin: 8px 0 !important;
+}
+.body-study-panel p {
+  font-size: 14px !important;
+  line-height: 1.9 !important;
+}
+.body-study-panel .hint {
+  font-size: 12px !important;
+}
+.sceneTools,
+.simulationPanel,
+.mobileControls,
+.missionMessage,
+.yearStory,
+.timebar,
+.modal,
+.filmControls,
+.mobileSheetToggle {
+  border-radius: 24px !important;
+  background: #f8fafd !important;
+  color: #202124;
+  border: 1px solid #dce3ee !important;
+}
+.sceneTools button,
+.simulationPanel button,
+.mobileControls button,
+.tabs button,
+.cameraButtons button {
+  background: #e8eef8 !important;
+  color: #174ea6 !important;
+  border: 0 !important;
+}
+.breadcrumb {
+  border-radius: 999px;
+  background: #fff;
+  padding: 8px 16px;
+}
+.missionList button,
+.card {
+  border-radius: 20px !important;
+}
+.timebar {
+  margin: 20px;
+  padding: 20px;
+}
+.modal {
+  padding: 28px;
+}
+:where(.worldLabel, .sitePin, .pin) {
+  border-radius: 18px !important;
+  background: #fff !important;
+  color: #174ea6 !important;
+  border: 1px solid #dce3ee !important;
+}
+@media (max-width: 760px) {
+  .site-header {
+    margin: 8px;
+    border-radius: 24px;
+    padding: 14px;
+  }
+  .site-header nav a {
+    padding: 10px 12px;
+  }
+  .signal-hero {
+    margin: 12px;
+    border-radius: 28px;
+  }
+  .site-footer {
+    margin: 12px;
+    padding: 24px;
+  }
+  .explore-toolbar {
+    margin: 12px;
+    padding: 12px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .exploration-page .universe {
+    margin: 0 8px 12px;
+    border-radius: 24px;
+  }
+  .exploration-page .universe.overview {
+    height: 900px;
+    min-height: 900px;
+  }
+  .exploration-page .overview .body-study-panel {
+    top: 12px;
+    right: 12px;
+    left: 12px;
+    width: auto;
+    max-width: none;
+    padding: 18px;
+  }
+  .exploration-page .overview .body-study-panel p {
+    display: block;
+  }
+  .exploration-page .overview .canvas {
+    top: 365px;
+    bottom: 80px;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+  }
+  .body-study-panel h1 {
+    font-size: 32px !important;
+  }
+  .body-picker {
+    margin: 10px 0;
+  }
+  .body-picker button {
+    padding: 8px 18px;
+  }
+  .archive-controls {
+    padding: 16px;
+    border-radius: 24px;
+  }
+  .timebar {
+    margin: 12px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  button,
+  .action {
+    transition: none;
+  }
+}
+.site-header nav {
+  align-items: center;
+}
+.site-header nav a {
+  height: auto;
+  min-height: 44px;
+}
+.mission-strip {
+  margin: 20px;
+  border-radius: 28px;
+  background: #edf2fa;
+}
+.destination-card {
+  border-radius: 28px !important;
+  overflow: hidden;
+}
+
+.exploration-page .overview .body-study-panel,
+.body-study-panel .hint {
+  max-height: none !important;
+  overflow: visible !important;
+}
+@media (max-width: 760px) {
+  .exploration-page .overview .canvas {
+    top: 430px;
+  }
+  .body-study-panel .hint {
+    display: block !important;
+  }
+}
