@@ -134,6 +134,15 @@
   padding-inline: 2px;
 }
 
+.explorer-navigation .breadcrumb .explorer-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 42px;
+  padding: 0 6px;
+  font-size: 13px;
+}
+
 .breadcrumb__current {
   min-width: 0;
   overflow: hidden;

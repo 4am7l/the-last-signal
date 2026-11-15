@@ -308,9 +308,23 @@ function App() {
               </div>
             ) : (
               <nav className="breadcrumb" aria-label={t("مسار الاستكشاف", "Exploration path")}>
-                <button onClick={() => change("overview")}>{t("الأجرام", "Moon and Mars")}</button>
-                <span aria-hidden="true">/</span>
-                <button onClick={() => change("planet")}>{bodyName}</button>
+                {mode === "planet" ? (
+                  <>
+                    <button onClick={() => change("overview")}>{t("الأجرام", "Moon and Mars")}</button>
+                    <span aria-hidden="true">/</span>
+                    <span>{bodyName}</span>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className="explorer-back"
+                    aria-label={t(`رجوع إلى مواقع المهمات على ${bodyName}`, `Back to ${bodyName} mission sites`)}
+                    onClick={() => change("planet")}
+                  >
+                    <span aria-hidden="true">{english ? "←" : "→"}</span>
+                    {t("رجوع", "Back")}
+                  </button>
+                )}
                 <span aria-hidden="true">/</span>
                 <span className="breadcrumb__current">
                   {mode === "planet" ? t("اختر مهمة", "Select a mission") : missionName}
