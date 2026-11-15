@@ -56,13 +56,19 @@ test("NASA media endpoints are restricted to official hosts and lazy high-res re
   assert.match(gallery, /loading=\{index > 1 \? "lazy" : "eager"\}/);
 });
 
-test("Scientific typography loads once and applies heavy bilingual headings", () => {
+test("The local Samsung font supplies Arabic and English text while Material icons keep their font", () => {
   const index = file("index.html");
   const legacy = file("src/science-theme.css");
   const polish = file("src/expressive-polish.css");
   const entry = file("src/main.tsx");
-  assert.match(index, /IBM\+Plex\+Sans\+Arabic/);
-  assert.match(index, /Space\+Grotesk/);
+  const base = file("src/style.css");
+  const loader = file("src/planet-loader.css");
+  assert.match(index, /rel="preload" href="\/samsung\.ttf" as="font"/);
+  assert.doesNotMatch(index, /IBM\+Plex\+Sans\+Arabic|Space\+Grotesk/);
+  assert.match(base, /@font-face\s*\{[^}]*font-family: "Samsung";[^}]*url\("\/samsung\.ttf"\)/);
+  assert.match(base, /--tls-font: "Samsung", system-ui, sans-serif/);
+  assert.match(loader, /font-family: var\(--tls-font\)/);
+  assert.match(polish, /\.material-symbols-rounded\s*\{[^}]*font-family: "Material Symbols Rounded"/);
   assert.doesNotMatch(legacy, /@import url\("https:\/\/fonts\.googleapis/);
   assert.match(polish, /--tls-title-weight:\s*700/);
   assert.match(polish, /\.destinations-heading/);

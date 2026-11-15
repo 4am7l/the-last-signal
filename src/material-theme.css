@@ -75,7 +75,7 @@
 html { background: var(--paper); scroll-behavior: smooth; }
 body, .editorial-page, .exploration-page { background: var(--paper); color: var(--ink); }
 body { overflow-x: clip; }
-button, a, input, select, textarea { font-family: "Public Sans", "Noto Sans Arabic", sans-serif; }
+button, a, input, select, textarea { font-family: var(--tls-font); }
 button, a { -webkit-tap-highlight-color: transparent; }
 :where(button, a, input, textarea, select, summary):focus-visible {
   outline: 3px solid var(--md-sys-color-primary) !important;

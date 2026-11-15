@@ -22,7 +22,7 @@
 }
 .nasa-gallery__heading > div { min-width: 0; }
 .nasa-gallery__heading h2 {
-  font-family: "Newsreader", "Noto Naskh Arabic", serif;
+  font-family: var(--tls-font);
   font-weight: 500;
   font-size: clamp(26px, 3.5vw, 42px);
   line-height: 1.4;
@@ -102,7 +102,7 @@
 .nasa-photo-card__caption { padding: 14px 9px 10px; }
 .nasa-photo-card__caption h3 {
   color: var(--md-sys-color-on-surface);
-  font-family: "Public Sans", "Noto Sans Arabic", sans-serif;
+  font-family: var(--tls-font);
   font-size: 13px;
   line-height: 1.65;
   font-weight: 650;

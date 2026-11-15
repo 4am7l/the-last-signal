@@ -23,7 +23,7 @@
   box-shadow: 0 16px 56px #101b4020;
   text-align: center;
   color: var(--md-sys-color-on-surface);
-  font-family: "IBM Plex Sans Arabic", system-ui, sans-serif;
+  font-family: var(--tls-font);
 }
 .m3-expressive-loading-container {
   width: 112px;
@@ -51,14 +51,14 @@
   animation: tls-loading-morph 4.55s ease-in-out infinite;
 }
 .planet-loading-eyebrow {
-  font-family: "Space Grotesk", sans-serif;
+  font-family: var(--tls-font);
   font-weight: 700;
   font-size: 10px;
   letter-spacing: 1.65px;
   color: var(--md-sys-color-on-surface-variant);
 }
 .planet-loading-card h2 {
-  font-family: "IBM Plex Sans Arabic", sans-serif;
+  font-family: var(--tls-font);
   color: var(--md-sys-color-on-surface);
   font-size: clamp(24px, 5vw, 31px);
   font-weight: 700;

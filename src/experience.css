@@ -203,8 +203,7 @@ select {
 }
 .kicker b {
   font:
-    10px "Space Grotesk",
-    sans-serif;
+    10px var(--tls-font);
   color: #888f95;
   border-right: 1px solid #ffffff30;
   padding-right: 15px;
@@ -297,8 +296,7 @@ select {
 }
 .hero-coordinate > span[dir] {
   font:
-    12px "Space Grotesk",
-    sans-serif;
+    12px var(--tls-font);
   letter-spacing: 1px;
 }
 .hero-coordinate strong {
@@ -332,8 +330,7 @@ select {
 }
 .hero-bottom > span {
   font:
-    9px "Space Grotesk",
-    sans-serif;
+    9px var(--tls-font);
   letter-spacing: 2px;
   color: #808e96;
   direction: ltr;
@@ -358,8 +355,7 @@ select {
 }
 .mission-strip strong {
   font:
-    30px "Space Grotesk",
-    sans-serif;
+    30px var(--tls-font);
   color: #e1dfd7;
   direction: ltr;
 }
@@ -447,7 +443,7 @@ select {
   z-index: 1;
 }
 .destination > div > span {
-  font: 10px "Space Grotesk";
+  font: 10px var(--tls-font);
   letter-spacing: 3px;
   color: #e0b68d;
 }
@@ -518,7 +514,7 @@ select {
   padding: 20px 0 0;
 }
 .feature-copy > small {
-  font: 11px "Space Grotesk";
+  font: 11px var(--tls-font);
   color: #8b9aa4;
   letter-spacing: 1px;
 }
@@ -596,7 +592,7 @@ select {
   color: #7e8c96;
 }
 .footer-credit > span {
-  font: 9px "Space Grotesk";
+  font: 9px var(--tls-font);
   letter-spacing: 1px;
   line-height: 2;
 }
@@ -746,7 +742,7 @@ select {
 }
 .record-year {
   left: 14px;
-  font-family: "Space Grotesk";
+  font-family: var(--tls-font);
 }
 .record-body {
   right: 14px;
@@ -755,7 +751,7 @@ select {
   padding: 23px;
 }
 .record-copy > small {
-  font: 11px "Space Grotesk";
+  font: 11px var(--tls-font);
   color: #97a6b0;
 }
 .record-copy h2 {
@@ -868,7 +864,7 @@ select {
   box-shadow: 0 0 0 5px #101922;
 }
 .mission-timeline time {
-  font: 11px "Space Grotesk";
+  font: 11px var(--tls-font);
   color: var(--accent);
 }
 .mission-timeline h4 {
@@ -907,7 +903,7 @@ select {
   padding: 25px 0;
 }
 .guide-steps article > span {
-  font: 26px "Space Grotesk";
+  font: 26px var(--tls-font);
   color: var(--accent);
 }
 .guide-steps h2 {
@@ -957,7 +953,7 @@ select {
   align-items: center;
 }
 .explore-toolbar small {
-  font: 8px "Space Grotesk";
+  font: 8px var(--tls-font);
   letter-spacing: 1px;
   color: #7e909e;
 }
@@ -1636,7 +1632,7 @@ select {
   animation: scene-arrive 1.3s ease forwards;
 }
 .scene-arrival small {
-  font: 10px "Space Grotesk";
+  font: 10px var(--tls-font);
   letter-spacing: 3px;
   color: var(--accent);
   direction: ltr;

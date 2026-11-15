@@ -1,26 +1,11 @@
-/*
-  The Last Signal — Scientific Expressive polish.
-  Bold NASA-adjacent scientific typography:
-  IBM Plex Sans Arabic (Arabic) + Space Grotesk (Latin/numerals).
-  Not a reproduction of NASA trademarks or custom NASA fonts.
-  Loaded after the legacy styles to give every route one M3 shape language.
-*/
+/* Material 3 shapes and typography refinements, loaded after the base styles. */
 :root {
-  --tls-font-ui: "Space Grotesk", "IBM Plex Sans Arabic", system-ui, sans-serif;
-  --tls-font-ar: "IBM Plex Sans Arabic", "Space Grotesk", system-ui, sans-serif;
   --tls-shape-card: 40px;
   --tls-shape-media: 30px;
   --tls-shape-sheet: 34px;
   --tls-shape-chip: 999px;
   --tls-shape-field: 22px;
   --tls-title-weight: 700;
-  font-family: var(--tls-font-ar);
-  font-synthesis: none;
-}
-body, button, input, textarea, select, label, a, summary,
-.editorial-page, .exploration-page, .information,
-.site-header, .site-footer {
-  font-family: var(--tls-font-ar) !important;
 }
 .material-symbols-rounded {
   font-family: "Material Symbols Rounded" !important;
@@ -33,7 +18,6 @@ h1, h2, h3, h4,
 .guide-steps h2, .guide-notes h2, .dossier h2,
 .dossier h3, .science-reading h3, .reading-note h3,
 .exploration-page .welcome h1, .information h2 {
-  font-family: var(--tls-font-ar) !important;
   font-weight: var(--tls-title-weight) !important;
   letter-spacing: 0 !important;
   text-wrap: pretty;
@@ -46,7 +30,6 @@ p { line-height: 1.95; }
 button, .action, .primary, .play, .source-link,
 .theme-toggle, .filter-group button, .record-actions a,
 .guide-start a, .text-link, .tabs button, summary {
-  font-family: var(--tls-font-ar) !important;
   font-weight: 600;
 }
 .kicker, .destination__count,
@@ -54,11 +37,9 @@ button, .action, .primary, .play, .source-link,
 .mission-timeline time, .site-header .brand small,
 .missionList small, .coordinates, .card > span,
 .chapters small, .yearTicks button, .nasa-photo-card__caption p {
-  font-family: var(--tls-font-ui) !important;
   font-weight: 600;
 }
 .site-header .brand {
-  font-family: var(--tls-font-ar) !important;
   font-weight: 700;
   letter-spacing: 0;
 }
@@ -77,9 +58,8 @@ button, .action, .primary, .play, .source-link,
 .feature-copy h3, .record-copy h2 { font-size: clamp(22px, 2.2vw, 30px); }
 .guide-steps h2, .science-reading h3 { font-weight: 700 !important; }
 .nasa-gallery__heading h2 { font-size: clamp(28px, 3.2vw, 40px); }
-.nasa-photo-card__caption h3 { font-family: var(--tls-font-ui) !important; font-weight: 700 !important; }
+.nasa-photo-card__caption h3 { font-weight: 700 !important; }
 .hero-copy p, .page-intro p, .section-heading > p {
-  font-family: var(--tls-font-ar);
   font-size: clamp(13px, 1.15vw, 15px);
   font-weight: 400;
   line-height: 2;
@@ -263,7 +243,6 @@ input[type="search"], input[type="date"], select, textarea,
 .destination--expressive .destination__count {
   display: inline-flex;
   align-items: center;
-  font-family: var(--tls-font-ar) !important;
   font-size: 13px;
   color: var(--muted);
 }
@@ -284,7 +263,6 @@ input[type="search"], input[type="date"], select, textarea,
   min-height: 48px;
   font-size: 13px;
   font-weight: 700;
-  font-family: var(--tls-font-ar) !important;
   letter-spacing: 0;
   border: 1px solid transparent;
   border-radius: 999px;
@@ -325,7 +303,6 @@ input[type="search"], input[type="date"], select, textarea,
 .nasa-gallery__heading h2 { font-weight: 700 !important; }
 .nasa-gallery .nasa-photo-card__open { border-radius: 24px !important; }
 .nasa-gallery .nasa-photo-card { border-radius: 30px !important; }
-.nasa-gallery .nasa-photo-card__caption h3 { font-family: var(--tls-font-ui) !important; }
 .modal, .nasa-lightbox__content { border-radius: 36px !important; }
 .photo img { border-radius: 22px !important; }
 
