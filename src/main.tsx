@@ -539,17 +539,17 @@ function App() {
             />
           </main>
           </div>
-              {detailsOpen && compactDrawer && (
+              {compactDrawer && (
                 <div className="equipment-scrim" aria-hidden="true" onClick={closeDetails} />
               )}
-              <button ref={detailsToggleRef} type="button" className="equipment-details-toggle"
-                aria-label={detailsOpen ? t("إغلاق التفاصيل", "Close details") : t("فتح التفاصيل", "Open details")}
-                aria-expanded={detailsOpen} aria-controls="equipment-details"
-                onClick={() => detailsOpen ? closeDetails() : setDetailsOpen(true)}>
-                <span className="equipment-details-chevron" aria-hidden="true">‹</span>
-                <span className="equipment-details-label">{t("التفاصيل", "Details")}</span>
-              </button>
               <div className="equipment-dock">
+                <button ref={detailsToggleRef} type="button" className="equipment-details-toggle"
+                  aria-label={detailsOpen ? t("إغلاق التفاصيل", "Close details") : t("فتح التفاصيل", "Open details")}
+                  aria-expanded={detailsOpen} aria-controls="equipment-details"
+                  onClick={() => detailsOpen ? closeDetails() : setDetailsOpen(true)}>
+                  <span className="equipment-details-chevron" aria-hidden="true">‹</span>
+                  <span className="equipment-details-label">{t("التفاصيل", "Details")}</span>
+                </button>
                   <aside ref={detailsRef} id="equipment-details" className="equipment-details" aria-labelledby="equipment-title" inert={!detailsOpen}>
                     {bodyView ? (
                       <div className="drawer-content" key={m.body}>

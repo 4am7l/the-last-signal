@@ -4,10 +4,6 @@
 .equipment-details-toggle[aria-expanded="true"] .equipment-details-chevron {
   rotate: 180deg;
 }
-.equipment-details[inert] {
-  visibility: hidden;
-  pointer-events: none;
-}
 
 /* Material-style feedback: state tint and elevation, without changing layout. */
 :where(.action, .primary, .play, .source-link, .theme-toggle, .language-toggle,
@@ -117,18 +113,12 @@
   .explorer-panels summary {
     animation: panel-enter 340ms var(--md-sys-motion-easing) both;
   }
-  .details-dock-open .drawer-content {
-    animation: panel-enter 260ms var(--md-sys-motion-easing) both;
-  }
-  .equipment-dock { transition-duration: 300ms; }
   .camera-dock__actions { animation-delay: 45ms; }
   .camera-dock button,
   .explorer-panels summary {
     transition: background-color 180ms ease, color 180ms ease, scale 160ms ease;
   }
   .explorer-panel-chevron { transition: rotate 220ms var(--md-sys-motion-easing); }
-  .equipment-details { transition: visibility 0s; }
-  .equipment-details[inert] { transition-delay: 300ms; }
   .equipment-photos[open] > :not(summary),
   .explorer-panels details[open] > .explorer-panel-content {
     animation: panel-enter 270ms var(--md-sys-motion-easing) both;
@@ -138,7 +128,7 @@
   }
   .sitePin { transition: background-color 180ms ease, border-color 180ms ease, scale 160ms ease; }
 
-  .overlay, .nasa-lightbox, .equipment-scrim {
+  .overlay, .nasa-lightbox {
     animation: backdrop-enter 210ms ease-out both;
   }
   :is(.overlay .modal, .overlay .fullImage, .nasa-lightbox__content) {
