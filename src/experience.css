@@ -1688,3 +1688,16 @@ body {
     font-size: 44px;
   }
 }
+
+.apollo-specs {
+  display: grid;
+  gap: 8px;
+  margin-block: 12px;
+}
+.apollo-specs > div {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+.apollo-specs dt { font-weight: 700; }
+.apollo-specs dd { margin-inline-start: 0; }

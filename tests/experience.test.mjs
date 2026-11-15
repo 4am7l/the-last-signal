@@ -2,19 +2,21 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { stripTypeScriptTypes } from "node:module";
-const load = async (file) =>
+const asModule = (source) => "data:text/javascript;base64," + Buffer.from(source).toString("base64");
+const load = async (file, dependency) =>
   import(
     "data:text/javascript;base64," +
       Buffer.from(
         stripTypeScriptTypes(
-          readFileSync(new URL(file, import.meta.url), "utf8"),
+          readFileSync(new URL(file, import.meta.url), "utf8").replace('"./apollo"', JSON.stringify(dependency)),
         ),
       ).toString("base64")
   );
 const { parseRoute, exploreHref, matchesMission } = await load(
   "../src/navigation.ts",
 );
-const { missions } = await load("../src/data.ts");
+const apolloModule = asModule(stripTypeScriptTypes(readFileSync(new URL("../src/apollo.ts", import.meta.url), "utf8")));
+const { missions } = await load("../src/data.ts", apolloModule);
 const ids = missions.map((m) => m.id);
 test("every mission deep link round trips all simulation modes", () => {
   for (const mission of ids)

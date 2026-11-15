@@ -1,3 +1,5 @@
+import { ApolloBrief } from "./ApolloBrief";
+import { apolloPhoto } from "./apollo";
 import { LanguageToggle } from "./LanguageToggle";
 import { useLanguage, useExplorerText } from "./explorer-language";
 import { englishEvent, englishExplanations, missionEnglish } from "./explorer-english";
@@ -110,11 +112,11 @@ export function Home() {
           <img
             className="hero-photo"
             src="/photos/apollo.jpg"
-            alt={t("باز ألدرين على سطح القمر", "Buzz Aldrin on the Moon")}
+            alt={t(apolloPhoto.ar, apolloPhoto.en)}
             fetchPriority="high"
           />
           <figcaption className="hero-caption">
-            <span>{t("باز ألدرين أثناء مهمة أبولو 11، 1969 · ناسا", "Buzz Aldrin during Apollo 11, 1969 · NASA")}</span>
+            <a href={apolloPhoto.source} target="_blank" rel="noreferrer">{t(apolloPhoto.ar, apolloPhoto.en)}</a>
             <a href={exploreHref("apollo", "location")}>{t("موقع الهبوط ←", "Landing site →")}</a>
           </figcaption>
         </figure>
@@ -395,7 +397,7 @@ export function Archive({ initialMission }: { initialMission?: string }) {
                   alt={copy(chosen).photoCaption}
                 />
                 <small className="photo-credit">{copy(chosen).photoCaption}</small>
-                <MissionExplanation mission={chosen} />
+                {chosen.id === "apollo" ? <ApolloBrief /> : <MissionExplanation mission={chosen} />}
                 <NasaGallery mission={chosen.id} compact />
                 <h3>{t("كيف تعمل المعدات؟", "How does the equipment work?")}</h3>
                 <p>{copy(chosen).detail}</p>

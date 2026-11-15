@@ -1,3 +1,4 @@
+import { apolloPhoto } from "./apollo";
 import type { Mission } from "./data";
 import type { Phase, Shot } from "./journey";
 
@@ -5,12 +6,12 @@ type MissionCopy = Pick<Mission, "intro" | "site" | "frame" | "final" | "detail"
 
 export const missionEnglish: Record<string, MissionCopy> = {
   apollo: {
-    intro: "The crew returned to Earth. The descent stage and instruments stayed on the Moon.",
+    intro: "Eagle made the first crewed lunar landing and carried the EASEP surface experiments.",
     site: "Tranquility Base · Sea of Tranquility",
-    frame: "NASA’s published Apollo 11 landing coordinates, in degrees north and east.",
+    frame: "NASA’s LRO-derived coordinates in the DE421 lunar reference frame.",
     final: "Eagle’s descent stage and surface equipment remain at Tranquility Base. The ascent stage left the Moon, so the complete model shows Eagle as it was at landing.",
-    detail: "Eagle had two stages, one for landing and one for ascent. The equipment left behind includes a laser retroreflector.",
-    photoCaption: "Buzz Aldrin on the Moon, photographed by Neil Armstrong · NASA",
+    detail: "Eagle had descent and ascent stages. The descent stage, EASEP instruments and unpowered laser retroreflector remained at Tranquility Base.",
+    photoCaption: apolloPhoto.en,
   },
   opportunity: {
     intro: "A planned 90-day rover mission became more than 14 years of exploration.",
@@ -86,7 +87,7 @@ const eventCopy: Record<string, [string, string]> = {
   "2021-05-07": ["Operations demonstration", "After its fifth flight, Ingenuity began demonstrating scouting and operational capabilities."],
   "2024-01-18": ["Flight 72", "Rotor blades were damaged during landing, ending Ingenuity’s ability to fly."],
   "2024-02-21": ["Photograph from the Valinor Hills", "Perseverance photographed Ingenuity at its final location."],
-  "1969-07-21:surface": ["First steps on the Moon", "The astronauts walked on the surface and left it later that day in Eagle’s ascent stage."],
+  "1969-07-21:surface": ["First steps on the Moon", "The crew deployed experiments and collected samples. Eagle’s ascent stage lifted off at 17:54:01 UT."],
   "1969-07-24:end": ["Return to Earth", "The crew returned to Earth. Eagle’s descent stage and scientific equipment remained on the Moon."],
 };
 
@@ -106,7 +107,7 @@ const archiveEventCopy: Record<string, [string, string]> = {
   "1969-07-16": ["Launch", "A Saturn V rocket carried Apollo 11 toward the Moon."],
   "1969-07-17": ["Cruise to the Moon", "Apollo 11 traveled toward the Moon. The simulation illustrates the trip."],
   "1969-07-19": ["Lunar orbit insertion", "The crew entered lunar orbit and began preparations to separate Eagle."],
-  "1969-07-20": ["Eagle lands", "Armstrong and Aldrin landed in the Sea of Tranquility."],
+  "1969-07-20": ["Eagle lands", "Armstrong and Aldrin landed in the Sea of Tranquility at 20:17:40 UT."],
 };
 
 export function englishEvent(event: Mission["events"][number]) {

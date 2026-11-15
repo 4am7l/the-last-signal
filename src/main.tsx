@@ -1,3 +1,4 @@
+import { ApolloBrief } from "./ApolloBrief";
 import { LanguageToggle } from "./LanguageToggle";
 import { ExplorerLanguage, type Language } from "./explorer-language";
 import { englishAnnualStories, englishDimensions, englishShot, missionEnglish } from "./explorer-english";
@@ -345,6 +346,7 @@ function App() {
                 <button className="source-link" onClick={() => setSources(true)}>
                   {t("المصادر والدقة", "Sources and accuracy")}
                 </button>
+                {m.id === "apollo" && <ApolloBrief />}
                 <NasaGallery mission={m.id} compact />
               </div>
             </details>
