@@ -13,6 +13,25 @@ export function noise3(x:number,y:number,z:number){
  const mix=(a:number,b:number,t:number)=>a+(b-a)*t;
  return mix(mix(mix(hash(a,b,c),hash(a+1,b,c),u),mix(hash(a,b+1,c),hash(a+1,b+1,c),u),v),mix(mix(hash(a,b,c+1),hash(a+1,b,c+1),u),mix(hash(a,b+1,c+1),hash(a+1,b+1,c+1),u),v),w)*2-1;
 }
+// Finite, branching bedrock fissures. Identical metre coordinates in the
+// heightfield and fragment shader keep the shaded seams inside their grooves.
+export function fissureMask(x:number,z:number){
+ const along=x*.83+z*.56,across=-x*.56+z*.83;
+ const bend=7*Math.sin(along*.031)+2*Math.sin(along*.087);
+ const trunk=Math.exp(-Math.pow((across-46-bend)/.85,2));
+ const branch=Math.exp(-Math.pow((across-46-bend-(along-74)*.36)/.55,2));
+ const window=(v:number,a:number,b:number)=>{const t=Math.max(0,Math.min(1,(v-a)/(b-a)));return t*t*(3-2*t)};
+ return Math.max(trunk,branch*window(along,48,77))
+  *window(along,-125,-80)*(1-window(along,160,215));
+}
+export const FISSURE_GLSL=`
+float fissureMask(vec2 p){
+ float along=p.x*.83+p.y*.56,across=-p.x*.56+p.y*.83;
+ float bend=7.*sin(along*.031)+2.*sin(along*.087);
+ float trunk=exp(-pow(abs(across-46.-bend)/.85,2.));
+ float branch=exp(-pow(abs(across-46.-bend-(along-74.)*.36)/.55,2.));
+ return max(trunk,branch*smoothstep(48.,77.,along))*smoothstep(-125.,-80.,along)*(1.-smoothstep(160.,215.,along));
+}`;
 // Coherent visual relief only: no MOLA elevations are claimed.
 export function marsRelief(x:number,y:number,z:number){return noise3(x*5,y*5,z*5)*2400+noise3(x*19,y*19,z*19)*650+noise3(x*61,y*61,z*61)*180}
 export function mountains(x:number,z:number,body:'moon'|'mars'){

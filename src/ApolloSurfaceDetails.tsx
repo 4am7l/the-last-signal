@@ -1,6 +1,7 @@
 import {useEffect,useMemo} from 'react';
 import * as T from 'three';
 import {noise3} from './sceneMath';
+import {stoneMaterial} from './stoneMaterial';
 
 // Seeded illustrative Apollo 11 debris: fractured, partly buried basalt and
 // regolith pebbles. No towering monoliths or floating polygonal formations.
@@ -12,7 +13,7 @@ function rng(seed:number){
  return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return (s>>>0)/4294967296};
 }
 function fracturedRock(shape:Shape,variant:number){
- const geo=new T.IcosahedronGeometry(1,shape==='boulder'?3:shape==='slab'?2:1);
+ const geo=new T.IcosahedronGeometry(1,shape==='boulder'?5:shape==='slab'?3:1);
  const pos=geo.getAttribute('position') as T.BufferAttribute;
  const color:number[]=[];
  const seed=variant*71+(shape==='boulder'?17:shape==='slab'?47:101);
@@ -70,8 +71,7 @@ export function ApolloRocks({ground,unit,count,clearance}:{
    for(let variant=0;variant<kinds;variant++){
     const n=Math.floor(totals[shape]/kinds)+(variant<totals[shape]%kinds?1:0);
     const geometry=fracturedRock(shape,variant);
-    const mesh=new T.InstancedMesh(geometry,new T.MeshStandardMaterial({
-     color:'#ffffff',vertexColors:true,roughness:1,metalness:0}),n);
+    const mesh=new T.InstancedMesh(geometry,stoneMaterial(),n);
     const bounds=geometry.boundingBox!;
     const extent=Math.max(
      Math.abs(bounds.min.x),Math.abs(bounds.max.x),
@@ -79,12 +79,13 @@ export function ApolloRocks({ground,unit,count,clearance}:{
     for(let i=0;i<n;i++){
      // Apollo 11 is a low-relief basalt mare: nearby stones remain smaller
      // than the lander, with only occasional metre-scale distant fragments.
-     const size=shape==='boulder'?.12+Math.pow(random(),2.3)*1.05:
-      shape==='slab'?.07+Math.pow(random(),2.25)*.65:
+     const hero=shape==='boulder'&&i<3;
+     const size=hero?1.5+random()*2.1:shape==='boulder'?.16+Math.pow(random(),2.3)*1.5:
+      shape==='slab'?.08+Math.pow(random(),2.25)*.85:
       .012+Math.pow(random(),2.2)*.13;
      const sx=size*(.75+random()*.43),sy=size*(.76+random()*.35),sz=size*(.72+random()*.48);
      const radius=extent*Math.max(sx,sz)*1.12;
-     const minRadius=Math.max(clearance+radius+1.5,small?clearance+1:clearance+4);
+     const minRadius=Math.max(clearance+radius+1.5,hero?38+radius:small?clearance+1:clearance+4);
      let x=0,z=0,found=false,support:{height:number;spread:number}|null=null;
      for(let attempts=0;attempts<32;attempts++){
       const a=random()*Math.PI*2;
