@@ -1,4 +1,5 @@
 import { Home, Archive, Guide, SiteHeader, SiteFooter } from "./Experience";
+import { NasaGallery } from "./NasaGallery";
 import { parseRoute, exploreHref } from "./navigation";
 import { SimulationPanel } from "./simulation";
 import { MobileControls } from "./MobileControls";
@@ -13,6 +14,8 @@ import "./mobile.css";
 import "./experience.css";
 import "./science-theme.css";
 import "./material-theme.css";
+import "./nasa-gallery.css";
+import "./expressive-polish.css";
 const Space = lazy(() => import("./Space").then((m) => ({ default: m.Space })));
 class Boundary extends React.Component<
   { children: React.ReactNode },
@@ -737,6 +740,7 @@ function App() {
               ))}
             </div>
           </section>
+          <NasaGallery mission={m.id} compact />
         </div>
       )}
       <SiteFooter onSources={() => setSources(true)} />
