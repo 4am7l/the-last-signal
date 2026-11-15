@@ -78,8 +78,8 @@ function App() {
       setFailedSceneKey(null);
     }
   }, [route.page]);
-  const [mode, setMode] = useState<Mode>("overview"),
-    [index, setIndex] = useState(0),
+  const [mode, setMode] = useState<Mode>(route.mode),
+    [index, setIndex] = useState(() => Math.max(0, missions.findIndex((item) => item.id === route.mission))),
     [film, setFilm] = useState(0),
     [playing, setPlaying] = useState(false),
     [speed, setSpeed] = useState(1),
@@ -254,7 +254,7 @@ function App() {
                 href={exploreHref(m.id, "overview")}
                 aria-current={mode === "overview" ? "page" : undefined}
               >
-                الكواكب
+                القمر والمريخ
               </a>
               <a
                 href={exploreHref("opportunity", "planet")}
@@ -327,7 +327,7 @@ function App() {
             {mode === "overview" ? (
               <section className="welcome body-study-panel">
                 <div className="eyebrow">
-                  مختبر الكواكب · نموذج ثلاثي الأبعاد
+                  مختبر القمر والمريخ · نموذج ثلاثي الأبعاد
                 </div>
                 <h1>
                   {overviewBody === "moon" ? "القمر" : "المريخ"}
@@ -367,7 +367,7 @@ function App() {
             ) : (
               <>
                 <div className="breadcrumb">
-                  <button onClick={() => change("overview")}>الكواكب</button>
+                  <button onClick={() => change("overview")}>الأجرام</button>
                   <span>/</span>
                   <button onClick={() => change("planet")}>
                     {m.body === "mars" ? "المريخ" : "القمر"}
