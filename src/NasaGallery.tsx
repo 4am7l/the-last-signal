@@ -32,6 +32,7 @@ export function NasaGallery({
   const [photos, setPhotos] = useState<NasaPhoto[]>([]);
   const [error, setError] = useState(false);
   const [open, setOpen] = useState<NasaPhoto | null>(null);
+  const [fullImage, setFullImage] = useState<string | null>(null);
   const ref = useRef<HTMLElement | null>(null);
   const heading = useId();
 
@@ -82,6 +83,24 @@ export function NasaGallery({
       });
     return () => controller.abort();
   }, [mission, visible]);
+
+  useEffect(() => {
+    if (!open) {
+      setFullImage(null);
+      return;
+    }
+    const controller = new AbortController();
+    setFullImage(null);
+    fetch("/api/nasa-asset?id=" + encodeURIComponent(open.id), {
+      signal: controller.signal,
+    })
+      .then((response) => response.ok ? response.json() as Promise<{ full: string | null }> : null)
+      .then((data) => {
+        if (!controller.signal.aborted && data?.full) setFullImage(data.full);
+      })
+      .catch(() => {});
+    return () => controller.abort();
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -155,7 +174,7 @@ export function NasaGallery({
           ))}
         </div>
       )}
-      {!loading && (error || !photos.length) && (
+      {visible && !loading && (error || !photos.length) && (
         <div className="nasa-gallery__fallback">
           <img src={"/photos/" + mission + ".jpg"} alt={"صورة أرشيفية من مهمة " + (names[mission] ?? mission)} loading="lazy" />
           <div>
@@ -181,7 +200,7 @@ export function NasaGallery({
               <span className="material-symbols-rounded" aria-hidden="true">close</span>
               إغلاق
             </button>
-            <img src={open.thumbnail} alt={open.title} />
+            <img src={fullImage ?? open.thumbnail} alt={open.title} />
             <div className="nasa-lightbox__caption">
               <h2>{open.title}</h2>
               {open.description && <p>{open.description}</p>}
