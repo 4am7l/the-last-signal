@@ -1,5 +1,6 @@
 import { Home, Archive, Guide, SiteHeader, SiteFooter } from "./Experience";
 import { NasaGallery } from "./NasaGallery";
+import { ThemeToggle } from "./ThemeToggle";
 import { PlanetLoadingIndicator } from "./PlanetLoadingIndicator";
 import { parseRoute, exploreHref } from "./navigation";
 import { SimulationPanel } from "./simulation";
@@ -18,6 +19,7 @@ import "./material-theme.css";
 import "./nasa-gallery.css";
 import "./expressive-polish.css";
 import "./planet-loader.css";
+import "./fullscreen-explorer.css";
 const Space = lazy(() => import("./Space").then((m) => ({ default: m.Space })));
 class Boundary extends React.Component<
   { children: React.ReactNode; onError?: () => void },
@@ -68,7 +70,6 @@ function App() {
   });
   const cameraMove = (kind: CameraCommand["kind"]) =>
     setCameraCommand((previous) => ({ id: previous.id + 1, kind }));
-  const [overviewBody, setOverviewBody] = useState<"moon" | "mars">("moon");
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [readySceneKey, setReadySceneKey] = useState<string | null>(null);
   const [failedSceneKey, setFailedSceneKey] = useState<string | null>(null);
@@ -212,9 +213,8 @@ function App() {
     return () => window.removeEventListener("keydown", esc);
   }, []);
   const sceneKey = mode === "overview"
-    ? `overview:${overviewBody}`
+    ? `overview:${m.body}`
     : `${mode}:${m.body}:${m.id}`;
-  const sceneBody = mode === "overview" ? overviewBody : m.body;
   const sceneLoading = readySceneKey !== sceneKey && failedSceneKey !== sceneKey;
   const years = Object.keys(annualStories(m)).map(Number);
   return (
@@ -229,7 +229,9 @@ function App() {
       >
         تجاوز إلى المحتوى
       </a>
-      <SiteHeader page={route.page} onSources={() => setSources(true)} />
+      {route.page !== "explore" && (
+        <SiteHeader page={route.page} onSources={() => setSources(true)} />
+      )}
       {route.page === "home" && <Home />}
       {route.page === "archive" && (
         <Archive
@@ -243,36 +245,27 @@ function App() {
       )}{" "}
       {route.page === "guide" && <Guide />}
       {route.page === "explore" && (
-        <div className="exploration-page">
-          <div className="explore-toolbar">
-            <div>
-              المحاكاة
-            </div>
-            <nav aria-label="وجهة المحاكاة">
-              <a
-                href={exploreHref(m.id, "overview")}
-                aria-current={mode === "overview" ? "page" : undefined}
-              >
-                القمر والمريخ
-              </a>
-              <a
-                href={exploreHref("opportunity", "planet")}
-                aria-current={
-                  m.body === "mars" && mode !== "overview" ? "page" : undefined
-                }
-              >
-                المريخ
-              </a>
-              <a
-                href={exploreHref("apollo", "planet")}
-                aria-current={
-                  m.body === "moon" && mode !== "overview" ? "page" : undefined
-                }
-              >
-                القمر
-              </a>
+        <div className="exploration-page fullscreen-explorer">
+          <header className="fullscreen-toolbar">
+            <a className="action action-line" href="#/">
+              <span aria-hidden="true">→</span> الرئيسية
+            </a>
+            <nav className="body-picker" aria-label="وجهة المحاكاة">
+              {([
+                ["moon", "apollo", "القمر"],
+                ["mars", "opportunity", "المريخ"],
+              ] as const).map(([body, mission, label]) => (
+                <a
+                  key={body}
+                  href={exploreHref(mission, "overview")}
+                  aria-current={m.body === body ? "true" : undefined}
+                >
+                  {label}
+                </a>
+              ))}
             </nav>
-          </div>
+            <ThemeToggle />
+          </header>
           <main
             id="main-content"
             tabIndex={-1}
@@ -291,7 +284,7 @@ function App() {
                     onWorld={(b) => select(b === "mars" ? 0 : 4, "planet")}
                     onMission={(i) => select(i, "location")}
                     reset={reset}
-                    overviewBody={overviewBody}
+                    overviewBody={m.body}
                     cameraCommand={cameraCommand}
                     sceneKey={sceneKey}
                     onSceneReady={setReadySceneKey}
@@ -300,44 +293,17 @@ function App() {
               </Boundary>
             </div>
             {sceneLoading && (
-              <PlanetLoadingIndicator key={sceneKey} body={sceneBody} mission={mode === "overview" ? undefined : m.name} />
+              <PlanetLoadingIndicator key={sceneKey} body={m.body} mission={mode === "overview" ? undefined : m.name} />
             )}
             {mode === "overview" ? (
-              <section className="welcome body-study-panel">
-                <h1>
-                  {overviewBody === "moon" ? "القمر" : "المريخ"}
+              <div className="explorer-entry">
+                <h1 className="explorer-visually-hidden">
+                  {m.body === "moon" ? "القمر" : "المريخ"}
                 </h1>
-                <p>اسحب لتدوير النموذج وقرّب لفحص السطح.</p>
-                <div
-                  className="body-picker"
-                  role="group"
-                  aria-label="اختر الجرم"
-                >
-                  {(
-                    [
-                      ["moon", "القمر"],
-                      ["mars", "المريخ"],
-                    ] as const
-                  ).map(([body, label]) => (
-                    <button
-                      key={body}
-                      aria-pressed={overviewBody === body}
-                      onClick={() => setOverviewBody(body)}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                </div>
-                <button
-                  className="primary"
-                  onClick={() => select(overviewBody === "mars" ? 0 : 4, "planet")}
-                >
-                  استكشف السطح والمعدات ↗
-                </button>
-                <p className="hint">
-                  يُعرض النموذجان بحجم موحّد لتسهيل فحص السطح.
-                </p>
-              </section>
+                <a className="action action-solid" href={exploreHref(m.id, "planet")}>
+                  مواقع المهمات <span aria-hidden="true">←</span>
+                </a>
+              </div>
             ) : (
               <>
                 <div className="breadcrumb">
@@ -597,7 +563,8 @@ function App() {
             </div>
           </main>
           {mode === "story" && (
-            <section className="timebar">
+            <details className="timebar explorer-timeline">
+              <summary>مراحل الرحلة</summary>
               <div className="timeTop">
                 <button
                   className="play"
@@ -695,36 +662,25 @@ function App() {
                   </button>
                 ))}
               </div>
-            </section>
+            </details>
           )}
-          <section className="archive">
-            <div className="archiveTop">
-              <span>المهمات</span>
+          <details className="explorer-resources">
+            <summary>أرشيف وصور</summary>
+            <div className="explorer-resources__content">
+              <a className="text-link" href={`#/archive?mission=${m.id}`}>
+                سجل {m.name} ←
+              </a>
+              <button className="source-link" onClick={() => setSources(true)}>
+                المصادر والدقة
+              </button>
+              <NasaGallery mission={m.id} compact />
             </div>
-            <div className="cards">
-              {missions.map((x, i) => (
-                <button
-                  className={
-                    "card " +
-                    (index === i && mode !== "overview" ? "selected" : "")
-                  }
-                  key={x.id}
-                  onClick={() => select(i)}
-                >
-                  <small>
-                    {x.body === "mars" ? "المريخ" : "القمر"}
-                  </small>
-                  <h3>{x.name}</h3>
-                  <span>{x.en}</span>
-                  <b>↗</b>
-                </button>
-              ))}
-            </div>
-          </section>
-          <NasaGallery mission={m.id} compact />
+          </details>
         </div>
       )}
-      <SiteFooter onSources={() => setSources(true)} />
+      {route.page !== "explore" && (
+        <SiteFooter onSources={() => setSources(true)} />
+      )}
       {image && (
         <div
           className="overlay"

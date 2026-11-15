@@ -13,18 +13,20 @@ export function BodyStudy({
   body: "moon" | "mars";
   reset: number;
 }) {
-  const { camera, scene } = useThree();
+  const { camera, scene, size } = useThree();
+  // Keep the whole globe in view when a tall viewport limits the horizontal field of view.
+  const framingScale = Math.max(1, (0.9 * size.height) / Math.max(size.width, 1));
   const controls = useRef<Controls>(null);
   useEffect(() => {
     camera.up.set(0, 1, 0);
-    camera.position.set(0, 100, 950);
+    camera.position.set(0, 100, 950).multiplyScalar(framingScale);
     camera.near = 0.1;
     camera.far = 10000;
     camera.updateProjectionMatrix();
     controls.current?.target.set(0, 0, 0);
     controls.current?.update();
     scene.fog = null;
-  }, [body, reset, camera, scene]);
+  }, [body, reset, camera, scene, framingScale]);
   return (
     <>
       <OrbitControls
@@ -33,7 +35,7 @@ export function BodyStudy({
         enableDamping
         enablePan={false}
         minDistance={335}
-        maxDistance={1800}
+        maxDistance={1800 * framingScale}
         rotateSpeed={0.6}
         zoomSpeed={0.7}
       />

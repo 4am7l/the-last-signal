@@ -1,0 +1,201 @@
+.fullscreen-explorer {
+  --explorer-gap: 12px;
+  --explorer-top: calc(68px + env(safe-area-inset-top));
+  --explorer-bottom: calc(var(--explorer-gap) + env(safe-area-inset-bottom));
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.exploration-page.fullscreen-explorer .universe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  border: 0;
+  border-radius: 0 !important;
+  animation: none;
+}
+
+.exploration-page.fullscreen-explorer .universe .canvas {
+  inset: 0;
+  width: auto;
+  height: auto;
+  transform: none;
+}
+
+.fullscreen-explorer .universe .error {
+  z-index: 15;
+  white-space: normal;
+}
+
+.fullscreen-explorer .fullscreen-toolbar {
+  position: absolute;
+  inset: calc(var(--explorer-gap) + env(safe-area-inset-top))
+    calc(var(--explorer-gap) + env(safe-area-inset-right)) auto
+    calc(var(--explorer-gap) + env(safe-area-inset-left));
+  z-index: 90;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+  height: auto;
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  pointer-events: none;
+}
+
+.fullscreen-toolbar > * { pointer-events: auto; }
+.fullscreen-toolbar > .action { justify-self: start; }
+.fullscreen-toolbar > .theme-toggle { justify-self: end; }
+
+.fullscreen-toolbar .body-picker {
+  display: flex;
+  width: auto;
+  gap: 2px;
+  margin: 0;
+  padding: 3px;
+  flex-wrap: nowrap;
+  border-radius: var(--tls-shape-chip);
+  border: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.fullscreen-toolbar .action,
+.fullscreen-toolbar .body-picker a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  gap: 6px;
+  padding: 6px clamp(10px, 2vw, 20px);
+  color: var(--ink);
+  font-size: 13px;
+  white-space: nowrap;
+  border-radius: var(--tls-shape-chip);
+}
+
+.fullscreen-toolbar .action { background: var(--paper); }
+.fullscreen-toolbar .body-picker a[aria-current],
+.fullscreen-toolbar .body-picker a:hover {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.explorer-entry {
+  position: absolute;
+  inset-block-start: var(--explorer-top);
+  inset-inline-start: var(--explorer-gap);
+  z-index: 10;
+}
+
+.explorer-entry .action { gap: 10px; padding-inline: 15px; }
+.explorer-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.fullscreen-explorer .breadcrumb { top: var(--explorer-top); }
+.fullscreen-explorer .planet .welcome {
+  top: calc(var(--explorer-top) + 45px);
+  max-height: min(40dvh, 360px) !important;
+  overflow: auto !important;
+  pointer-events: auto;
+}
+.fullscreen-explorer .sceneTools { bottom: var(--explorer-bottom); }
+.fullscreen-explorer .simulationPanel { max-height: 45dvh; }
+
+.explorer-resources,
+.fullscreen-explorer .explorer-timeline {
+  position: absolute;
+  z-index: 25;
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--tls-shape-field) !important;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.explorer-resources {
+  top: var(--explorer-top);
+  inset-inline-end: var(--explorer-gap);
+  width: max-content;
+  max-width: calc(100% - 2 * var(--explorer-gap));
+  max-height: min(65dvh, 660px);
+}
+
+.explorer-resources[open] { width: 520px; }
+.explorer-resources__content { padding: 0 12px 12px; }
+.explorer-resources__content .nasa-gallery { margin: 12px 0 0; }
+
+.explorer-resources > summary,
+.explorer-timeline > summary {
+  cursor: pointer;
+  padding: 11px 14px;
+  font-size: 13px;
+}
+
+.fullscreen-explorer .explorer-timeline {
+  inset-inline-start: 50%;
+  bottom: var(--explorer-bottom);
+  translate: 50% 0;
+  width: max-content;
+  max-width: calc(100% - 2 * var(--explorer-gap));
+  max-height: 44dvh;
+  padding: 0;
+}
+
+.explorer-timeline[open] { width: min(720px, 100%); }
+.explorer-timeline > :not(summary) { margin-inline: 14px; }
+.explorer-timeline > input[type=range] { width: calc(100% - 28px); }
+
+@media (min-width: 851px) {
+  .fullscreen-explorer .information { top: var(--explorer-top); }
+  .fullscreen-explorer .explorer-timeline {
+    bottom: auto;
+    top: var(--explorer-top);
+  }
+}
+
+@media (max-width: 850px) {
+  .fullscreen-explorer .fullscreen-toolbar { --explorer-gap: 8px; }
+  .fullscreen-explorer .theme-toggle__label { display: none; }
+  .fullscreen-explorer .theme-toggle { width: 44px; padding: 8px; }
+  .fullscreen-explorer .planet .welcome {
+    width: max-content;
+    max-width: calc(100% - 2 * var(--explorer-gap));
+  }
+  .fullscreen-explorer .planet .welcome p { display: none; }
+  .fullscreen-explorer .overview .mobileControls,
+  .fullscreen-explorer .planet .mobileControls {
+    bottom: var(--explorer-bottom);
+  }
+  .fullscreen-explorer .universe .simulationPanel {
+    top: calc(var(--explorer-top) + 48px);
+    bottom: auto;
+    inset-inline-start: auto;
+    inset-inline-end: var(--explorer-gap);
+    width: max-content;
+    max-width: calc(100% - 2 * var(--explorer-gap));
+  }
+  .fullscreen-explorer .universe .simulationPanel[open] {
+    bottom: auto;
+    width: min(310px, calc(100% - 2 * var(--explorer-gap)));
+    max-height: 45dvh;
+  }
+  .fullscreen-explorer .explorer-timeline {
+    top: calc(var(--explorer-top) + 90px);
+    bottom: auto;
+  }
+}

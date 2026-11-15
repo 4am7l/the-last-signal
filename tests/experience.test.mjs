@@ -25,6 +25,14 @@ test("every mission deep link round trips all simulation modes", () => {
         mode,
       });
 });
+test("the fullscreen explorer defaults to the Moon and keeps a linked body on reload", () => {
+  assert.equal(parseRoute("#/explore", ids).mission, "apollo");
+  assert.deepEqual(parseRoute(exploreHref("opportunity", "overview"), ids), {
+    page: "explore",
+    mission: "opportunity",
+    mode: "overview",
+  });
+});
 test("invalid paths and external query values fall back to safe local defaults", () => {
   assert.deepEqual(parseRoute("#/unknown?mission=missing&view=invalid", ids), {
     page: "home",

@@ -9,12 +9,16 @@ export function parseRoute(hash: string, ids: readonly string[]): Route {
     : "home";
   const params = new URLSearchParams(query),
     requested = params.get("mission") || "";
+  const mode = views.includes(params.get("view") as View)
+    ? (params.get("view") as View)
+    : "overview";
+  const defaultMission = page === "explore" && mode === "overview" && ids.includes("apollo")
+    ? "apollo"
+    : ids[0];
   return {
     page,
-    mission: ids.includes(requested) ? requested : ids[0],
-    mode: views.includes(params.get("view") as View)
-      ? (params.get("view") as View)
-      : "overview",
+    mission: ids.includes(requested) ? requested : defaultMission,
+    mode,
   };
 }
 export function exploreHref(mission: string, mode: View = "model") {

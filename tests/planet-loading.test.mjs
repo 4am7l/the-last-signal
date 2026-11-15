@@ -12,7 +12,7 @@ test("only Moon and Mars can be selected or rendered", () => {
   const space = file("src/Space.tsx");
   const surface = file("src/SurfaceWorld.tsx");
 
-  assert.match(main, /useState<"moon" \| "mars">\("moon"\)/);
+  assert.match(main, /overviewBody=\{m\.body\}/);
   assert.doesNotMatch(main, /\["earth", "الأرض"\]/);
   assert.doesNotMatch(main, /overviewBody === "earth"/);
   assert.match(body, /body: "moon" \| "mars"/);
