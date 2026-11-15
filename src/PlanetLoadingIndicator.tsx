@@ -1,3 +1,4 @@
+import { useExplorerText } from "./explorer-language";
 import { useEffect, useState } from "react";
 
 type Destination = "moon" | "mars";
@@ -19,7 +20,8 @@ export function PlanetLoadingIndicator({
     return () => window.clearInterval(id);
   }, [body, mission]);
 
-  const name = body === "moon" ? "القمر" : "المريخ";
+  const t = useExplorerText();
+  const name = body === "moon" ? t("القمر", "Moon") : t("المريخ", "Mars");
   return (
     <div className="planet-loading-overlay" role="status" aria-live="polite" aria-atomic="true">
       <div className="planet-loading-card">
@@ -27,18 +29,18 @@ export function PlanetLoadingIndicator({
           <span
             className="m3-expressive-loading"
             role="progressbar"
-            aria-label={`جارٍ تحميل مشهد ${name}`}
+            aria-label={t(`جارٍ تحميل مشهد ${name}`, `Loading the ${name} scene`)}
           >
             <span className="m3-expressive-loading__shape" />
           </span>
         </div>
         <span className="planet-loading-eyebrow">THE LAST SIGNAL · EXPLORATION</span>
-        <h2>جارٍ تجهيز {name}</h2>
+        <h2>{t(`جارٍ تجهيز ${name}`, `Preparing ${name}`)}</h2>
         <p>{mission
-          ? `نحمّل تضاريس ${name} وصوره ومجسّمات المهمة قبل عرض المشهد.`
-          : `نحمّل سطح ${name} وخرائطه لتبدأ الاستكشاف.`}</p>
+          ? t(`نحمّل تضاريس ${name} وصوره ومجسّمات المهمة قبل عرض المشهد.`, "Loading terrain, textures and mission models.")
+          : t(`نحمّل سطح ${name} وخرائطه لتبدأ الاستكشاف.`, "Loading the surface and its textures.")}</p>
         {elapsed >= 6 && (
-          <small aria-hidden="true">تجهيز التفاصيل ثلاثية الأبعاد مستمر… {elapsed} ث</small>
+          <small aria-hidden="true">{t(`تجهيز التفاصيل ثلاثية الأبعاد مستمر… ${elapsed} ث`, `Preparing 3D details… ${elapsed} s`)}</small>
         )}
       </div>
     </div>

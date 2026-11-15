@@ -1,3 +1,5 @@
+import { ExplorerLanguage, type Language } from "./explorer-language";
+import { englishDimensions, englishShot, missionEnglish } from "./explorer-english";
 import { Home, Archive, Guide, SiteHeader, SiteFooter } from "./Experience";
 import { NasaGallery } from "./NasaGallery";
 import { ThemeToggle } from "./ThemeToggle";
@@ -22,7 +24,7 @@ import "./planet-loader.css";
 import "./fullscreen-explorer.css";
 const Space = lazy(() => import("./Space").then((m) => ({ default: m.Space })));
 class Boundary extends React.Component<
-  { children: React.ReactNode; onError?: () => void },
+  { children: React.ReactNode; onError?: () => void; language: Language },
   { error: boolean }
 > {
   state = { error: false };
@@ -35,10 +37,11 @@ class Boundary extends React.Component<
   render() {
     return this.state.error ? (
       <div className="error">
-        لم يتمكن المتصفح من تشغيل المشهد ثلاثي الأبعاد. جرّب متصفحًا يدعم WebGL مع
-        تسريع الرسومات.
+        {this.props.language === "en"
+          ? "This browser could not start the 3D scene. Try a browser with WebGL and graphics acceleration."
+          : "لم يتمكن المتصفح من تشغيل المشهد ثلاثي الأبعاد. جرّب متصفحًا يدعم WebGL مع تسريع الرسومات."}
         <br />
-        <a href="#/archive">تابع صور المهمات وسجلات الرحلات في الأرشيف ←</a>
+        <a href="#/archive">{this.props.language === "en" ? "View mission photos and records →" : "تابع صور المهمات وسجلات الرحلات في الأرشيف ←"}</a>
       </div>
     ) : (
       this.props.children
@@ -63,6 +66,27 @@ function App() {
     window.addEventListener("hashchange", sync);
     return () => window.removeEventListener("hashchange", sync);
   }, []);
+
+  const [preferredLanguage, setPreferredLanguage] = useState<Language>(() => {
+    try {
+      return localStorage.getItem("tls-explorer-language") === "en" ? "en" : "ar";
+    } catch {
+      return "ar";
+    }
+  });
+  const language = route.page === "explore" ? preferredLanguage : "ar";
+  const english = language === "en";
+  const t = (ar: string, en: string) => english ? en : ar;
+
+  function toggleLanguage() {
+    const next = english ? "ar" : "en";
+    setPreferredLanguage(next);
+    try {
+      localStorage.setItem("tls-explorer-language", next);
+    } catch {
+      // The language still applies for this session.
+    }
+  }
 
   const [cameraCommand, setCameraCommand] = useState<CameraCommand>({
     id: 0,
@@ -91,6 +115,10 @@ function App() {
     frames = useMemo(() => shotsFor(m), [m.id]),
     frameIndex = Math.min(frames.length - 1, Math.floor(film)),
     shot = frames[frameIndex],
+    displayedShot = english ? englishShot(shot) : shot,
+    missionName = english ? m.en : m.name,
+    missionCopy = english ? missionEnglish[m.id] : m,
+    bodyName = m.body === "moon" ? t("القمر", "Moon") : t("المريخ", "Mars"),
     progress = film - frameIndex,
     day = Date.parse(shot.date),
     event = shot,
@@ -99,7 +127,7 @@ function App() {
     end = Date.parse(frames.at(-1)!.date),
     year = new Date(day).getUTCFullYear(),
     yearStory = annualStories(m)[year];
-  const date = new Date(day).toLocaleDateString("ar-JO", {
+  const date = new Date(day).toLocaleDateString(english ? "en" : "ar-JO", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -130,9 +158,14 @@ function App() {
     setReset((v) => v + 1);
   }
   useEffect(() => {
-    document.documentElement.lang = "ar";
-    document.documentElement.dir = "rtl";
-  }, []);
+    document.documentElement.lang = language;
+    document.documentElement.dir = english ? "ltr" : "rtl";
+    document.title = route.page === "explore"
+      ? t("الاستكشاف — الإشارة الأخيرة", "Explore — The Last Signal")
+      : { home: "الإشارة الأخيرة — دليل معدات القمر والمريخ",
+          archive: "أرشيف المهمات — الإشارة الأخيرة",
+          guide: "دليل الرحلة — الإشارة الأخيرة" }[route.page];
+  }, [language, route.page]);
   useEffect(() => {
     setMode(route.mode);
     setIndex(
@@ -146,12 +179,6 @@ function App() {
     setMobilePanelOpen(!["overview", "planet"].includes(route.mode));
     setReset((v) => v + 1);
     window.scrollTo({ top: 0, behavior: "instant" });
-    document.title = {
-      home: "الإشارة الأخيرة — دليل معدات القمر والمريخ",
-      archive: "أرشيف المهمات — الإشارة الأخيرة",
-      guide: "دليل الرحلة — الإشارة الأخيرة",
-      explore: "الاستكشاف — الإشارة الأخيرة",
-    }[route.page];
   }, [route.page, route.mode, route.mission]);
   useEffect(() => {
     if (!image && !sources) return;
@@ -218,7 +245,7 @@ function App() {
   const sceneLoading = readySceneKey !== sceneKey && failedSceneKey !== sceneKey;
   const years = Object.keys(annualStories(m)).map(Number);
   return (
-    <>
+    <ExplorerLanguage.Provider value={language}>
       <a
         className="skip-link"
         href="#main-content"
@@ -227,7 +254,7 @@ function App() {
           document.getElementById("main-content")?.focus();
         }}
       >
-        تجاوز إلى المحتوى
+        {t("تجاوز إلى المحتوى", "Skip to content")}
       </a>
       {route.page !== "explore" && (
         <SiteHeader page={route.page} onSources={() => setSources(true)} />
@@ -248,12 +275,12 @@ function App() {
         <div className="exploration-page fullscreen-explorer">
           <header className="fullscreen-toolbar">
             <a className="action action-line" href="#/">
-              <span aria-hidden="true">→</span> الرئيسية
+              <span aria-hidden="true">{english ? "←" : "→"}</span> {t("الرئيسية", "Home")}
             </a>
-            <nav className="body-picker" aria-label="وجهة المحاكاة">
+            <nav className="body-picker" aria-label={t("وجهة المحاكاة", "Simulation destination")}>
               {([
-                ["moon", "apollo", "القمر"],
-                ["mars", "opportunity", "المريخ"],
+                ["moon", "apollo", t("القمر", "Moon")],
+                ["mars", "opportunity", t("المريخ", "Mars")],
               ] as const).map(([body, mission, label]) => (
                 <a
                   key={body}
@@ -264,7 +291,15 @@ function App() {
                 </a>
               ))}
             </nav>
-            <ThemeToggle />
+            <div className="fullscreen-toolbar__actions">
+              <button className="language-toggle theme-toggle" onClick={toggleLanguage}
+                aria-label={t("Switch to English", "التبديل إلى العربية")}
+                lang={english ? "ar" : "en"}
+              >
+                {t("EN", "عربي")}
+              </button>
+              <ThemeToggle />
+            </div>
           </header>
           <main
             id="main-content"
@@ -272,7 +307,7 @@ function App() {
             className={`universe ${mode}${mobilePanelOpen ? " has-panel" : ""}`}
           >
             <div className="canvas" aria-busy={sceneLoading}>
-              <Boundary key={sceneKey} onError={() => setFailedSceneKey(sceneKey)}>
+              <Boundary key={sceneKey} language={language} onError={() => setFailedSceneKey(sceneKey)}>
                 <Suspense fallback={null}>
                   <Space
                     mode={mode}
@@ -285,6 +320,7 @@ function App() {
                     onMission={(i) => select(i, "location")}
                     reset={reset}
                     overviewBody={m.body}
+                    language={language}
                     cameraCommand={cameraCommand}
                     sceneKey={sceneKey}
                     onSceneReady={setReadySceneKey}
@@ -293,42 +329,37 @@ function App() {
               </Boundary>
             </div>
             {sceneLoading && (
-              <PlanetLoadingIndicator key={sceneKey} body={m.body} mission={mode === "overview" ? undefined : m.name} />
+              <PlanetLoadingIndicator key={sceneKey} body={m.body} mission={mode === "overview" ? undefined : missionName} />
             )}
             {mode === "overview" ? (
               <div className="explorer-entry">
                 <h1 className="explorer-visually-hidden">
-                  {m.body === "moon" ? "القمر" : "المريخ"}
+                  {bodyName}
                 </h1>
                 <a className="action action-solid" href={exploreHref(m.id, "planet")}>
-                  مواقع المهمات <span aria-hidden="true">←</span>
+                  {t("مواقع المهمات", "Mission sites")} <span aria-hidden="true">{english ? "→" : "←"}</span>
                 </a>
               </div>
             ) : (
               <>
                 <div className="breadcrumb">
-                  <button onClick={() => change("overview")}>الأجرام</button>
+                  <button onClick={() => change("overview")}>{t("الأجرام", "Moon and Mars")}</button>
                   <span>/</span>
                   <button onClick={() => change("planet")}>
-                    {m.body === "mars" ? "المريخ" : "القمر"}
+                    {bodyName}
                   </button>
                   <span>/</span>
-                  <span>{mode === "planet" ? "اختر مهمة" : m.name}</span>
+                  <span>{mode === "planet" ? t("اختر مهمة", "Select a mission") : missionName}</span>
                 </div>
                 {mode === "planet" ? (
                   <section className="welcome">
-                    <h1>{m.body === "mars" ? "المريخ" : "القمر"}</h1>
+                    <h1>{bodyName}</h1>
                     <p>
-                      اسحب للدوران، وقرّب بإصبعين أو بعجلة الفأرة. اختر موقع مهمة
-                      وتابع التقريب إلى المعدات. أي سحب يوقف حركة الكاميرا
-                      التلقائية.
-                      <br />
-                      العلامات تمثل مواقع الهبوط المشار إليها بمصادرها.
+                      {t("اسحب للدوران، وقرّب بإصبعين أو بعجلة الفأرة. اختر موقع مهمة وتابع التقريب إلى المعدات. أي سحب يوقف حركة الكاميرا التلقائية. العلامات تمثل مواقع الهبوط المشار إليها بمصادرها.", "Drag to rotate. Pinch or use the mouse wheel to zoom. Choose a landing site to explore its equipment. Dragging pauses the automatic camera motion.")}
                     </p>
                     {m.body === "moon" && (
                       <p className="disclosure">
-                        قطر القمر المرجعي: ٣٬٤٧٤٫٨ كم. يعرض هذا المشهد القمر وحده،
-                        مع تضاريس صغيرة توضيحية قرب المعدات.
+                        {t("قطر القمر المرجعي: ٣٬٤٧٤٫٨ كم. يعرض هذا المشهد القمر وحده، مع تضاريس صغيرة توضيحية قرب المعدات.", "Reference Moon diameter: 3,474.8 km. Small terrain features near the equipment are illustrative.")}
                       </p>
                     )}
                     <div className="missionList">
@@ -339,8 +370,8 @@ function App() {
                               key={x.id}
                               onClick={() => select(i, "location")}
                             >
-                              <span>{x.name}</span>
-                              <small>{x.en} ↗</small>
+                              <span>{english ? x.en : x.name}</span>
+                              <small>{english ? "↗" : x.en + " ↗"}</small>
                             </button>
                           ),
                       )}
@@ -360,21 +391,21 @@ function App() {
                     >
                       <span className="mobileSheetGrip" />
                       {mobilePanelOpen
-                        ? "إخفاء تفاصيل المهمة"
-                        : "عرض تفاصيل " + m.name}
+                        ? t("إخفاء تفاصيل المهمة", "Hide mission details")
+                        : t("عرض تفاصيل " + m.name, "Show " + m.en + " details")}
                       <span aria-hidden="true">
                         {mobilePanelOpen ? "⌄" : "⌃"}
                       </span>
                     </button>
-                    <div className="eyebrow">{m.en}</div>
-                    <h2>{m.name}</h2>
-                    <p>{m.intro}</p>
+                    {!english && <div className="eyebrow">{m.en}</div>}
+                    <h2>{missionName}</h2>
+                    <p>{missionCopy.intro}</p>
                     <div className="tabs">
                       {(
                         [
-                          ["story", "الرحلة"],
-                          ["model", "المجسّم"],
-                          ["location", "الموقع"],
+                          ["story", t("الرحلة", "Mission")],
+                          ["model", t("المجسّم", "3D model")],
+                          ["location", t("الموقع", "Location")],
                         ] as const
                       ).map(([v, t]) => (
                         <button
@@ -389,24 +420,24 @@ function App() {
                     {mode === "story" ? (
                       <article aria-live="polite">
                         <span className="date">{date}</span>
-                        <h3>{event.title}</h3>
+                        <h3>{displayedShot.title}</h3>
                         <div className="missionMessage">
                           <span>
-                            سجل المهمة ·{" "}
+                            {t("سجل المهمة ·", "Mission log ·")}{" "}
                             {shot.phase === "end"
-                              ? "انتهى الاتصال"
-                              : "إعادة سرد"}
+                              ? t("انتهى الاتصال", "End of operations")
+                              : t("إعادة سرد", "Reconstruction")}
                           </span>
-                          <p>{shot.text}</p>
+                          <p>{displayedShot.text}</p>
                           <a
                             href={shot.source}
                             target="_blank"
                             rel="noreferrer"
                           >
-                            مصدر هذه المرحلة ↗
+                            {t("مصدر هذه المرحلة ↗", "Source for this phase ↗")}
                           </a>
                         </div>
-                        {yearStory && (
+                        {!english && yearStory && (
                           <div className="yearStory">
                             <small>
                               قصة عام {year} · ملخص سنوي، لا حدث مؤرخ في الأول
@@ -423,38 +454,35 @@ function App() {
                           </small>
                         )}
                         <p className="disclosure">
-                          نماذج الصاروخ والغلاف والرافعة والقاعدة القمرية مبسطة.
-                          تسلسل النقل والهبوط مستند إلى المصادر؛ الحركة ليست
-                          بيانات ملاحة أو مسار عجلات موثّقاً.
+                          {t("نماذج الصاروخ والغلاف والرافعة والقاعدة القمرية مبسطة. تسلسل النقل والهبوط مستند إلى المصادر؛ الحركة ليست بيانات ملاحة أو مسار عجلات موثّقاً.", "The rocket, aeroshell, sky crane and lunar base are simplified. The animation reconstructs mission phases from published sources.")}
                         </p>
                       </article>
                     ) : mode === "location" ? (
                       <>
                         <p>
-                          قرّب بعجلة الفأرة أو بإصبعين للوصول مباشرة إلى المعدات
-                          على سطح الجرم، دون زر نزول.
+                          {t("قرّب بعجلة الفأرة أو بإصبعين للوصول مباشرة إلى المعدات على سطح الجرم، دون زر نزول.", "Zoom with the mouse wheel or pinch to approach the equipment on the surface.")}
                         </p>
-                        <h3>{m.site}</h3>
+                        <h3>{missionCopy.site}</h3>
                         <div className="coordinates" dir="ltr">
                           {Math.abs(m.lat)}° {m.lat < 0 ? "S" : "N"} / {m.lon}°
                           E
                         </div>
-                        <p className="disclosure">{m.frame}</p>
+                        <p className="disclosure">{missionCopy.frame}</p>
                         <a
                           href={m.locationSource}
                           target="_blank"
                           rel="noreferrer"
                         >
-                          مصدر الإحداثيات ↗
+                          {t("مصدر الإحداثيات ↗", "Coordinate source ↗")}
                         </a>
-                        <h3>أين توجد الآن؟</h3>
-                        <p>{m.final}</p>
+                        <h3>{t("أين توجد الآن؟", "Where is it now?")}</h3>
+                        <p>{missionCopy.final}</p>
                         <a
                           href={m.finalSource}
                           target="_blank"
                           rel="noreferrer"
                         >
-                          الموقع الأخير في السجل الرسمي ↗
+                          {t("الموقع الأخير في السجل الرسمي ↗", "Final location in the official record ↗")}
                         </a>
                         {m.id === "opportunity" && (
                           <button
@@ -465,42 +493,38 @@ function App() {
                           >
                             <img
                               src="/photos/opportunity-map.jpg"
-                              alt="خريطة ناسا لمسار أوبورتيونيتي وموقع الاتصال الأخير"
+                              alt={t("خريطة ناسا لمسار أوبورتيونيتي وموقع الاتصال الأخير", "NASA map of Opportunity’s traverse and last contact site")}
                             />
-                            <span>افتح خريطة الموقع النهائي ⤢</span>
+                            <span>{t("افتح خريطة الموقع النهائي ⤢", "Open the final location map ⤢")}</span>
                           </button>
                         )}
                       </>
                     ) : (
                       <>
-                        <h3>المعدات وسط أفق الكوكب</h3>
+                        <h3>{t("المعدات وسط أفق الكوكب", "Equipment on the surface")}</h3>
                         <a
                           href={dimensions[m.model].source}
                           target="_blank"
                           rel="noreferrer"
                         >
-                          {dimensions[m.model].label} · مصدر القياس ↗
+                          {english ? englishDimensions[m.model] : dimensions[m.model].label} · {t("مصدر القياس ↗", "Measurement source ↗")}
                         </a>
-                        <p>{m.detail}</p>
+                        <p>{missionCopy.detail}</p>
                         <p className="disclosure">
-                          اسحب لتدوير المجسّم، واستعمل عجلة الفأرة أو إصبعين
-                          للتقريب. المجسّم مضبوط على البعد المنشور. على القمر
-                          يظهر مجسّم إيغل التاريخي على الكرة نفسها؛ مرحلة الصعود
-                          غادرت لاحقاً. الصخور والأرضية بيئة توضيحية وليست مسحاً
-                          للموقع.
+                          {t("اسحب لتدوير المجسّم، واستعمل عجلة الفأرة أو إصبعين للتقريب. المجسّم مضبوط على البعد المنشور. على القمر يظهر مجسّم إيغل التاريخي على الكرة نفسها؛ مرحلة الصعود غادرت لاحقاً. الصخور والأرضية بيئة توضيحية وليست مسحاً للموقع.", "Drag to rotate the model. Pinch or scroll to zoom. Equipment is scaled to published dimensions and local terrain is illustrative.")}
                         </p>
                         <a
                           href={m.modelSource}
                           target="_blank"
                           rel="noreferrer"
                         >
-                          مجسّم ناسا الأصلي ومصدره ↗
+                          {t("مجسّم ناسا الأصلي ومصدره ↗", "Original NASA model ↗")}
                         </a>
                         <button
                           className="primary"
                           onClick={() => select(index, "story")}
                         >
-                          افتح قصة الرحلة ▶
+                          {t("افتح قصة الرحلة ▶", "Watch the mission ▶")}
                         </button>
                       </>
                     )}
@@ -508,10 +532,10 @@ function App() {
                       className="photo"
                       onClick={() => setImage(`/photos/${m.id}.jpg`)}
                     >
-                      <img src={`/photos/${m.id}.jpg`} alt={m.photoCaption} />
-                      <span>عرض الصورة كاملة ⤢</span>
+                      <img src={`/photos/${m.id}.jpg`} alt={missionCopy.photoCaption} />
+                      <span>{t("عرض الصورة كاملة ⤢", "View full photo ⤢")}</span>
                     </button>
-                    <small>{m.photoCaption}</small>
+                    <small>{missionCopy.photoCaption}</small>
                   </aside>
                 )}
               </>
@@ -529,42 +553,35 @@ function App() {
               <div
                 className="cameraButtons"
                 role="group"
-                aria-label="تحكم الكاميرا"
+                aria-label={t("تحكم الكاميرا", "Camera controls")}
               >
                 <button
-                  aria-label="تقريب الكاميرا"
-                  title="تقريب · + بعد اختيار المشهد"
+                  aria-label={t("تقريب الكاميرا", "Zoom in")}
+                  title={t("تقريب · + بعد اختيار المشهد", "Zoom in · + with the scene focused")}
                   onClick={() => cameraMove("in")}
                 >
                   ＋
                 </button>
                 <button
-                  aria-label="إبعاد الكاميرا"
-                  title="إبعاد · − بعد اختيار المشهد"
+                  aria-label={t("إبعاد الكاميرا", "Zoom out")}
+                  title={t("إبعاد · − بعد اختيار المشهد", "Zoom out · − with the scene focused")}
                   onClick={() => cameraMove("out")}
                 >
                   −
                 </button>
-                <button onClick={() => cameraMove("stop")}>إيقاف الحركة</button>
+                <button onClick={() => cameraMove("stop")}>{t("إيقاف الحركة", "Stop camera")}</button>
                 {mode !== "overview" && mode !== "story" && (
-                  <button onClick={() => change("model")}>تركيز المعدة</button>
+                  <button onClick={() => change("model")}>{t("تركيز المعدة", "Focus on equipment")}</button>
                 )}
               </div>
               <button onClick={() => setReset((v) => v + 1)}>
-                إعادة ضبط الكاميرا ⤾
+                {t("إعادة ضبط الكاميرا ⤾", "Reset camera ⤾")}
               </button>
-              <span>
-                {mode === "overview"
-                  ? "نموذج مستقل · حجم عرض موحّد"
-                  : mode === "planet" || mode === "location"
-                    ? "أطلس مداري · علامات بإحداثيات الهبوط"
-                    : "أفق ممتد · تضاريس محلية توضيحية"}
-              </span>
             </div>
           </main>
           {mode === "story" && (
             <details className="timebar explorer-timeline">
-              <summary>مراحل الرحلة</summary>
+              <summary>{t("مراحل الرحلة", "Mission timeline")}</summary>
               <div className="timeTop">
                 <button
                   className="play"
@@ -573,11 +590,11 @@ function App() {
                     setPlaying((v) => !v);
                   }}
                 >
-                  {playing ? "Ⅱ إيقاف" : "▶ تشغيل"}
+                  {playing ? t("Ⅱ إيقاف", "Ⅱ Pause") : t("▶ تشغيل", "▶ Play")}
                 </button>
                 <strong>{date}</strong>
                 <label>
-                  سرعة العرض{" "}
+                  {t("سرعة العرض", "Playback speed")}{" "}
                   <select
                     value={speed}
                     onChange={(e) => setSpeed(Number(e.target.value))}
@@ -594,15 +611,15 @@ function App() {
                     setPlaying(false);
                   }}
                 >
-                  نهاية الرحلة ↗
+                  {t("نهاية الرحلة ↗", "End of mission ↗")}
                 </button>
               </div>
               <div className="filmControls">
-                <span>تفاصيل المرحلة: {shot.title}</span>
+                <span>{t("تفاصيل المرحلة:", "Phase:")} {displayedShot.title}</span>
                 <input
                   dir="ltr"
                   type="range"
-                  aria-label="تقدم المشهد المتحرك"
+                  aria-label={t("تقدم المشهد المتحرك", "Animation progress")}
                   min={0}
                   max={0.999}
                   step={0.001}
@@ -612,11 +629,11 @@ function App() {
                     setFilm(frameIndex + Number(e.target.value));
                   }}
                 />
-                <small>اسحب لترى الإقلاع أو الفصل أو الهبوط خطوة بخطوة.</small>
+                <small>{t("اسحب لترى الإقلاع أو الفصل أو الهبوط خطوة بخطوة.", "Drag to step through launch, separation or landing.")}</small>
               </div>
               <input
                 dir="ltr"
-                aria-label="تاريخ الرحلة"
+                aria-label={t("تاريخ الرحلة", "Mission date")}
                 type="range"
                 min={start}
                 max={end}
@@ -658,20 +675,20 @@ function App() {
                     }}
                   >
                     <small>{x.date}</small>
-                    {x.title}
+                    {english ? englishShot(x).title : x.title}
                   </button>
                 ))}
               </div>
             </details>
           )}
           <details className="explorer-resources">
-            <summary>أرشيف وصور</summary>
+            <summary>{t("أرشيف وصور", "Archive and photos")}</summary>
             <div className="explorer-resources__content">
               <a className="text-link" href={`#/archive?mission=${m.id}`}>
-                سجل {m.name} ←
+                {t("سجل " + missionName + " ←", missionName + " record →")}
               </a>
               <button className="source-link" onClick={() => setSources(true)}>
-                المصادر والدقة
+                {t("المصادر والدقة", "Sources and accuracy")}
               </button>
               <NasaGallery mission={m.id} compact />
             </div>
@@ -686,18 +703,18 @@ function App() {
           className="overlay"
           role="dialog"
           aria-modal="true"
-          aria-label="الصورة الكاملة"
+          aria-label={t("الصورة الكاملة", "Full photo")}
         >
           <button className="close" onClick={() => setImage(null)}>
-            إغلاق ×
+            {t("إغلاق ×", "Close ×")}
           </button>
           <img
             className="fullImage"
             src={image}
             alt={
               image.includes("map")
-                ? "خريطة المسار النهائي لأوبورتيونيتي"
-                : m.photoCaption
+                ? t("خريطة المسار النهائي لأوبورتيونيتي", "Opportunity’s final traverse map")
+                : missionCopy.photoCaption
             }
           />
         </div>
@@ -708,62 +725,46 @@ function App() {
             className="modal"
             role="dialog"
             aria-modal="true"
-            aria-label="المصادر والدقة"
+            aria-label={t("المصادر والدقة", "Sources and accuracy")}
           >
             <button className="close" onClick={() => setSources(false)}>
-              إغلاق ×
+              {t("إغلاق ×", "Close ×")}
             </button>
-            <h2>المصادر وحدود المحاكاة</h2>
+            <h2>{t("المصادر وحدود المحاكاة", "Sources and simulation limits")}</h2>
             <p>
-              مجسّمات المركبات وصور المهمات من ناسا وJPL. ارتفاعات القمر الأساسية
-              من NASA LRO، وتُحمّل خرائط ألوان 8K من Solar System Scope تدريجيًا
-              عند توفرها. خريطة JPEG الحالية تعرض شكل التضاريس العام، ولا تعطي
-              ارتفاعات معايرة بالمتر. يعرض الموقع القمر والمريخ فقط، أما
-              حفر وصخور الموقع الصغيرة فهي توضيحية. تضاريس المريخ والجبال والحفر
-              المحلية على الجرمين توضيحية وليست مسحًا لمواقع المهمات. عرض
-              الاستكشاف يضغط المسافات؛ وضع المقياس الفعلي يستخدم متوسط مسافة
-              القمر ومثالًا لمسافة المريخ (٢٢٥ مليون كم)، وليس بيانات مدارية حية.
-              مسافة المريخ تتغير مع المدار.
+              {t("مجسّمات المركبات وصور المهمات من ناسا وJPL. ارتفاعات القمر الأساسية من NASA LRO، وتُحمّل خرائط ألوان 8K من Solar System Scope تدريجيًا عند توفرها. خريطة JPEG الحالية تعرض شكل التضاريس العام، ولا تعطي ارتفاعات معايرة بالمتر. يعرض الموقع القمر والمريخ فقط، أما حفر وصخور الموقع الصغيرة فهي توضيحية. تضاريس المريخ والجبال والحفر المحلية على الجرمين توضيحية وليست مسحًا لمواقع المهمات. عرض الاستكشاف يضغط المسافات؛ وضع المقياس الفعلي يستخدم متوسط مسافة القمر ومثالًا لمسافة المريخ (٢٢٥ مليون كم)، وليس بيانات مدارية حية. مسافة المريخ تتغير مع المدار.", "NASA and JPL provide mission photos and models. Lunar elevation data comes from NASA LRO. Color textures from Solar System Scope are loaded when available. The rendered terrain near mission sites is an educational reconstruction.")}
             </p>
             <p>
-              الشريط يعرض تسلسل المحطات المؤرخة من الانطلاق إلى نهاية المهمة. كل
-              مرحلة لها وقت عرض مستقل، مع ملخص لكل سنة. الرسائل إعادة سرد
-              تعليمية وليست اتصالات مقتبسة. الحركة ليست بيانات SPICE أو إعادة
-              بناء لمسارات العجلات أو الرحلات الـ72.
+              {t("الشريط يعرض تسلسل المحطات المؤرخة من الانطلاق إلى نهاية المهمة. كل مرحلة لها وقت عرض مستقل، مع ملخص لكل سنة. الرسائل إعادة سرد تعليمية وليست اتصالات مقتبسة. الحركة ليست بيانات SPICE أو إعادة بناء لمسارات العجلات أو الرحلات الـ72.", "The timeline follows documented mission events. The animations and mission messages are educational reconstructions.")}
             </p>
             <p>
-              الإحداثيات تحمل اسم مرجعها وتميز موقع الهبوط عن الموقع الأخير. لا
-              ندعي إحداثيات نهائية دقيقة عندما لا توجد بيانات موثّقة مدمجة.
+              {t("الإحداثيات تحمل اسم مرجعها وتميز موقع الهبوط عن الموقع الأخير. لا ندعي إحداثيات نهائية دقيقة عندما لا توجد بيانات موثّقة مدمجة.", "Each record cites its coordinate reference and identifies the landing site and last known location.")}
             </p>
             {missions.map((x) => (
               <div key={x.id}>
-                <h3>{x.name}</h3>
+                <h3>{english ? x.en : x.name}</h3>
                 <a href={x.source} target="_blank" rel="noreferrer">
-                  تاريخ المهمة ↗
+                  {t("تاريخ المهمة ↗", "Mission history ↗")}
                 </a>{" "}
                 ·{" "}
                 <a href={x.modelSource} target="_blank" rel="noreferrer">
-                  المجسّم ↗
+                  {t("المجسّم ↗", "3D model ↗")}
                 </a>{" "}
                 ·{" "}
                 <a href={x.locationSource} target="_blank" rel="noreferrer">
-                  إحداثيات الهبوط ↗
+                  {t("إحداثيات الهبوط ↗", "Landing coordinates ↗")}
                 </a>{" "}
                 ·{" "}
                 <a href={x.finalSource} target="_blank" rel="noreferrer">
-                  آخر موقع ↗
+                  {t("آخر موقع ↗", "Final location ↗")}
                 </a>
               </div>
             ))}
             <p>
-              يعرض المختبر جرمًا واحدًا بخلفية محايدة دون نجوم أو مشهد للمجموعة
-              الشمسية. أحجام النماذج في شاشة الاختيار موحّدة للفحص ولا تمثل
-              مقارنة للأحجام الفعلية. تضاريس مواقع المعدات إعادة بناء تعليمية
-              وليست مسحًا دقيقًا كاملًا.
+              {t("يعرض المختبر جرمًا واحدًا بخلفية محايدة دون نجوم أو مشهد للمجموعة الشمسية. أحجام النماذج في شاشة الاختيار موحّدة للفحص ولا تمثل مقارنة للأحجام الفعلية. تضاريس مواقع المعدات إعادة بناء تعليمية وليست مسحًا دقيقًا كاملًا.", "Moon and Mars are shown separately at a normalized display scale.")}
             </p>
             <p>
-              تستخدم إضاءة السطح اتجاهات مبنية على JPL Horizons مع حسابات
-              تقريبية عند التعذر. إضاءة فحص النماذج محسّنة لإظهار التفاصيل.
+              {t("تستخدم إضاءة السطح اتجاهات مبنية على JPL Horizons مع حسابات تقريبية عند التعذر. إضاءة فحص النماذج محسّنة لإظهار التفاصيل.", "Surface lighting uses directions based on JPL Horizons with approximate calculations when unavailable. Inspection lighting improves model visibility.")}
             </p>
             <p>
               Mars texture:{" "}
@@ -787,7 +788,7 @@ function App() {
           </section>
         </div>
       )}
-    </>
+    </ExplorerLanguage.Provider>
   );
 }
 createRoot(document.getElementById("root")!).render(<App />);

@@ -1,3 +1,4 @@
+import { useExplorerText } from "./explorer-language";
 import { useEffect, useState } from "react";
 
 export type ThemeMode = "light" | "dark";
@@ -22,6 +23,7 @@ function initialTheme(): ThemeMode {
 
 /** A small independent theme control: the WebGL scene never rerenders for UI theme changes. */
 export function ThemeToggle() {
+ const t = useExplorerText();
   const [theme, setTheme] = useState<ThemeMode>(initialTheme);
 
   useEffect(() => {
@@ -56,15 +58,15 @@ export function ThemeToggle() {
     <button
       type="button"
       className="theme-toggle"
-      aria-label={dark ? "فعّل الوضع الفاتح" : "فعّل الوضع الداكن"}
-      title={dark ? "الوضع الفاتح" : "الوضع الداكن"}
+      aria-label={dark ? t("فعّل الوضع الفاتح", "Switch to light mode") : t("فعّل الوضع الداكن", "Switch to dark mode")}
+      title={dark ? t("الوضع الفاتح", "Light mode") : t("الوضع الداكن", "Dark mode")}
       aria-pressed={dark}
       onClick={toggle}
     >
       <span className="material-symbols-rounded" aria-hidden="true">
         {dark ? "light_mode" : "dark_mode"}
       </span>
-      <span className="theme-toggle__label">{dark ? "فاتح" : "داكن"}</span>
+      <span className="theme-toggle__label">{dark ? t("فاتح", "Light") : t("داكن", "Dark")}</span>
     </button>
   );
 }

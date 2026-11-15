@@ -1,3 +1,4 @@
+import { useExplorerText } from "./explorer-language";
 import {useEffect,useState,useMemo,useSyncExternalStore} from 'react';
 import {approximateEphemeris,validEphemeris,type Ephemeris} from './science';
 export const PRESETS={
@@ -28,16 +29,17 @@ export function useEphemeris(date:string){
 }
 export type Telemetry={fps:number;frameMs:number;calls:number;triangles:number;textures:number;altitude:number;stars:string;terrain:string};
 export function SimulationPanel(){
+ const t = useExplorerText();
  const settings=useSimulation(),ephemeris=useEphemeris(settings.date);
- return <details className="simulationPanel"><summary>المحاكاة والإضاءة</summary>
- <label>التاريخ الفلكي UTC<input type="date" min="1800-01-01" max="2050-12-31" value={settings.date} onChange={e=>{const v=e.target.value;if(v>='1800-01-01'&&v<='2050-12-31')configure({date:v})}}/></label>
- <small>{ephemeris.source==='JPL Horizons'?'المواقع: JPL Horizons':'المواقع تقريبية — خدمة JPL غير متصلة'}</small>
- <label><input type="checkbox" checked={settings.inspection} onChange={e=>configure({inspection:e.target.checked})}/>إضاءة معاينة صناعية</label>
- <label>التعريض<input type="range" min=".2" max="2.5" step=".05" value={settings.exposure} onChange={e=>configure({exposure:Number(e.target.value)})}/></label>
- <label>الملاحة<select value={settings.navigation} onChange={e=>configure({navigation:e.target.value as Settings['navigation']})}><option value="orbit">مدار / معاينة</option><option value="walk">مشي قرب موقع المعدة</option><option value="drone">طيران حر قرب الموقع</option></select></label>
- <label>السرعة (م/ث)<input type="range" min=".5" max="12" step=".5" value={settings.speed} onChange={e=>configure({speed:Number(e.target.value)})}/><output>{settings.speed}</output></label>
- <small>الكمبيوتر: انقر المشهد لتفعيل الماوس، WASD للحركة، Shift للإسراع، Space للقفز، E/Q لارتفاع الدرون. الجوال: استخدم أزرار الحركة واسحب بإصبع واحد لتوجيه الكاميرا.</small>
- <small>المشي محصور ضمن 200 م من الموقع. تفاصيل الأرض الصغيرة إعادة بناء بصرية.</small>
+ return <details className="simulationPanel"><summary>{t(t("المحاكاة والإضاءة", "Simulation and lighting"), "Simulation and lighting")}</summary>
+ <label>{t(t("التاريخ الفلكي UTC", "Astronomical date (UTC)"), "Astronomical date (UTC)")}<input type="date" min="1800-01-01" max="2050-12-31" value={settings.date} onChange={e=>{const v=e.target.value;if(v>='1800-01-01'&&v<='2050-12-31')configure({date:v})}}/></label>
+ <small>{ephemeris.source==='JPL Horizons'?t("المواقع: JPL Horizons", "Positions: JPL Horizons"):t("المواقع تقريبية — خدمة JPL غير متصلة", "Approximate positions · JPL unavailable")}</small>
+ <label><input type="checkbox" checked={settings.inspection} onChange={e=>configure({inspection:e.target.checked})}/>{t(t("إضاءة معاينة صناعية", "Inspection lighting"), "Inspection lighting")}</label>
+ <label>{t(t("التعريض", "Exposure"), "Exposure")}<input type="range" min=".2" max="2.5" step=".05" value={settings.exposure} onChange={e=>configure({exposure:Number(e.target.value)})}/></label>
+ <label>{t(t("الملاحة", "Navigation"), "Navigation")}<select value={settings.navigation} onChange={e=>configure({navigation:e.target.value as Settings['navigation']})}><option value="orbit">{t(t("مدار / معاينة", "Orbit / inspect"), "Orbit / inspect")}</option><option value="walk">{t(t("مشي قرب موقع المعدة", "Walk near the equipment"), "Walk near the equipment")}</option><option value="drone">{t(t("طيران حر قرب الموقع", "Fly near the site"), "Fly near the site")}</option></select></label>
+ <label>{t(t("السرعة (م/ث)", "Speed (m/s)"), "Speed (m/s)")}<input type="range" min=".5" max="12" step=".5" value={settings.speed} onChange={e=>configure({speed:Number(e.target.value)})}/><output>{settings.speed}</output></label>
+ <small>{t(t("الكمبيوتر: انقر المشهد لتفعيل الماوس، WASD للحركة، Shift للإسراع، Space للقفز، E/Q لارتفاع الدرون. الجوال: استخدم أزرار الحركة واسحب بإصبع واحد لتوجيه الكاميرا.", "Desktop: click the scene for mouse control. Use WASD to move, Shift to speed up, Space to jump and E/Q to change altitude. On mobile, use the movement buttons and drag to look around."), "Desktop: click the scene for mouse control. Use WASD to move, Shift to speed up, Space to jump and E/Q to change altitude. On mobile, use the movement buttons and drag to look around.")}</small>
+ <small>{t(t("المشي محصور ضمن 200 م من الموقع. تفاصيل الأرض الصغيرة إعادة بناء بصرية.", "Walking is limited to 200 m around the site. Small terrain features are illustrative."), "Walking is limited to 200 m around the site. Small terrain features are illustrative.")}</small>
  <a href="https://github.com/astronexus/HYG-Database" target="_blank" rel="noreferrer">HYG · David Nash · CC BY-SA 4.0</a>
  </details>;
 }
