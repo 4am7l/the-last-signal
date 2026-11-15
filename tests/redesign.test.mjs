@@ -38,7 +38,7 @@ test("the Eagle archive includes the supplied and historical photographs", () =>
   assert.match(editorial, /<ThemeToggle\s*\/>/);
   assert.match(editorial, /<EagleGallery \/>/);
   const details = file("src/EagleDetails.tsx");
-  assert.match(details, /eagleImages\.map/);
+  assert.match(details, /images\.map/);
   assert.match(details, /<EagleGallery onSelect=\{setSelected\} \/>/);
   assert.match(editorial, /id="moon-archive-title"/);
   assert.match(editorial, /href=\{eagle.archiveHref\}/);
@@ -76,6 +76,9 @@ test("Moon and Mars destination cards retain functional exploration links", () =
   assert.match(page, /id="destinations-title"/);
   assert.match(page, /destination--expressive/);
   assert.match(page, /href=\{exploreHref\(body\)\}/);
+  assert.match(page, /homeMissions\.filter\(\(mission\) => mission.body === body\)/);
+  assert.match(page, /className="hero-photo" src=\{cover.src\}/);
+  assert.match(page, /<EagleGallery images=\{mission.images\} \/>/);
 });
 
 test("Apollo uses the complete historical NASA module with both original stages", () => {

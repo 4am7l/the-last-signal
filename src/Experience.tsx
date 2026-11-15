@@ -1,9 +1,9 @@
-import { eagle } from "./eagle";
+import { eagle, eagleImages } from "./eagle";
 import { EagleGallery, EagleSummary } from "./EagleDetails";
 import { LanguageToggle } from "./LanguageToggle";
 import { ThemeToggle } from "./ThemeToggle";
 import { useLanguage, useExplorerText } from "./explorer-language";
-import { destinations, exploreHref, type Page } from "./navigation";
+import { destinations, exploreHref, type Destination, type Page } from "./navigation";
 
 function Arrow() {
   return (
@@ -74,8 +74,23 @@ export function SiteHeader({
     </header>
   );
 }
+const homeMissions = [{
+  id: "apollo",
+  body: "moon" as Destination,
+  name: ["أبولو 11", "Apollo 11"] as const,
+  intro: [
+    "صور مركبة إيغل في بحر السكون وتفاصيل مرحلة الهبوط التي بقيت على القمر.",
+    "See Eagle at Tranquility Base and the descent stage left on the Moon.",
+  ] as const,
+  archiveHref: eagle.archiveHref,
+  simulationHref: eagle.simulationHref,
+  catalog: eagle.catalog,
+  images: eagleImages,
+}];
+
 export function Home() {
   const t = useExplorerText();
+  const cover = eagleImages[0];
   return (
     <main id="main-content" className="editorial-page" tabIndex={-1}>
       <section className="signal-hero">
@@ -86,30 +101,69 @@ export function Home() {
             <a className="action action-solid" href="#/explore">
               {t("افتح المحاكاة", "Open simulation")} <Arrow />
             </a>
+            <a className="text-link" href="#/archive">{t("أرشيف المهمات", "Mission archive")}</a>
           </div>
         </div>
+        <figure className="hero-figure">
+          <img className="hero-photo" src={cover.src} alt={t(cover.ar, cover.en)} fetchPriority="high" />
+          <figcaption className="hero-caption">
+            <span>{t("باز ألدرين عند إيغل · أبولو 11", "Buzz Aldrin at Eagle · Apollo 11")}</span>
+            <a href={cover.source} target="_blank" rel="noreferrer">NASA · {cover.id} <Arrow /></a>
+          </figcaption>
+        </figure>
       </section>
       <section className="page-section destinations-section" aria-labelledby="destinations-title">
         <div className="section-heading destinations-heading">
           <h2 id="destinations-title">{t("وجهات الاستكشاف", "Explore a destination")}</h2>
         </div>
         <div className="destinations">
-          {destinations.map((body) => (
-            <article className={`destination destination--expressive ${body}`} key={body}>
-              <div className="destination__content">
-                <div className="destination__title-row">
-                  <h3><a href={exploreHref(body)}>{body === "moon" ? t("القمر", "The Moon") : t("المريخ", "Mars")}</a></h3>
-                  <a href={exploreHref(body)} aria-label={body === "moon" ? t("استكشف القمر", "Explore the Moon") : t("استكشف المريخ", "Explore Mars")}><Arrow /></a>
+          {destinations.map((body) => {
+            const moon = body === "moon";
+            const bodyLabel = moon ? t("القمر", "The Moon") : t("المريخ", "Mars");
+            const bodyCover = moon ? eagleImages[1] : null;
+            const missions = homeMissions.filter((mission) => mission.body === body);
+            return (
+              <article className={`destination destination--expressive ${body}`} key={body}>
+                <a className="destination__media" href={exploreHref(body)} aria-label={bodyLabel}>
+                  <img src={bodyCover?.src ?? "/mars-nasa-viking.jpg"} alt="" loading="lazy" />
+                </a>
+                <div className="destination__content">
+                  <div className="destination__title-row">
+                    <h3><a href={exploreHref(body)}>{bodyLabel}</a></h3>
+                    <a href={exploreHref(body)} aria-label={t("افتح المعاينة", "Open preview") + " · " + bodyLabel}><Arrow /></a>
+                  </div>
+                  {bodyCover && (
+                    <a className="text-link" href={bodyCover.source} target="_blank" rel="noreferrer">NASA · {bodyCover.id}</a>
+                  )}
+                  {missions.length > 0 && (
+                    <ul className="eagle-mission-list">
+                      {missions.map((mission) => <li key={mission.id}><a href={mission.archiveHref}>{t(...mission.name)}</a></li>)}
+                    </ul>
+                  )}
                 </div>
-                {body === "moon" && (
-                  <ul className="eagle-mission-list">
-                    <li><a href={eagle.archiveHref}>{t("أبولو 11", "Apollo 11")}</a></li>
-                  </ul>
-                )}
-              </div>
-            </article>
-          ))}
+              </article>
+            );
+          })}
         </div>
+      </section>
+      <section className="page-section featured-section" aria-labelledby="home-missions-title">
+        <div className="section-heading">
+          <h2 id="home-missions-title">{t("من أرشيف المهمات", "From the mission archive")}</h2>
+          <a className="text-link" href="#/archive">{t("الأرشيف الكامل", "Full archive")} <Arrow /></a>
+        </div>
+        {homeMissions.map((mission) => (
+          <article className="home-mission" key={mission.id}>
+            <header className="home-mission-copy">
+              <h3><a href={mission.archiveHref}>{t(...mission.name)} <Arrow /></a></h3>
+              <p>{t(...mission.intro)}</p>
+              <div className="hero-actions">
+                <a className="action action-solid" href={mission.simulationHref}>{t("شغّل المحاكاة", "Open simulation")} <Arrow /></a>
+                <a className="text-link" href={mission.catalog} target="_blank" rel="noreferrer">{t("سجل المهمة · ناسا", "Mission record · NASA")} <Arrow /></a>
+              </div>
+            </header>
+            <EagleGallery images={mission.images} />
+          </article>
+        ))}
       </section>
     </main>
   );

@@ -18,11 +18,11 @@ export function EagleSummary() {
 
 type EagleImage = (typeof eagleImages)[number];
 
-export function EagleGallery({ onSelect }: { onSelect?: (image: EagleImage) => void }) {
+export function EagleGallery({ images = eagleImages, onSelect }: { images?: readonly EagleImage[]; onSelect?: (image: EagleImage) => void }) {
   const t = useExplorerText();
   return (
     <div className="eagle-gallery">
-      {eagleImages.map((image, index) => {
+      {images.map((image, index) => {
         const label = t("كبّر الصورة", "Enlarge image") + " · " + image.id;
         const thumbnail = <img src={image.src} alt={t(image.ar, image.en)} loading={!onSelect && index === 0 ? "eager" : "lazy"} decoding="async" />;
         return (

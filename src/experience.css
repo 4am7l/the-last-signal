@@ -1745,3 +1745,14 @@ body {
   display: inline-flex;
   padding: .5rem;
 }
+
+.home-mission {
+  padding: clamp(16px, 3vw, 30px);
+  border: 1px solid var(--line);
+  border-radius: var(--tls-shape-card);
+  background: var(--md-sys-color-surface-container-low);
+}
+.home-mission + .home-mission { margin-block-start: 20px; }
+.home-mission-copy { margin-block-end: 20px; }
+.home-mission-copy h3 { margin: 0; font-size: clamp(1.45rem, 3vw, 2rem); }
+.home-mission-copy p { color: var(--md-sys-color-on-surface-variant); }
