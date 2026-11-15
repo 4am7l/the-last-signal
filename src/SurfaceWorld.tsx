@@ -272,7 +272,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onApproachChange,language="
     shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT}
     shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT}
     shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT}
-    shadow-bias={-.000015} shadow-normalBias={.004*UNIT} shadow-radius={1}/>
+    shadow-bias={-.000015} shadow-normalBias={.004*UNIT} shadow-radius={0}/>
   )}
   <SurfaceNavigation active={close&&!flight.current&&mode!=='story'} body={m.body} unit={UNIT} ground={surface.ground} center={surface.center} equipmentRadius={dimensions[m.model].span*.6}/><OrbitControls ref={controls} makeDefault enabled={!flight.current&&(settings.navigation==='orbit'||!close)} enableDamping dampingFactor={.085} rotateSpeed={coarsePointer?.65:.4} enablePan={close} screenSpacePanning={false} panSpeed={.4} minPolarAngle={.04} maxPolarAngle={close?Math.PI/2-.035:Math.PI-.02} minDistance={Math.max(1.2,dimensions[m.model].span*.85)*UNIT} maxDistance={Math.max(1800,950*orbitFraming)} zoomSpeed={.6} onStart={()=>{if(flight.current){descentArmed.current=false;guided.current=flight.current.stage==='descent';}flight.current=null;onApproachChange?.(false);}}/>{/* Uniform bounced light lifts the unlit terrain without introducing a second shadow direction. */}<ambientLight intensity={daylight*(moon?.26:.34)+night*(moon?.028:.045)} color={moon?'#c3d0e5':'#e6c6ae'}/><hemisphereLight args={[moon?'#c8d6ee':'#e9c6aa',moon?'#798295':'#9b7360',daylight*(moon?.14:.19)+night*.018]}/><directionalLight castShadow position={localSun.clone().multiplyScalar(350*UNIT)} color={moon?'#fff8ee':'#fff0dc'} intensity={4.0*solarIrradiance(ephemeris[m.body])/1361*(close?daylight:1)} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-bias={-.000015} shadow-normalBias={.004*UNIT} shadow-radius={0}/><mesh geometry={surface.geometry} receiveShadow><RegolithMaterial map={map} nasaPatch={nasaPatch} nasaPatchFade={nasaPatchFade} unit={UNIT} moon={moon} centerY={surface.center.y} rotation={surface.rotation} landingRadius={landingRadius} nightContactShadow={nightContactShadow} modelSpan={dimensions[m.model].span}/></mesh>{globeOnly?null:moon?<ApolloRocks ground={surface.ground} unit={UNIT} clearance={Math.max(3,dimensions[m.model].span*.70)} count={preset.rocks}/>:<><MarsRocks ground={surface.ground} unit={UNIT} clearance={Math.max(3,dimensions[m.model].span*.7)} count={preset.rocks} lat={m.lat} lon={m.lon} landingRadius={landingRadius} site={m.id}/><MarsGroundMarks ground={surface.ground} unit={UNIT} model={m.model} lat={m.lat} lon={m.lon} site={m.id}/></>}{!moon&&<group position={surface.center}><Atmosphere r={R+surface.base}/></group>}<group scale={UNIT} rotation={[0,m.model==='rover'?Math.PI/2+marsRoverRoadYaw(m.id):0,0]}><Model name={m.model}/></group>
   {moon&&mode==='planet'&&lunarSites.map(({mission,index},slot)=>(
@@ -421,7 +421,7 @@ float detailDet=dot(sx,rx);
 vec3 gradient=sign(detailDet)*(dFdx(relief)*rx+dFdy(relief)*ry)*${unit.toFixed(12)};
 normal=normalize(abs(detailDet)*normal-gradient+normal*1.e-20);
 `);
-   // Contact occlusion stays visible under the faint night fill and follows the actual terrain.
+   // Keep the contact edge crisp with only pixel-width antialiasing.
    shader.fragmentShader='uniform float nightContactShadow;\n'+shader.fragmentShader.replace('#include <opaque_fragment>',`
 vec2 shadowMetres=lunarPosition.xz / ${unit.toFixed(12)};
 float span=${modelSpan.toFixed(3)};
@@ -431,7 +431,8 @@ if(nightContactShadow>0. && lunarPosition.y>-${R.toFixed(3)} && dot(shadowMetres
  float along=dot(shadowMetres,shadowDir);
  float across=dot(shadowMetres,vec2(-shadowDir.y,shadowDir.x));
  vec2 contact=vec2((along-.16*span)/(.68*span),across/(.51*span));
- float occlusion=1.-smoothstep(.22,1.,dot(contact,contact));
+ float edge=clamp(footprint/span,.003,.045);
+ float occlusion=1.-smoothstep(1.-edge,1.+edge,length(contact));
  outgoingLight*=1.-nightContactShadow*occlusion*shadowDetail;
 }
 #include <opaque_fragment>`);

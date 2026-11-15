@@ -28,6 +28,16 @@ import "./planet-loader.css";
 import "./fullscreen-explorer.css";
 import "./motion.css";
 const Space = lazy(() => import("./Space").then((m) => ({ default: m.Space })));
+type SceneSelection = { index: number; mode: Mode; resetFilm: boolean; fromHash: string };
+
+function sceneMountId(mode: Mode, body: string, attempt: number) {
+  return `${mode === "story" ? "story" : "surface"}:${body}:${attempt}`;
+}
+
+function sceneId(mode: Mode, mission: (typeof missions)[number], attempt: number) {
+  return `${sceneMountId(mode, mission.body, attempt)}:${mission.id}:${mode}`;
+}
+
 class Boundary extends React.Component<
   { children: React.ReactNode; onError?: () => void; onRetry: () => void; language: Language; view: Mode; sceneKey: string },
   { error: boolean }
@@ -159,6 +169,33 @@ function App() {
   }
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [approaching, setApproaching] = useState(false);
+  const [sceneSelection, setSceneSelection] = useState<SceneSelection | null>(null);
+  useEffect(() => {
+    if (!sceneSelection) return;
+    let commitFrame = 0;
+    const paintFrame = requestAnimationFrame(() => {
+      // Give the loader a paint before the selected terrain and model are built.
+      commitFrame = requestAnimationFrame(() => {
+        if (window.location.hash !== sceneSelection.fromHash) {
+          setSceneSelection(null);
+          return;
+        }
+        setReadySceneKey(null);
+        setFailedSceneKey(null);
+        setMode(sceneSelection.mode);
+        setIndex(sceneSelection.index);
+        if (sceneSelection.resetFilm) setFilm(0);
+        setPlaying(false);
+        setReset((v) => v + 1);
+        setSceneSelection(null);
+        window.location.hash = exploreHref(missions[sceneSelection.index].id, sceneSelection.mode);
+      });
+    });
+    return () => {
+      cancelAnimationFrame(paintFrame);
+      cancelAnimationFrame(commitFrame);
+    };
+  }, [sceneSelection]);
   const [compactDrawer, setCompactDrawer] = useState(() => window.matchMedia("(max-width: 900px)").matches);
   useEffect(() => {
     const media = window.matchMedia("(max-width: 900px)");
@@ -197,17 +234,25 @@ function App() {
   const isApollo = m.id === "apollo";
   const isFalcon = m.id === "apollo15";
 
-  function select(i: number, next: Mode = "model") {
+  function select(i: number, next: Mode = "model", resetFilm = true) {
     if (approaching && i === index && mode === next) return;
+    if (i !== index || mode !== next) {
+      setSceneSelection({ index: i, mode: next, resetFilm, fromHash: window.location.hash });
+      return;
+    }
     window.location.hash = exploreHref(missions[i].id, next);
     setIndex(i);
-    setFilm(0);
+    if (resetFilm) setFilm(0);
     setPlaying(false);
     setMode(next);
     setReset((v) => v + 1);
   }
   function change(next: Mode) {
     if (approaching && mode === next) return;
+    if (next === "location" || next === "model" || next === "story") {
+      select(index, next, false);
+      return;
+    }
     window.location.hash = exploreHref(missions[index].id, next);
     setMode(next);
     setPlaying(false);
@@ -305,9 +350,12 @@ function App() {
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
   }, []);
-  const sceneMountKey = `${mode === "story" ? "story" : "surface"}:${m.body}:${sceneAttempt}`;
-  const sceneKey = `${sceneMountKey}:${m.id}`;
-  const sceneLoading = readySceneKey !== sceneKey && failedSceneKey !== sceneKey;
+  const sceneMountKey = sceneMountId(mode, m.body, sceneAttempt);
+  const sceneKey = sceneId(mode, m, sceneAttempt);
+  const sceneLoading = Boolean(sceneSelection) || (readySceneKey !== sceneKey && failedSceneKey !== sceneKey);
+  const loadingMission = sceneSelection ? missions[sceneSelection.index] : m;
+  const loadingMode = sceneSelection?.mode ?? mode;
+  const loadingKey = sceneId(loadingMode, loadingMission, sceneAttempt);
   const years = Object.keys(annualStories(m)).map(Number);
   return (
     <ExplorerLanguage.Provider value={language}>
@@ -501,7 +549,7 @@ function App() {
             tabIndex={-1}
             className={`universe ${mode}`}
           >
-            <div className="canvas" aria-busy={sceneLoading}>
+            <div className="canvas" aria-busy={sceneLoading} inert={sceneLoading}>
               <Boundary key={sceneMountKey} sceneKey={sceneKey} view={mode} language={language} onError={() => setFailedSceneKey(sceneKey)}
                 onRetry={() => setSceneAttempt((attempt) => attempt + 1)}>
                 <Suspense fallback={null}>
@@ -524,7 +572,8 @@ function App() {
               </Boundary>
             </div>
             {sceneLoading && (
-              <PlanetLoadingIndicator key={sceneKey} body={m.body} mission={bodyView ? undefined : missionName} />
+              <PlanetLoadingIndicator key={loadingKey} body={loadingMission.body}
+                mission={loadingMode === "planet" ? undefined : (english ? loadingMission.en : loadingMission.name)} />
             )}
             <MobileControls
               mode={mode}

@@ -35,7 +35,7 @@ export function PlanetLoadingIndicator({
           </span>
         </div>
         <span className="planet-loading-eyebrow">THE LAST SIGNAL · EXPLORATION</span>
-        <h2>{t(`جارٍ تجهيز ${name}`, `Preparing ${name}`)}</h2>
+        <h2>{t(`جارٍ تجهيز ${mission ?? name}`, `Preparing ${mission ?? name}`)}</h2>
         <p>{mission
           ? t(`نحمّل تضاريس ${name} وصوره ومجسّمات المهمة قبل عرض المشهد.`, "Loading terrain, textures and mission models.")
           : t(`نحمّل سطح ${name} وخرائطه لتبدأ الاستكشاف.`, "Loading the surface and its textures.")}</p>

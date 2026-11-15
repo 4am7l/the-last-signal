@@ -31,8 +31,17 @@ test("loader waits for the current scene assets and first visible render frames"
   assert.match(space, /frames\.current >= 2/);
   assert.match(space, /onReady\?\.\(sceneKey\)/);
   assert.match(main, /readySceneKey !== sceneKey/);
-  assert.match(main, /<PlanetLoadingIndicator key=\{sceneKey\}/);
+  assert.match(main, /<PlanetLoadingIndicator key=\{loadingKey\}/);
   assert.match(main, /aria-busy=\{sceneLoading\}/);
+});
+
+test("equipment selection paints the destination loader before committing the scene", () => {
+  const main = file("src/main.tsx");
+  const indicator = file("src/PlanetLoadingIndicator.tsx");
+  assert.match(main, /paintFrame = requestAnimationFrame\([\s\S]*?commitFrame = requestAnimationFrame\([\s\S]*?setIndex\(sceneSelection\.index\)/);
+  assert.match(main, /sceneLoading = Boolean\(sceneSelection\) \|\|/);
+  assert.match(main, /const loadingMode = sceneSelection\?\.mode \?\? mode/);
+  assert.match(indicator, /Preparing \$\{mission \?\? name\}/);
 });
 
 test("Material 3 Expressive morph stays accessible and respects reduced motion", () => {
