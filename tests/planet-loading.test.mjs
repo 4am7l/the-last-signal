@@ -26,7 +26,10 @@ test("loader waits for the current scene assets and first visible render frames"
   const space = file("src/Space.tsx");
   const main = file("src/main.tsx");
   assert.match(space, /function SceneAssetsGate/);
-  assert.match(space, /useLoader\(T.TextureLoader, body === "mars" \? "\/mars-nasa-viking.jpg" : "\/moon.jpg"\)/);
+  assert.match(space, /useLoader\(T\.TextureLoader, planetTexturePath\(body\)\)/);
+  const textures = file("src/usePlanetTexture.ts");
+  assert.match(textures, /useLoader\(T\.TextureLoader,\s*planetTexturePath\(body\)\)/);
+  assert.equal(existsSync(new URL("../public/mars.jpg", import.meta.url)), true);
   assert.match(space, /useGLTF\(\x60\/models\/\$\{props\.m\.model\}\.glb\x60\)/);
   assert.match(space, /frames\.current >= 2/);
   assert.match(space, /onReady\?\.\(sceneKey\)/);

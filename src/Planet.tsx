@@ -13,13 +13,13 @@ export function point(lat:number,lon:number,r=300){const a=T.MathUtils.degToRad(
 import {MarsAtmosphere as Atmosphere} from './MarsAtmosphere';
 export {MarsAtmosphere as Atmosphere} from './MarsAtmosphere';
 function Surface({body,occluders}:{body:string;occluders:Occluder[]}){
- const map=usePlanetTexture(body);const {gl}=useThree();
- const material=useMemo(()=>{map.colorSpace=T.SRGBColorSpace;map.anisotropy=Math.min(8,gl.capabilities.getMaxAnisotropy());map.needsUpdate=true;const mat=new T.MeshStandardMaterial({map,roughness:1});mat.onBeforeCompile=shader=>solarShader(shader,occluders);return mat},[map,gl,occluders]);
+ const map=usePlanetTexture(body);
+ const material=useMemo(()=>{const mat=new T.MeshStandardMaterial({map,roughness:1});mat.onBeforeCompile=shader=>solarShader(shader,occluders);return mat},[map,occluders]);
  useEffect(()=>()=>material.dispose(),[material]);return <primitive object={material} attach="material"/>;
 }
 function LunarSurface({r,occluders}:{r:number;occluders:Occluder[]}){
  const map=usePlanetTexture('moon');const height=useLoader(T.TextureLoader,'/moon-height.jpg');
- const material=useMemo(()=>{map.colorSpace=T.SRGBColorSpace;const mat=new T.MeshStandardMaterial({map,bumpMap:height,bumpScale:r*.00012,displacementMap:height,displacementScale:r*.007,displacementBias:-r*.0035,roughness:1});mat.onBeforeCompile=shader=>solarShader(shader,occluders);return mat},[map,height,r,occluders]);
+ const material=useMemo(()=>{const mat=new T.MeshStandardMaterial({map,bumpMap:height,bumpScale:r*.00012,displacementMap:height,displacementScale:r*.007,displacementBias:-r*.0035,roughness:1});mat.onBeforeCompile=shader=>solarShader(shader,occluders);return mat},[map,height,r,occluders]);
  useEffect(()=>()=>material.dispose(),[material]);return <primitive object={material} attach="material"/>;
 }
 const NO_OCCLUDERS:Occluder[]=[];

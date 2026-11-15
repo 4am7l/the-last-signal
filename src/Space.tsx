@@ -11,6 +11,7 @@ export type {View as Mode} from './navigation';
 import type {View as Mode} from './navigation';
 import {Planet,Terrain,terrainHeight} from './Planet';
 import {SurfaceWorld} from './SurfaceWorld';
+import {planetTexturePath} from './usePlanetTexture';
 import {FixedStars} from './FixedStars';
 
 import {SUN_DIRECTION} from './solar';
@@ -70,7 +71,7 @@ function SceneContent(props: Parameters<typeof Space>[0]) {
 
 function SceneAssetsGate(props: Parameters<typeof Space>[0]) {
   const body = props.m.body;
-  useLoader(T.TextureLoader, body === "mars" ? "/mars-nasa-viking.jpg" : "/moon.jpg");
+  useLoader(T.TextureLoader, planetTexturePath(body));
   useLoader(T.TextureLoader, "/moon-height.jpg");
   useGLTF(`/models/${props.m.model}.glb`);
   return <ReadyWorld {...props}/>;

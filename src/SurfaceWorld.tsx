@@ -276,7 +276,10 @@ function RegolithMaterial({map,nasaPatch,nasaPatchFade,unit,moon,centerY,rotatio
  vec3 nativeMars=normalize(marsToPlanet*(lunarPosition-vec3(0.,marsCenterY,0.)));
  vec2 marsUv=vec2(.5+atan(-nativeMars.z,nativeMars.x)/6.28318530718,
                   .5+asin(clamp(nativeMars.y,-1.,1.))/3.14159265359);
- diffuseColor*=texture2D(map,marsUv);
+ vec2 marsDx=dFdx(marsUv),marsDy=dFdy(marsUv);
+ marsDx.x-=round(marsDx.x);
+ marsDy.x-=round(marsDy.x);
+ diffuseColor*=textureGrad(map,marsUv,marsDx,marsDy);
 #endif`).replace('#include <color_fragment>',`#include <color_fragment>
 vec2 metres=lunarPosition.xz / ${unit.toFixed(12)};
 float footprint=max(length(dFdx(metres)),length(dFdy(metres)));

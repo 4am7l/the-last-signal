@@ -806,7 +806,7 @@ function App() {
             </button>
             <h2>{t("المصادر وحدود المحاكاة", "Sources and simulation limits")}</h2>
             <p>
-              {t("مجسّمات المركبات وصور المهمات من ناسا وJPL. ارتفاعات القمر الأساسية من NASA LRO، وتُحمّل خرائط ألوان 8K من Solar System Scope تدريجيًا عند توفرها. خريطة JPEG الحالية تعرض شكل التضاريس العام، ولا تعطي ارتفاعات معايرة بالمتر. يعرض الموقع القمر والمريخ فقط، أما حفر وصخور الموقع الصغيرة فهي توضيحية. تضاريس المريخ والجبال والحفر المحلية على الجرمين توضيحية وليست مسحًا لمواقع المهمات. عرض الاستكشاف يضغط المسافات؛ وضع المقياس الفعلي يستخدم متوسط مسافة القمر ومثالًا لمسافة المريخ (٢٢٥ مليون كم)، وليس بيانات مدارية حية. مسافة المريخ تتغير مع المدار.", "NASA and JPL provide mission photos and models. Lunar elevation data comes from NASA LRO. Color textures from Solar System Scope are loaded when available. The rendered terrain near mission sites is an educational reconstruction.")}
+              {t("مجسّمات المركبات وصور المهمات من ناسا وJPL. ارتفاعات القمر الأساسية من NASA LRO، وتُحمّل خريطة ألوان القمر بدقة 8K من Solar System Scope تدريجيًا عند توفرها. خريطة JPEG الحالية تعرض شكل التضاريس العام، ولا تعطي ارتفاعات معايرة بالمتر. يعرض الموقع القمر والمريخ فقط، أما حفر وصخور الموقع الصغيرة فهي توضيحية. تضاريس المريخ والجبال والحفر المحلية على الجرمين توضيحية وليست مسحًا لمواقع المهمات. عرض الاستكشاف يضغط المسافات؛ وضع المقياس الفعلي يستخدم متوسط مسافة القمر ومثالًا لمسافة المريخ (٢٢٥ مليون كم)، وليس بيانات مدارية حية. مسافة المريخ تتغير مع المدار.", "NASA and JPL provide mission photos and models. Lunar elevation data comes from NASA LRO. The 8K lunar color texture from Solar System Scope is loaded when available. The rendered terrain near mission sites is an educational reconstruction.")}
             </p>
             <p>
               {t("الشريط يعرض تسلسل المحطات المؤرخة من الانطلاق إلى نهاية المهمة. كل مرحلة لها وقت عرض مستقل، مع ملخص لكل سنة. الرسائل إعادة سرد تعليمية وليست اتصالات مقتبسة. الحركة ليست بيانات SPICE أو إعادة بناء لمسارات العجلات أو الرحلات الـ72.", "The timeline follows documented mission events. The animations and mission messages are educational reconstructions.")}
@@ -850,15 +850,15 @@ function App() {
               {t("تستخدم إضاءة السطح اتجاهات مبنية على JPL Horizons مع حسابات تقريبية عند التعذر. إضاءة فحص النماذج محسّنة لإظهار التفاصيل.", "Surface lighting uses directions based on JPL Horizons with approximate calculations when unavailable. Inspection lighting improves model visibility.")}
             </p>
             <p>
-              Mars texture:{" "}
+              {t("خريطة ألوان المريخ", "Mars color texture")}{" · "}
               <a
-                href="https://science.nasa.gov/3d-resources/mars/"
+                href="https://www.solarsystemscope.com/textures/"
                 target="_blank"
                 rel="noreferrer"
               >
-                NASA/JPL-Caltech/USGS Viking planetary mosaic
+                Solar System Scope · 8K
               </a>
-              . Moon:{" "}
+              {" ("}<a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">CC BY 4.0</a>{")"}. Moon:{" "}
               <a
                 href="https://svs.gsfc.nasa.gov/4720/"
                 target="_blank"
