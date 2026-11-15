@@ -487,6 +487,13 @@ function App() {
                 </details>
               )}
             </div>
+            {!sceneLoading && approaching && (
+              <div className="approach-status-row">
+                <div className="approach-status" role="status">
+                  {t("جارٍ الاقتراب من المركبة…", "Approaching the equipment…")}
+                </div>
+              </div>
+            )}
           </div>
           <main
             id="main-content"
@@ -518,9 +525,6 @@ function App() {
             {sceneLoading && (
               <PlanetLoadingIndicator key={sceneKey} body={m.body} mission={bodyView ? undefined : missionName} />
             )}
-            {!sceneLoading && approaching && <div className="approach-status" role="status" aria-live="polite">
-              {t("جارٍ الاقتراب من المركبة…", "Approaching the equipment…")}
-            </div>}
             <MobileControls
               mode={mode}
               onCamera={cameraMove}
