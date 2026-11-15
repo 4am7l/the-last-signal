@@ -80,7 +80,7 @@ test("The local Samsung font supplies Arabic and English text while Material ico
 test("Moon and Mars destination cards retain functional exploration links", () => {
   const page = file("src/Experience.tsx");
   assert.match(page, /aria-labelledby="destinations-title"/);
-  assert.match(page, /id="destinations-title">أين توجد هذه المعدات؟/);
+  assert.match(page, /id="destinations-title">\{t\("أين توجد هذه المعدات؟", "Where is the equipment\?"/);
   assert.match(page, /destination--expressive/);
   assert.match(page, /href=\{exploreHref\(d\.id, "planet"\)\}/);
   assert.match(page, /destination__media/);

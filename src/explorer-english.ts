@@ -90,10 +90,112 @@ const eventCopy: Record<string, [string, string]> = {
   "1969-07-24:end": ["Return to Earth", "The crew returned to Earth. Eagle’s descent stage and scientific equipment remained on the Moon."],
 };
 
-export function englishShot(shot: Shot) {
-  const [title, text] = eventCopy[`${shot.date}:${shot.phase}`]
+const archiveEventCopy: Record<string, [string, string]> = {
+  "2003-07-08": ["Launch from Earth", "Opportunity launched toward Mars aboard a Delta II rocket."],
+  "2003-08-01": ["Interplanetary cruise", "Opportunity traveled from Earth to Mars. The simulation illustrates this phase without plotting the measured trajectory."],
+  "2004-01-25": ["Landing in Eagle Crater", "Opportunity landed inside a small crater on Meridiani Planum. The date is in UTC."],
+  "2003-06-10": ["Launch", "Spirit left Earth for Gusev Crater."],
+  "2003-07-01": ["En route to Mars", "This date marks a point during cruise."],
+  "2004-01-04": ["Arrival at Gusev Crater", "Spirit landed in Gusev Crater and began its geological survey. The date is in UTC."],
+  "2018-05-05": ["Launch", "InSight launched from Vandenberg."],
+  "2018-07-01": ["Cruise to Mars", "This date represents the cruise phase in the simulation."],
+  "2018-11-26": ["Landing", "InSight landed in Homestead Hollow on Elysium Planitia."],
+  "2020-07-30": ["Launch with Perseverance", "Ingenuity traveled underneath Perseverance. The 3D viewer shows the helicopter on its own for inspection."],
+  "2020-09-01": ["Cruise to Mars", "Ingenuity traveled with Perseverance inside the cruise spacecraft."],
+  "2021-02-18": ["Landing in Jezero Crater", "Ingenuity reached Mars attached beneath Perseverance."],
+  "1969-07-16": ["Launch", "A Saturn V rocket carried Apollo 11 toward the Moon."],
+  "1969-07-17": ["Cruise to the Moon", "Apollo 11 traveled toward the Moon. The simulation illustrates the trip."],
+  "1969-07-19": ["Lunar orbit insertion", "The crew entered lunar orbit and began preparations to separate Eagle."],
+  "1969-07-20": ["Eagle lands", "Armstrong and Aldrin landed in the Sea of Tranquility."],
+};
+
+export function englishEvent(event: Mission["events"][number]) {
+  return archiveEventCopy[event.date]
+    ?? eventCopy[`${event.date}:${event.stage}`]
+    ?? eventCopy[event.date];
+}
+
+export const englishExplanations: Record<string, { goal: string; finding: string; ending: string }> = {
+  opportunity: {
+    goal: "Look for evidence of ancient water in Martian rocks.",
+    finding: "Rock measurements showed that water had affected the area in the past. The findings established that water was present there.",
+    ending: "A dust storm blocked sunlight from the solar panels. Contact stopped in June 2018, and NASA declared the mission over in February 2019.",
+  },
+  spirit: {
+    goal: "Study the rocks and soil of Gusev Crater to understand how they formed.",
+    finding: "Spirit examined rocks and minerals as it explored the Columbia Hills.",
+    ending: "Its wheels became stuck at Troy in 2009. The last contact was in March 2010, and recovery attempts ended in May 2011.",
+  },
+  insight: {
+    goal: "Study the Martian interior with seismic measurements from a stationary lander.",
+    finding: "InSight recorded marsquakes. Seismic waves provided evidence about the layers inside Mars.",
+    ending: "Dust on the solar panels reduced available power. The last contact was in December 2022, and the lander remains at the site.",
+  },
+  ingenuity: {
+    goal: "Test powered, controlled flight in the Martian atmosphere.",
+    finding: "The first flight succeeded in April 2021. Later flights demonstrated scouting and other operations.",
+    ending: "Rotor blades were damaged on landing after flight 72 in January 2024. The model shows the helicopter before the damage.",
+  },
+  apollo: {
+    goal: "Land a crew on the Moon and bring it back to Earth.",
+    finding: "The astronauts worked on the surface and left scientific instruments, including a laser retroreflector.",
+    ending: "The ascent stage lifted off to rejoin the command module. The descent stage remained at Tranquility Base.",
+  },
+};
+
+export const englishAnnualStories: Record<string, Record<number, [string, string]>> = {
+  opportunity: {
+    2003: ["Launch", "A Delta II rocket carried Opportunity inside its protective fairing."],
+    2004: ["Eagle and Endurance", "The rover began looking for evidence of water in the rocks."],
+    2005: ["Free of the sand", "After weeks of recovery work, the rover escaped and continued south."],
+    2006: ["Victoria’s rim", "Opportunity reached Victoria Crater after a long traverse."],
+    2007: ["Dust storms and Victoria", "The rover weathered dust storms and began exploring the crater’s interior."],
+    2008: ["Leaving Victoria", "Opportunity finished surveying Victoria and headed toward Endeavour."],
+    2009: ["Rocks along the route", "The rover examined rocks on its way to Endeavour."],
+    2010: ["Santa Maria", "Opportunity reached Santa Maria Crater in December."],
+    2011: ["Arrival at Endeavour", "The rover reached the rim in August."],
+    2012: ["Matijevic Hill", "Opportunity examined rocks around Matijevic Hill."],
+    2013: ["A new distance record", "Opportunity passed the distance traveled by the Apollo 17 rover and continued its rock survey."],
+    2014: ["40 kilometers", "Opportunity’s odometer passed 40 kilometers."],
+    2015: ["A Martian marathon", "The rover passed marathon distance and continued its survey."],
+    2016: ["Winter exploration", "Opportunity managed its power while exploring Marathon Valley."],
+    2017: ["Perseverance Valley", "The rover entered Perseverance Valley on Endeavour’s rim."],
+    2018: ["Last signal", "Communication stopped during a global dust storm."],
+    2019: ["End of mission", "NASA ended attempts to restore contact."],
+  },
+  spirit: {
+    2003: ["To Mars", "Spirit launched and traveled inside its cruise spacecraft."],
+    2004: ["Gusev and the Columbia Hills", "The rover examined rocks that showed signs of alteration by water."],
+    2005: ["Into the hills", "Spirit climbed Husband Hill and photographed dust devils."],
+    2006: ["Home Plate", "The rover examined layers and materials from the area’s geologic past."],
+    2007: ["Silica-rich soil", "Spirit found soil rich in silica, evidence of past water activity."],
+    2008: ["Winter on a slope", "A slope near Home Plate helped the rover’s panels catch more sunlight."],
+    2009: ["Stuck at Troy", "Spirit became stuck in loose soil and recovery attempts began."],
+    2010: ["Last contact", "The rover had become a stationary science platform. Contact ceased in March."],
+    2011: ["End of mission", "Recovery attempts ended. Spirit remains at Troy."],
+  },
+  insight: {
+    2018: ["Landing and instrument deployment", "InSight landed on Elysium Planitia and placed its seismometer on the surface."],
+    2019: ["Listening for marsquakes", "InSight began recording Martian seismic activity."],
+    2020: ["Measurements from a fixed site", "Seismic measurements and work on the heat probe continued."],
+    2021: ["Inside Mars", "Seismic measurements helped reveal the planet’s interior structure."],
+    2022: ["Dust and declining power", "InSight recorded large marsquakes before losing power."],
+  },
+  ingenuity: {
+    2020: ["A ride with Perseverance", "Ingenuity traveled under the rover inside the cruise spacecraft."],
+    2021: ["First flight", "After deployment, Ingenuity demonstrated powered flight in the Martian atmosphere."],
+    2022: ["Aerial scouting", "The helicopter continued flights in support of surface exploration."],
+    2023: ["Extended operations", "Further flights gave the team more experience operating the helicopter on Mars."],
+    2024: ["End of flight", "Flight 72 damaged the blades. Ingenuity remains in the Valinor Hills."],
+  },
+  apollo: {
+    1969: ["From Earth to the Moon and back", "Apollo 11 launched, Eagle landed, and the crew returned, leaving the descent stage and equipment on the Moon."],
+  },
+};
+
+export function englishShot(shot: Shot, missionId: string) {
+  const annual = shot.annual ? englishAnnualStories[missionId]?.[Number(shot.date.slice(0, 4))] : undefined;
+  const [title, text] = annual ?? eventCopy[`${shot.date}:${shot.phase}`]
     ?? eventCopy[shot.date] ?? phaseCopy[shot.phase];
-  return shot.annual
-    ? { ...shot, title: `${shot.date.slice(0, 4)} mission update`, text }
-    : { ...shot, title, text };
+  return { ...shot, title, text };
 }

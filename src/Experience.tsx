@@ -1,9 +1,22 @@
+import { LanguageToggle } from "./LanguageToggle";
+import { useLanguage, useExplorerText } from "./explorer-language";
+import { englishEvent, englishExplanations, missionEnglish } from "./explorer-english";
 import { useEffect, useMemo, useState } from "react";
 import { ThemeToggle } from "./ThemeToggle";
 import { NasaGallery } from "./NasaGallery";
 import { missions, type Mission } from "./data";
 import { exploreHref, matchesMission, type Page } from "./navigation";
-const bodyName = (m: Mission) => (m.body === "moon" ? "القمر" : "المريخ");
+function useEditorialCopy() {
+  const t = useExplorerText();
+  const english = useLanguage() === "en";
+  return {
+    t,
+    english,
+    bodyName: (m: Mission) => m.body === "moon" ? t("القمر", "Moon") : t("المريخ", "Mars"),
+    missionName: (m: Mission) => english ? m.en : m.name,
+    copy: (m: Mission) => english ? missionEnglish[m.id] : m,
+  };
+}
 const year = (m: Mission) =>
   m.events.find((e) => e.stage === "landing")!.date.slice(0, 4);
 function Arrow() {
@@ -25,13 +38,16 @@ function Arrow() {
 export function SiteHeader({
   page,
   onSources,
+  onLanguageToggle,
 }: {
   page: Page;
   onSources: () => void;
+  onLanguageToggle: () => void;
 }) {
+  const { t, english } = useEditorialCopy();
   return (
     <header className="site-header">
-      <a className="brand" href="#/" aria-label="الإشارة الأخيرة — الرئيسية">
+      <a className="brand" href="#/" aria-label={t("الإشارة الأخيرة — الرئيسية", "The Last Signal — Home")}>
         <span className="signal-mark" aria-hidden="true">
           <i />
           <i />
@@ -40,16 +56,16 @@ export function SiteHeader({
           <i />
         </span>
         <div>
-          الإشارة الأخيرة<small>THE LAST SIGNAL</small>
+          {t("الإشارة الأخيرة", "The Last Signal")}{!english && <small>THE LAST SIGNAL</small>}
         </div>
       </a>
-      <nav aria-label="التنقل الرئيسي">
+      <nav aria-label={t("التنقل الرئيسي", "Main navigation")}>
         {(
           [
-            ["home", "#/", "الرئيسية"],
-            ["explore", "#/explore", "الاستكشاف"],
-            ["archive", "#/archive", "أرشيف المهمات"],
-            ["guide", "#/guide", "دليل الرحلة"],
+            ["home", "#/", t("الرئيسية", "Home")],
+            ["explore", "#/explore", t("الاستكشاف", "Explore")],
+            ["archive", "#/archive", t("أرشيف المهمات", "Mission archive")],
+            ["guide", "#/guide", t("دليل الرحلة", "Explorer guide")],
           ] as const
         ).map(([id, href, label]) => (
           <a
@@ -62,30 +78,31 @@ export function SiteHeader({
         ))}
       </nav>
       <div className="site-header__actions">
+        <LanguageToggle onToggle={onLanguageToggle} />
         <ThemeToggle />
         <button className="source-link" onClick={onSources}>
-          المصادر والدقة <Arrow />
+          {t("المصادر والدقة", "Sources and accuracy")} <Arrow />
         </button>
       </div>
     </header>
   );
 }
 export function Home() {
+  const { t, english, bodyName, missionName, copy } = useEditorialCopy();
   return (
     <main id="main-content" className="editorial-page" tabIndex={-1}>
       <section className="signal-hero">
         <div className="hero-copy">
-          <h1>ماذا تركنا على القمر والمريخ؟</h1>
+          <h1>{t("ماذا تركنا على القمر والمريخ؟", "What did we leave on the Moon and Mars?")}</h1>
           <p>
-            من مرحلة الهبوط التي بقيت في بحر السكون إلى مروحية إنجينيويتي على
-            المريخ. تصفّح خمس مهمات لناسا وتعرّف إلى معداتها ومواقعها.
+            {t("من مرحلة الهبوط التي بقيت في بحر السكون إلى مروحية إنجينيويتي على المريخ. تصفّح خمس مهمات لناسا وتعرّف إلى معداتها ومواقعها.", "From the descent stage at Tranquility Base to the Ingenuity helicopter on Mars. Explore five NASA missions and the equipment they left behind.")}
           </p>
           <div className="hero-actions">
             <a className="action action-solid" href="#/explore">
-              افتح المحاكاة <span aria-hidden="true">←</span>
+              {t("افتح المحاكاة", "Open simulation")} <span aria-hidden="true">{t("←", "→")}</span>
             </a>
             <a className="text-link" href="#/archive">
-              أرشيف المهمات
+              {t("أرشيف المهمات", "Mission archive")}
             </a>
           </div>
         </div>
@@ -93,36 +110,36 @@ export function Home() {
           <img
             className="hero-photo"
             src="/photos/apollo.jpg"
-            alt="باز ألدرين على سطح القمر"
+            alt={t("باز ألدرين على سطح القمر", "Buzz Aldrin on the Moon")}
             fetchPriority="high"
           />
           <figcaption className="hero-caption">
-            <span>باز ألدرين أثناء مهمة أبولو 11، 1969 · ناسا</span>
-            <a href={exploreHref("apollo", "location")}>موقع الهبوط ←</a>
+            <span>{t("باز ألدرين أثناء مهمة أبولو 11، 1969 · ناسا", "Buzz Aldrin during Apollo 11, 1969 · NASA")}</span>
+            <a href={exploreHref("apollo", "location")}>{t("موقع الهبوط ←", "Landing site →")}</a>
           </figcaption>
         </figure>
       </section>
       <section className="page-section destinations-section" aria-labelledby="destinations-title">
         <div className="section-heading destinations-heading">
-          <h2 id="destinations-title">أين توجد هذه المعدات؟</h2>
+          <h2 id="destinations-title">{t("أين توجد هذه المعدات؟", "Where is the equipment?")}</h2>
         </div>
         <div className="destinations">
           {[
             {
               body: "moon",
-              title: "القمر",
+              title: t("القمر", "Moon"),
               id: "apollo",
-              text: "تعرّف إلى موقع أبولو 11 والمعدات التي بقيت على سطح القمر.",
+              text: t("تعرّف إلى موقع أبولو 11 والمعدات التي بقيت على سطح القمر.", "Visit the Apollo 11 landing site and the equipment that remains on the Moon."),
               img: "apollo",
-              count: "مهمة واحدة",
+              count: t("مهمة واحدة", "One mission"),
             },
             {
               body: "mars",
-              title: "المريخ",
+              title: t("المريخ", "Mars"),
               id: "opportunity",
-              text: "استكشف مواقع العربات والمسبار الثابت والمروحية على المريخ.",
+              text: t("استكشف مواقع العربات والمسبار الثابت والمروحية على المريخ.", "Explore the sites of the rovers, lander and helicopter on Mars."),
               img: "opportunity",
-              count: "أربع مهمات",
+              count: t("أربع مهمات", "Four missions"),
             },
           ].map((d) => (
             <a
@@ -145,8 +162,8 @@ export function Home() {
                 </div>
                 <p>{d.text}</p>
                 <span className="destination__cta">
-                  استكشف المواقع
-                  <span className="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+                  {t("استكشف المواقع", "Explore the sites")}
+                  <span className="material-symbols-rounded" aria-hidden="true">{t("arrow_back", "arrow_forward")}</span>
                 </span>
               </div>
             </a>
@@ -156,10 +173,10 @@ export function Home() {
       <section className="page-section featured-section">
         <div className="section-heading">
           <div>
-            <h2>من أرشيف المهمات</h2>
+            <h2>{t("من أرشيف المهمات", "From the mission archive")}</h2>
           </div>
           <a className="text-link" href="#/archive">
-            الأرشيف الكامل <Arrow />
+            {t("الأرشيف الكامل", "Full archive")} <Arrow />
           </a>
         </div>
         <div className="feature-grid">
@@ -172,7 +189,7 @@ export function Home() {
               <div className="feature-image">
                 <img
                   src={`/photos/${m.id}.jpg`}
-                  alt={m.photoCaption}
+                  alt={copy(m).photoCaption}
                   loading="lazy"
                 />
                 <span>
@@ -180,12 +197,12 @@ export function Home() {
                 </span>
               </div>
               <div className="feature-copy">
-                <small>{m.en}</small>
+                {!english && <small>{m.en}</small>}
                 <h3>
-                  {m.name}
+                  {missionName(m)}
                   <Arrow />
                 </h3>
-                <p>{m.intro}</p>
+                <p>{copy(m).intro}</p>
               </div>
             </a>
           ))}
@@ -195,19 +212,19 @@ export function Home() {
       <NasaGallery mission="apollo" />
       <NasaGallery mission="ingenuity" />
       <section className="closing-section">
-        <h2>دقة المحاكاة</h2>
+        <h2>{t("دقة المحاكاة", "Simulation accuracy")}</h2>
         <p>
-          التضاريس المحلية وحركة المعدات تقريبية. تجد مصادر الصور والإحداثيات
-          وحدود دقتها في سجل كل مهمة.
+          {t("التضاريس المحلية وحركة المعدات تقريبية. تجد مصادر الصور والإحداثيات وحدود دقتها في سجل كل مهمة.", "Local terrain and equipment motion are approximate. Each mission record lists its image sources, coordinate reference and accuracy.")}
         </p>
         <a className="action action-line" href="#/guide">
-          دليل الاستكشاف وحدود المحاكاة <Arrow />
+          {t("دليل الاستكشاف وحدود المحاكاة", "Explorer guide and simulation limits")} <Arrow />
         </a>
       </section>
     </main>
   );
 }
 export function Archive({ initialMission }: { initialMission?: string }) {
+  const { t, english, bodyName, missionName, copy } = useEditorialCopy();
   const [query, setQuery] = useState(""),
     [body, setBody] = useState("all"),
     [sort, setSort] = useState("oldest"),
@@ -215,7 +232,7 @@ export function Archive({ initialMission }: { initialMission?: string }) {
   const records = useMemo(
     () =>
       missions
-        .filter((m) => matchesMission(m, query, body))
+        .filter((m) => matchesMission({ ...m, searchAliases: missionEnglish[m.id].site }, query, body))
         .sort((a, b) =>
           sort === "oldest"
             ? year(a).localeCompare(year(b))
@@ -245,27 +262,27 @@ export function Archive({ initialMission }: { initialMission?: string }) {
       tabIndex={-1}
     >
       <section className="page-intro">
-        <h1>أرشيف المهمات</h1>
+        <h1>{t("أرشيف المهمات", "Mission archive")}</h1>
         <p>
-          سجلات خمس مهمات لناسا على القمر والمريخ، مع صور المعدات ومواقع الهبوط.
+          {t("سجلات خمس مهمات لناسا على القمر والمريخ، مع صور المعدات ومواقع الهبوط.", "Records from five NASA missions to the Moon and Mars, with equipment photos and landing sites.")}
         </p>
       </section>
-      <section className="archive-browser" aria-label="أرشيف المهمات">
+      <section className="archive-browser" aria-label={t("أرشيف المهمات", "Mission archive")}>
         <div className="archive-controls">
           <label className="search-field">
-            <span>ابحث في الأرشيف</span>
+            <span>{t("ابحث في الأرشيف", "Search the archive")}</span>
             <input
               type="search"
-              placeholder="اسم المهمة أو موقع الهبوط…"
+              placeholder={t("اسم المهمة أو موقع الهبوط…", "Mission name or landing site…")}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
           </label>
-          <div className="filter-group" role="group" aria-label="تصفية الوجهة">
+          <div className="filter-group" role="group" aria-label={t("تصفية الوجهة", "Filter by destination")}>
             {[
-              ["all", "كل الوجهات"],
-              ["moon", "القمر"],
-              ["mars", "المريخ"],
+              ["all", t("كل الوجهات", "All destinations")],
+              ["moon", t("القمر", "Moon")],
+              ["mars", t("المريخ", "Mars")],
             ].map(([v, label]) => (
               <button
                 key={v}
@@ -277,18 +294,18 @@ export function Archive({ initialMission }: { initialMission?: string }) {
             ))}
           </div>
           <label className="sort-field">
-            الترتيب
+            {t("الترتيب", "Sort by")}
             <select value={sort} onChange={(e) => setSort(e.target.value)}>
-              <option value="oldest">الأقدم وصولًا</option>
-              <option value="newest">الأحدث وصولًا</option>
+              <option value="oldest">{t("الأقدم وصولًا", "Earliest landing")}</option>
+              <option value="newest">{t("الأحدث وصولًا", "Latest landing")}</option>
             </select>
           </label>
         </div>
         <div className="results-line" role="status">
           <span>
-            {records.length} من {missions.length} مهمات
+            {t(`${records.length} من ${missions.length} مهمات`, `${records.length} of ${missions.length} missions`)}
           </span>
-          <small>مرتبة حسب سنة الهبوط</small>
+          <small>{t("مرتبة حسب سنة الهبوط", "Sorted by landing year")}</small>
         </div>
         <div className="record-grid">
           {records.map((m) => (
@@ -307,39 +324,39 @@ export function Archive({ initialMission }: { initialMission?: string }) {
                 <div className="record-photo">
                   <img
                     src={`/photos/${m.id}.jpg`}
-                    alt={m.photoCaption}
+                    alt={copy(m).photoCaption}
                     loading="lazy"
                   />
                   <span className="record-year">{year(m)}</span>
                   <span className="record-body">{bodyName(m)}</span>
                 </div>
                 <div className="record-copy">
-                  <small>{m.en}</small>
+                  {!english && <small>{m.en}</small>}
                   <h2>
-                    {m.name}
+                    {missionName(m)}
                     <span aria-hidden="true">
                       {selected === m.id ? "−" : "+"}
                     </span>
                   </h2>
-                  <p>{m.intro}</p>
-                  <div className="record-site">◎ {m.site}</div>
+                  <p>{copy(m).intro}</p>
+                  <div className="record-site">◎ {copy(m).site}</div>
                   <span className="record-read">
-                    {selected === m.id ? "أغلق سجل المهمة" : "اقرأ سجل المهمة"}{" "}
+                    {selected === m.id ? t("أغلق سجل المهمة", "Close mission record") : t("اقرأ سجل المهمة", "Read mission record")}{" "}
                     <Arrow />
                   </span>
                 </div>
               </button>
               <div className="record-actions">
-                <a href={exploreHref(m.id, "location")}>موقع الهبوط ↗</a>
-                <a href={exploreHref(m.id, "story")}>مراحل الرحلة ↗</a>
+                <a href={exploreHref(m.id, "location")}>{t("موقع الهبوط ↗", "Landing site ↗")}</a>
+                <a href={exploreHref(m.id, "story")}>{t("مراحل الرحلة ↗", "Mission timeline ↗")}</a>
               </div>
             </article>
           ))}
         </div>
         {records.length === 0 && (
           <div className="empty-state">
-            <h2>لم نجد مهمة بهذه الكلمات.</h2>
-            <p>جرّب اسمًا بالعربية أو الإنجليزية، أو أزل تصفية الوجهة.</p>
+            <h2>{t("لم نجد مهمة بهذه الكلمات.", "No missions match your search.")}</h2>
+            <p>{t("جرّب اسمًا بالعربية أو الإنجليزية، أو أزل تصفية الوجهة.", "Try an Arabic or English name, or clear the destination filter.")}</p>
             <button
               className="action action-line"
               onClick={() => {
@@ -347,7 +364,7 @@ export function Archive({ initialMission }: { initialMission?: string }) {
                 setBody("all");
               }}
             >
-              إعادة عرض كل المهمات
+              {t("إعادة عرض كل المهمات", "Show all missions")}
             </button>
           </div>
         )}
@@ -356,18 +373,18 @@ export function Archive({ initialMission }: { initialMission?: string }) {
             className="dossier"
             id="mission-dossier"
             tabIndex={-1}
-            aria-label={`سجل ${chosen.name}`}
+            aria-label={t(`سجل ${missionName(chosen)}`, `${chosen.en} record`)}
           >
             <div className="dossier-heading">
               <div>
-                <div className="kicker">{chosen.en}</div>
-                <h2>{chosen.name}</h2>
+                {!english && <div className="kicker">{chosen.en}</div>}
+                <h2>{missionName(chosen)}</h2>
               </div>
               <button
                 className="action action-line"
                 onClick={() => setSelected("")}
               >
-                إغلاق السجل ×
+                {t("إغلاق السجل ×", "Close record ×")}
               </button>
             </div>
             <div className="dossier-grid">
@@ -375,59 +392,59 @@ export function Archive({ initialMission }: { initialMission?: string }) {
                 <img
                   className="dossier-photo"
                   src={`/photos/${chosen.id}.jpg`}
-                  alt={chosen.photoCaption}
+                  alt={copy(chosen).photoCaption}
                 />
-                <small className="photo-credit">{chosen.photoCaption}</small>
+                <small className="photo-credit">{copy(chosen).photoCaption}</small>
                 <MissionExplanation mission={chosen} />
                 <NasaGallery mission={chosen.id} compact />
-                <h3>كيف تعمل المعدات؟</h3>
-                <p>{chosen.detail}</p>
-                <h3>ما الذي بقي في الموقع؟</h3>
-                <p>{chosen.final}</p>
+                <h3>{t("كيف تعمل المعدات؟", "How does the equipment work?")}</h3>
+                <p>{copy(chosen).detail}</p>
+                <h3>{t("ما الذي بقي في الموقع؟", "What remains at the site?")}</h3>
+                <p>{copy(chosen).final}</p>
                 <a
                   className="text-link"
                   href={chosen.finalSource}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  المصدر الرسمي للموقع الأخير ↗
+                  {t("المصدر الرسمي للموقع الأخير ↗", "Official source for the final location ↗")}
                 </a>
-                <h3>مرجع الموقع المعروض</h3>
+                <h3>{t("مرجع الموقع المعروض", "Coordinate reference")}</h3>
                 <p dir="ltr">
                   {chosen.lat}° / {chosen.lon}° E
                 </p>
-                <p>{chosen.frame}</p>
+                <p>{copy(chosen).frame}</p>
                 <a
                   className="text-link"
                   href={chosen.locationSource}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  مصدر الإحداثيات ↗
+                  {t("مصدر الإحداثيات ↗", "Coordinate source ↗")}
                 </a>
                 <div className="hero-actions">
                   <a
                     className="action action-solid"
                     href={exploreHref(chosen.id, "model")}
                   >
-                    استكشف المجسّم <Arrow />
+                    {t("استكشف المجسّم", "Explore the model")} <Arrow />
                   </a>
                   <a
                     className="action action-line"
                     href={exploreHref(chosen.id, "story")}
                   >
-                    شاهد مراحل الرحلة <Arrow />
+                    {t("شاهد مراحل الرحلة", "Watch the mission")} <Arrow />
                   </a>
                 </div>
               </div>
               <div>
-                <h3>محطات الرحلة</h3>
+                <h3>{t("محطات الرحلة", "Mission milestones")}</h3>
                 <ol className="mission-timeline">
                   {chosen.events.map((e, i) => (
                     <li key={i}>
                       <time dateTime={e.date}>{e.date}</time>
-                      <h4>{e.title}</h4>
-                      <p>{e.text}</p>
+                      <h4>{english ? englishEvent(e)[0] : e.title}</h4>
+                      <p>{english ? englishEvent(e)[1] : e.text}</p>
                     </li>
                   ))}
                 </ol>
@@ -437,7 +454,7 @@ export function Archive({ initialMission }: { initialMission?: string }) {
                   target="_blank"
                   rel="noreferrer"
                 >
-                  سجل المهمة لدى ناسا ↗
+                  {t("سجل المهمة لدى ناسا ↗", "NASA mission record ↗")}
                 </a>
               </div>
             </div>
@@ -448,32 +465,33 @@ export function Archive({ initialMission }: { initialMission?: string }) {
   );
 }
 export function Guide() {
+  const { t } = useEditorialCopy();
   return (
     <main id="main-content" className="editorial-page guide-page" tabIndex={-1}>
       <section className="page-intro">
-        <h1>طريقة استخدام المحاكاة</h1>
+        <h1>{t("طريقة استخدام المحاكاة", "How to use the simulation")}</h1>
       </section>
       <section className="guide-steps">
         {[
           [
             "01",
-            "اختيار القمر أو المريخ",
-            "افتح الاستكشاف واختر القمر أو المريخ. اسحب لتدوير المشهد، أو استخدم أزرار اتجاه الكاميرا.",
+            t("اختيار القمر أو المريخ", "Choose the Moon or Mars"),
+            t("افتح الاستكشاف واختر القمر أو المريخ. اسحب لتدوير المشهد، أو استخدم أزرار اتجاه الكاميرا.", "Open Explore and select the Moon or Mars. Drag the scene or use the camera controls to rotate it."),
           ],
           [
             "02",
-            "الاقتراب من موقع الهبوط",
-            "اختر علامة المهمة، ثم قرّب بعجلة الفأرة أو بإصبعين على الهاتف. ينتقل المشهد تدريجيًا من المدار إلى المعدات على السطح.",
+            t("الاقتراب من موقع الهبوط", "Approach a landing site"),
+            t("اختر علامة المهمة، ثم قرّب بعجلة الفأرة أو بإصبعين على الهاتف. ينتقل المشهد تدريجيًا من المدار إلى المعدات على السطح.", "Choose a mission marker, then scroll or pinch to zoom from orbit down to the equipment."),
           ],
           [
             "03",
-            "فحص المعدات والتنقل على السطح",
-            "افتح المجسّم للتفاصيل، أو بدّل الملاحة إلى المشي والطيران من إعدادات المحاكاة. على الهاتف تظهر أزرار الحركة المناسبة.",
+            t("فحص المعدات والتنقل على السطح", "Inspect equipment and move on the surface"),
+            t("افتح المجسّم للتفاصيل، أو بدّل الملاحة إلى المشي والطيران من إعدادات المحاكاة. على الهاتف تظهر أزرار الحركة المناسبة.", "Open the model to inspect it, or choose Walk or Fly in the simulation settings. On phones, use the on-screen movement controls."),
           ],
           [
             "04",
-            "عرض مراحل المهمة",
-            "تبويب الرحلة يعرض الانطلاق والعبور والهبوط والعمل. شغّل التسلسل أو اختر محطة؛ يمكنك إيقافه وتغيير سرعته وتحريك المرحلة يدويًا.",
+            t("عرض مراحل المهمة", "Replay a mission"),
+            t("تبويب الرحلة يعرض الانطلاق والعبور والهبوط والعمل. شغّل التسلسل أو اختر محطة؛ يمكنك إيقافه وتغيير سرعته وتحريك المرحلة يدويًا.", "The Mission tab covers launch, cruise, landing and surface operations. Play the sequence or select a milestone, then pause, adjust the speed or scrub through the phase."),
           ],
         ].map(([n, t, p]) => (
           <article key={n}>
@@ -487,49 +505,46 @@ export function Guide() {
       </section>
       <section className="guide-notes">
         <div>
-          <h2>على شاشة الهاتف</h2>
+          <h2>{t("على شاشة الهاتف", "On a phone")}</h2>
           <p>
-            اسحب بإصبع للدوران، وبإصبعين للتقريب. أخفِ تفاصيل المهمة لإفساح مجال
-            للرؤية، وأظهرها عند القراءة. أدوات المشي والطيران تبقى داخل شاشة
-            الاستكشاف.
+            {t("اسحب بإصبع للدوران، وبإصبعين للتقريب. أخفِ تفاصيل المهمة لإفساح مجال للرؤية، وأظهرها عند القراءة. أدوات المشي والطيران تبقى داخل شاشة الاستكشاف.", "Drag with one finger to rotate and pinch to zoom. Hide mission details for a clearer view. Walking and flying controls are available in Explore.")}
           </p>
         </div>
         <div>
-          <h2>دقة التضاريس والحركة</h2>
+          <h2>{t("دقة التضاريس والحركة", "Terrain and animation accuracy")}</h2>
           <p>
-            الصور والمجسّمات من مصادر المهمة. التضاريس المحلية والحركة السينمائية
-            توضيحية؛ ليست تسجيلًا فعليًا للرحلة أو مسحًا دقيقًا لكل موقع. يبقى مصدر
-            الإحداثيات وحدود دقتها ظاهرين في كل سجل.
+            {t("الصور والمجسّمات من مصادر المهمة. التضاريس المحلية والحركة السينمائية توضيحية؛ ليست تسجيلًا فعليًا للرحلة أو مسحًا دقيقًا لكل موقع. يبقى مصدر الإحداثيات وحدود دقتها ظاهرين في كل سجل.", "Photos and models come from mission sources. Local terrain and animations are illustrative. Each record documents the coordinate source and its limitations.")}
           </p>
         </div>
       </section>
       <NasaGallery mission="insight" compact />
       <div className="guide-start">
         <a className="action action-solid" href="#/explore">
-          ابدأ الاستكشاف <Arrow />
+          {t("ابدأ الاستكشاف", "Start exploring")} <Arrow />
         </a>
         <a className="action action-line" href="#/archive">
-          ابدأ بالقراءة <Arrow />
+          {t("ابدأ بالقراءة", "Read the mission records")} <Arrow />
         </a>
       </div>
     </main>
   );
 }
 export function SiteFooter({ onSources }: { onSources: () => void }) {
+  const { t } = useEditorialCopy();
   return (
     <footer className="site-footer">
       <div>
-        <strong>الإشارة الأخيرة</strong>
-        <span>دليل علمي لمعدات القمر والمريخ.</span>
-        <small>مشروع تعليمي مستقل · غير تابع لناسا</small>
+        <strong>{t("الإشارة الأخيرة", "The Last Signal")}</strong>
+        <span>{t("دليل علمي لمعدات القمر والمريخ.", "A guide to equipment on the Moon and Mars.")}</span>
+        <small>{t("مشروع تعليمي مستقل · غير تابع لناسا", "Independent educational project · Unaffiliated with NASA")}</small>
       </div>
       <div>
-        <a href="#/archive">أرشيف المهمات</a>
-        <a href="#/guide">دليل الرحلة</a>
-        <button onClick={onSources}>المصادر وحدود المحاكاة ↗</button>
+        <a href="#/archive">{t("أرشيف المهمات", "Mission archive")}</a>
+        <a href="#/guide">{t("دليل الرحلة", "Explorer guide")}</a>
+        <button onClick={onSources}>{t("المصادر وحدود المحاكاة ↗", "Sources and simulation limits ↗")}</button>
       </div>
       <div className="footer-credit">
-        <small>صور المهمات: NASA / JPL · نسب كل صورة داخل سجلها</small>
+        <small>{t("صور المهمات: NASA / JPL · نسب كل صورة داخل سجلها", "Mission photos: NASA / JPL · Individual credits in each record")}</small>
       </div>
     </footer>
   );
@@ -576,14 +591,15 @@ const explanations: Record<
   },
 };
 function MissionExplanation({ mission }: { mission: Mission }) {
-  const explanation = explanations[mission.id];
+  const { t, english } = useEditorialCopy();
+  const explanation = (english ? englishExplanations : explanations)[mission.id];
   return (
-    <section className="mission-explanation" aria-label="شرح المهمة">
-      <h3>لماذا أُرسلت؟</h3>
+    <section className="mission-explanation" aria-label={t("شرح المهمة", "Mission overview")}>
+      <h3>{t("لماذا أُرسلت؟", "Why was it sent?")}</h3>
       <p>{explanation.goal}</p>
-      <h3>ما الذي نتعلمه منها؟</h3>
+      <h3>{t("ما الذي نتعلمه منها؟", "What did it find?")}</h3>
       <p>{explanation.finding}</p>
-      <h3>كيف انتهت مهمتها؟</h3>
+      <h3>{t("كيف انتهت مهمتها؟", "How did the mission end?")}</h3>
       <p>{explanation.ending}</p>
       <a
         className="text-link"
@@ -591,64 +607,56 @@ function MissionExplanation({ mission }: { mission: Mission }) {
         target="_blank"
         rel="noreferrer"
       >
-        اقرأ توثيق ناسا للمهمة ↗
+        {t("اقرأ توثيق ناسا للمهمة ↗", "Read NASA’s mission documentation ↗")}
       </a>
     </section>
   );
 }
 function ScienceIntroduction() {
+  const { t } = useEditorialCopy();
   return (
     <section className="science-introduction page-section">
       <div className="section-heading">
-        <h2>ماذا وجدت المهمات؟</h2>
+        <h2>{t("ماذا وجدت المهمات؟", "What did the missions find?")}</h2>
       </div>
       <div className="science-reading">
         <article>
-          <h3>آثار الماء في صخور المريخ</h3>
+          <h3>{t("آثار الماء في صخور المريخ", "Evidence of water in Martian rocks")}</h3>
           <p>
-            لم تذهب أوبورتيونيتي لرؤية منظر المريخ فقط. درست الصخور بحثًا عن آثار
-            الماء القديم. حملت كاميرات وأدوات لفحص الصخور على ذراعها، وساعدت
-            نتائجها في فهم بيئة المنطقة قبل وصول العربة بزمن طويل.
+            {t("لم تذهب أوبورتيونيتي لرؤية منظر المريخ فقط. درست الصخور بحثًا عن آثار الماء القديم. حملت كاميرات وأدوات لفحص الصخور على ذراعها، وساعدت نتائجها في فهم بيئة المنطقة قبل وصول العربة بزمن طويل.", "Opportunity used cameras and instruments on its robotic arm to look for signs of ancient water. Its rock measurements helped scientists reconstruct the area’s earlier environment.")}
           </p>
           <p className="reading-conclusion">
-            <strong>الفكرة العلمية:</strong> نستخدم خصائص الصخور للاستدلال على
-            بيئة تكوّنها؛ الدليل على الماء ليس دليلًا مباشرًا على الحياة.
+            <strong>{t("الفكرة العلمية:", "The science")}</strong> {t("نستخدم خصائص الصخور للاستدلال على بيئة تكوّنها؛ الدليل على الماء ليس دليلًا مباشرًا على الحياة.", "Rock properties provide clues about how they formed. Evidence of water alone does not establish that life was present.")}
           </p>
           <a href={missions[0].source} target="_blank" rel="noreferrer">
-            المصدر: NASA / Opportunity ↗
+            {t("المصدر: NASA / Opportunity ↗", "Source: NASA / Opportunity ↗")}
           </a>
           <a className="reading-next" href="#/archive?mission=opportunity">
-            اقرأ التسلسل الكامل للمهمة ←
+            {t("اقرأ التسلسل الكامل للمهمة ←", "Read the full mission timeline →")}
           </a>
         </article>
         <article>
-          <h3>قياس الزلازل على المريخ</h3>
+          <h3>{t("قياس الزلازل على المريخ", "Measuring marsquakes")}</h3>
           <p>
-            بقي إنسايت في مكانه، لكنه حمل مقياس زلازل لقياس اهتزازات المريخ.
-            تساعد هذه القياسات على دراسة باطن الكوكب؛ فالمسبار الثابت يستطيع
-            الإجابة عن أسئلة تختلف عن أسئلة العربة المتحركة.
+            {t("بقي إنسايت في مكانه، لكنه حمل مقياس زلازل لقياس اهتزازات المريخ. تساعد هذه القياسات على دراسة باطن الكوكب؛ فالمسبار الثابت يستطيع الإجابة عن أسئلة تختلف عن أسئلة العربة المتحركة.", "InSight stayed at its landing site and used a seismometer to detect marsquakes. Those readings helped scientists study the planet’s interior.")}
           </p>
           <p className="reading-conclusion">
-            <strong>الفكرة العلمية:</strong> نختار الأداة حسب السؤال. الحركة على
-            السطح ليست شرطًا لكل اكتشاف.
+            <strong>{t("الفكرة العلمية:", "The science")}</strong> {t("نختار الأداة حسب السؤال. الحركة على السطح ليست شرطًا لكل اكتشاف.", "A stationary seismometer can answer questions that a moving rover’s instruments cannot.")}
           </p>
           <a href={missions[2].source} target="_blank" rel="noreferrer">
-            المصدر: NASA / InSight ↗
+            {t("المصدر: NASA / InSight ↗", "Source: NASA / InSight ↗")}
           </a>
           <a className="reading-next" href="#/archive?mission=insight">
-            اقرأ أدوات المسبار ومحطات عمله ←
+            {t("اقرأ أدوات المسبار ومحطات عمله ←", "Explore InSight’s instruments and milestones →")}
           </a>
         </article>
       </div>
       <div className="reading-note">
-        <h3>لماذا بقيت المعدات هناك؟</h3>
+        <h3>{t("لماذا بقيت المعدات هناك؟", "Why did the equipment stay there?")}</h3>
         <p>
-          تختلف الإجابة حسب المهمة: توقفت عربات ومسابير مع فقدان الطاقة أو
-          الاتصال، وانتهى طيران إنجينيويتي بعد تضرر شفراتها. في أبولو 11، كان
-          ترك مرحلة الهبوط جزءًا من طريقة مغادرة السطح. لهذا نفصل في كل سجل بين
-          نهاية العمل، وآخر اتصال، والمعدات التي بقيت فعلًا.
+          {t("تختلف الإجابة حسب المهمة: توقفت عربات ومسابير مع فقدان الطاقة أو الاتصال، وانتهى طيران إنجينيويتي بعد تضرر شفراتها. في أبولو 11، كان ترك مرحلة الهبوط جزءًا من طريقة مغادرة السطح. لهذا نفصل في كل سجل بين نهاية العمل، وآخر اتصال، والمعدات التي بقيت فعلًا.", "Rovers and landers stopped operating when power or contact was lost. Ingenuity stopped flying after its rotor blades were damaged. Apollo 11 left its descent stage behind when the crew lifted off.")}
         </p>
-        <a href="#/archive">قارن بين نهايات المهمات في الأرشيف ←</a>
+        <a href="#/archive">{t("قارن بين نهايات المهمات في الأرشيف ←", "Compare how the missions ended →")}</a>
       </div>
     </section>
   );

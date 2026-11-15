@@ -1,5 +1,6 @@
+import { LanguageToggle } from "./LanguageToggle";
 import { ExplorerLanguage, type Language } from "./explorer-language";
-import { englishDimensions, englishShot, missionEnglish } from "./explorer-english";
+import { englishAnnualStories, englishDimensions, englishShot, missionEnglish } from "./explorer-english";
 import { Home, Archive, Guide, SiteHeader, SiteFooter } from "./Experience";
 import { NasaGallery } from "./NasaGallery";
 import { ThemeToggle } from "./ThemeToggle";
@@ -74,7 +75,7 @@ function App() {
       return "ar";
     }
   });
-  const language = route.page === "explore" ? preferredLanguage : "ar";
+  const language = preferredLanguage;
   const english = language === "en";
   const t = (ar: string, en: string) => english ? en : ar;
 
@@ -115,7 +116,7 @@ function App() {
     frames = useMemo(() => shotsFor(m), [m.id]),
     frameIndex = Math.min(frames.length - 1, Math.floor(film)),
     shot = frames[frameIndex],
-    displayedShot = english ? englishShot(shot) : shot,
+    displayedShot = english ? englishShot(shot, m.id) : shot,
     missionName = english ? m.en : m.name,
     missionCopy = english ? missionEnglish[m.id] : m,
     bodyName = m.body === "moon" ? t("القمر", "Moon") : t("المريخ", "Mars"),
@@ -126,7 +127,7 @@ function App() {
     start = Date.parse(frames[0].date),
     end = Date.parse(frames.at(-1)!.date),
     year = new Date(day).getUTCFullYear(),
-    yearStory = annualStories(m)[year];
+    yearStory = (english ? englishAnnualStories[m.id] : annualStories(m))[year];
   const date = new Date(day).toLocaleDateString(english ? "en" : "ar-JO", {
     year: "numeric",
     month: "long",
@@ -160,11 +161,12 @@ function App() {
   useEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = english ? "ltr" : "rtl";
-    document.title = route.page === "explore"
-      ? t("الاستكشاف — الإشارة الأخيرة", "Explore — The Last Signal")
-      : { home: "الإشارة الأخيرة — دليل معدات القمر والمريخ",
-          archive: "أرشيف المهمات — الإشارة الأخيرة",
-          guide: "دليل الرحلة — الإشارة الأخيرة" }[route.page];
+    document.title = {
+      home: t("الإشارة الأخيرة — دليل معدات القمر والمريخ", "The Last Signal — Equipment on the Moon and Mars"),
+      archive: t("أرشيف المهمات — الإشارة الأخيرة", "Mission Archive — The Last Signal"),
+      guide: t("دليل الرحلة — الإشارة الأخيرة", "Explorer Guide — The Last Signal"),
+      explore: t("الاستكشاف — الإشارة الأخيرة", "Explore — The Last Signal"),
+    }[route.page];
   }, [language, route.page]);
   useEffect(() => {
     setMode(route.mode);
@@ -257,7 +259,7 @@ function App() {
         {t("تجاوز إلى المحتوى", "Skip to content")}
       </a>
       {route.page !== "explore" && (
-        <SiteHeader page={route.page} onSources={() => setSources(true)} />
+        <SiteHeader page={route.page} onSources={() => setSources(true)} onLanguageToggle={toggleLanguage} />
       )}
       {route.page === "home" && <Home />}
       {route.page === "archive" && (
@@ -292,12 +294,7 @@ function App() {
               ))}
             </nav>
             <div className="fullscreen-toolbar__actions">
-              <button className="language-toggle theme-toggle" onClick={toggleLanguage}
-                aria-label={t("Switch to English", "التبديل إلى العربية")}
-                lang={english ? "ar" : "en"}
-              >
-                {t("EN", "عربي")}
-              </button>
+              <LanguageToggle onToggle={toggleLanguage} />
               <ThemeToggle />
             </div>
           </header>
@@ -437,11 +434,10 @@ function App() {
                             {t("مصدر هذه المرحلة ↗", "Source for this phase ↗")}
                           </a>
                         </div>
-                        {!english && yearStory && (
+                        {yearStory && (
                           <div className="yearStory">
                             <small>
-                              قصة عام {year} · ملخص سنوي، لا حدث مؤرخ في الأول
-                              من يناير
+                              {t(`قصة عام ${year} · ملخص سنوي`, `${year} · Annual summary`)}
                             </small>
                             <h3>{yearStory[0]}</h3>
                             <p>{yearStory[1]}</p>
@@ -675,7 +671,7 @@ function App() {
                     }}
                   >
                     <small>{x.date}</small>
-                    {english ? englishShot(x).title : x.title}
+                    {english ? englishShot(x, m.id).title : x.title}
                   </button>
                 ))}
               </div>

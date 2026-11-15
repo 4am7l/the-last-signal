@@ -8,3 +8,7 @@ export function useExplorerText() {
   const language = useContext(ExplorerLanguage);
   return (arabic: string, english: string) => language === "en" ? english : arabic;
 }
+
+export function useLanguage() {
+  return useContext(ExplorerLanguage);
+}

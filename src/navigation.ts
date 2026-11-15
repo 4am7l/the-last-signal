@@ -25,7 +25,7 @@ export function exploreHref(mission: string, mode: View = "model") {
   return `#/explore?mission=${encodeURIComponent(mission)}&view=${mode}`;
 }
 export function matchesMission(
-  m: { name: string; en: string; site: string; body: string },
+  m: { name: string; en: string; site: string; body: string; searchAliases?: string },
   query: string,
   body: string,
 ) {
@@ -39,7 +39,7 @@ export function matchesMission(
   return (
     (body === "all" || m.body === body) &&
     normalize(
-      `${m.name} ${m.en} ${m.site} ${m.body} ${m.body === "moon" ? "القمر" : "المريخ"}`,
+      `${m.name} ${m.en} ${m.site} ${m.searchAliases ?? ""} ${m.body} ${m.body === "moon" ? "القمر" : "المريخ"}`,
     ).includes(normalize(query))
   );
 }
