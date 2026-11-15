@@ -111,7 +111,6 @@ function App() {
     try {
       localStorage.setItem("tls-explorer-language", next);
     } catch {
-      // The language still applies for this session.
     }
   }
 
@@ -176,7 +175,6 @@ function App() {
     if (!sceneSelection) return;
     let commitFrame = 0;
     const paintFrame = requestAnimationFrame(() => {
-      // Give the loader a paint before the selected terrain and model are built.
       commitFrame = requestAnimationFrame(() => {
         if (window.location.hash !== sceneSelection.fromHash) {
           setSceneSelection(null);

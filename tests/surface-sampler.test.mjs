@@ -16,7 +16,6 @@ test('ground contacts match rendered triangles including the seam and pole',()=>
   const k=row*columns+column;
   for(const indices of [[k,k+1,k+columns],[k+1,k+columns+1,k+columns]]){
    const points=indices.map(i=>positions.slice(i*3,i*3+3));
-   // Arbitrary barycentric interior point, including the wraparound sector.
    const weights=[.23,.34,.43],expected=[0,0,0];
    points.forEach((p,i)=>p.forEach((v,axis)=>expected[axis]+=v*weights[i]));
    assert.ok(Math.abs(ground(expected[0],expected[2])-expected[1])<1e-8);

@@ -6,7 +6,6 @@ import { Planet } from "./Planet";
 import { RADII_KM, systemLayout } from "./sceneMath";
 import { SUN_DIRECTION } from "./solar";
 
-/** Only the Moon and Mars are available in the celestial body overview. */
 export function SystemOverview({
   physical,
   focusPair,

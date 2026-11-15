@@ -1,4 +1,3 @@
-/* Material 3 shapes and typography refinements, loaded after the base styles. */
 :root {
   --tls-shape-card: var(--md-sys-shape-corner-extra-large);
   --tls-shape-media: var(--md-sys-shape-corner-large);
@@ -65,7 +64,6 @@ button, .action, .primary, .play, .source-link,
   line-height: 2;
 }
 
-/* Consistent pill controls, sheets and rounded rectangles across all routes */
 .site-header, .site-footer, .explore-toolbar,
 .archive-controls, .nasa-gallery, .nasa-lightbox__content,
 .exploration-page .archive, .exploration-page .timebar,
@@ -385,7 +383,6 @@ input[type="search"], input[type="date"], select, textarea,
   }
 }
 
-/* Use ruled sections for reading and reserve filled surfaces for controls. */
 .science-reading article, .guide-steps article, .reading-note,
 .reading-conclusion, .closing-section {
   background: transparent;

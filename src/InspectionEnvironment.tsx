@@ -2,8 +2,6 @@ import {useEffect,useMemo} from 'react';
 import {useFrame,useThree} from '@react-three/fiber';
 import * as T from 'three';
 
-// Invisible, diffuse overhead softbox in the reflection environment. Metallic
-// rover parts need image-based light as well as the ground's diffuse fill.
 export function InspectionEnvironment({strength}:{strength:number}){
  const {gl,scene}=useThree();
  const environment=useMemo(()=>{

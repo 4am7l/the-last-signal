@@ -1,7 +1,3 @@
-/**
- * Resolve an official NASA image asset to its highest available resolution.
- * The asset manifest is fetched only when a visitor opens the lightbox.
- */
 type Manifest = { collection?: { items?: Array<{ href?: string }> } };
 
 function isAllowedImage(href: string) {

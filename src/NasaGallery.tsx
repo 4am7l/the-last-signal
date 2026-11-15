@@ -32,7 +32,6 @@ const names: Record<string, string> = {
   ingenuity: "إنجينيويتي",
 };
 
-/** NASA media cards are fetched only when the gallery approaches the viewport. */
 export function NasaGallery({
   mission,
   compact = false,
@@ -137,7 +136,6 @@ export function NasaGallery({
 
   useEffect(() => {
     if (!open) {
-      // Return keyboard users to the photo they were viewing.
       lastTrigger.current?.focus({ preventScroll: true });
       return;
     }

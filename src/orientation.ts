@@ -1,7 +1,5 @@
 import * as T from 'three';
 import {julianDay,type Body} from './science';
-// Mean IAU orientation, pck00010 / IAU 2009; no nutation/libration or polar motion.
-// Not a substitute for mission SPICE kernels.
 export function bodyOrientation(body:Body,epoch:number){
  const d=julianDay(epoch)-2451545,t=d/36525,rad=Math.PI/180;
  const p=body==='earth'?[-.641*t,90-.557*t,190.147+360.9856235*d]:

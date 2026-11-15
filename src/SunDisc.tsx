@@ -2,7 +2,6 @@ import {useEffect,useMemo} from 'react';
 import {useFrame,useThree} from '@react-three/fiber';
 import * as T from 'three';
 import {SCENE_SUN_DIRECTION} from './solar';
-// Angular disk in the same infinite sky as the stars, hidden by opaque bodies.
 export function SunDisc({angularRadius=.00465}:{angularRadius?:number}){
  const {gl,size}=useThree();const geometry=useMemo(()=>{const g=new T.BufferGeometry();g.setAttribute('position',new T.Float32BufferAttribute(SCENE_SUN_DIRECTION.toArray(),3));return g},[]);
  const uniforms=useMemo(()=>({resolutionY:{value:1},angularRadius:{value:angularRadius}}),[]);

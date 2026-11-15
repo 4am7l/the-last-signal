@@ -8,8 +8,6 @@ const source=stripTypeScriptTypes(readFileSync(new URL('../src/marsGeology.ts',i
 const {marsRoverRoadPoint:point,marsRoverRoadYaw:yaw,marsRoverRoadClearance:clear}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
 for(const site of ['spirit','opportunity']){
  const heading=yaw(site);
- // The GLB's local wheelbase axis is Z. The rendered model rotates it by
- // PI/2 + heading, giving this direction in the site's XZ plane.
  const forward={x:Math.cos(heading),z:-Math.sin(heading)};
  for(const side of [-1,1]){
   const a=point(0,side,site),b=point(1e-6,side,site);

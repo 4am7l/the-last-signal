@@ -1,14 +1,10 @@
 import {noise3} from './sceneMath';
-// Mean spherical radii, metres. The render scale is arbitrary; ratios are physical.
 export const MOON_RADIUS_METRES = 1737400;
 export const EARTH_RADIUS_METRES = 6371000;
 export const MARS_RADIUS_METRES = 3389500;
 export const MOON_RENDER_RADIUS = 300;
 export const METRES_TO_SCENE = MOON_RENDER_RADIUS / MOON_RADIUS_METRES;
 const smooth = (a:number,b:number,x:number) => {const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
-// Low mare basalt plains around Apollo 11, with small softened impact
-// craters and distant rolling regolith. This is illustrative microterrain,
-// not a metre-accurate Apollo site survey.
 export const craters=Array.from({length:44},(_,i)=>{
  const angle=i*2.399963229728653+.25*Math.sin(i*1.7);
  const distance=i<7?145+i*101:42+Math.pow((i-6)/38,1.18)*1010;
@@ -27,12 +23,9 @@ export function localRelief(x:number,z:number){
  const d=Math.hypot(x,z);
  if(d>=1750||d<=5)return 0;
  const pad=smooth(5,18,d),edge=1-smooth(1250,1750,d);
- // Wide, broad shouldered rises, not pointed mountain cones.
  const broad=(noise3(x*.006,19,z*.006)-moonNoiseOrigin)*2.35+
   (noise3(x*.021,37,z*.021)-fineNoiseOrigin)*.51;
  const ridge=(noise3(x*.0035,53,z*.0035)-ridgeOrigin)*6.2;
- // Overlapping tilted elliptical shoulders give low, rounded highlands.
- // A separate fade preserves the quiet mare at the lander and the globe seam.
  let highlands=0;
  for(let i=0;i<5;i++){
   const a=i*2.399963+.7,r=420+i*155;
@@ -52,8 +45,6 @@ export function localRelief(x:number,z:number){
  }
  return (broad+ridge+highlands+shoulder+smallRubble+impacts)*pad*edge;
 }
-// Regional relief has the same broad shoulders and depth hierarchy as Mars,
-// while the lunar material and impact field retain their own identity.
 export function lunarRegionalRelief(x:number,z:number){
  const d=Math.hypot(x,z);
  if(d<=180||d>=11000)return 0;
@@ -70,7 +61,6 @@ export function lunarRegionalRelief(x:number,z:number){
  const eroded=noise3(x*.0021,83,z*.0021)*7+noise3(x*.006,97,z*.006)*2;
  return (h+eroded)*smooth(180,650,d)*(1-smooth(6500,11000,d));
 }
-// Preserve fine rings at the equipment AND adequate coverage on the far hemisphere.
 export function ringAngle(index:number,nearRings=160,farRings=320,radiusMetres=MOON_RADIUS_METRES){
  if(index===0)return 0;
  if(index<=nearRings)return Math.exp(Math.log(.25/radiusMetres)+(Math.log(.01)-Math.log(.25/radiusMetres))*(index-1)/(nearRings-1));

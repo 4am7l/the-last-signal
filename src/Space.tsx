@@ -63,18 +63,11 @@ function Operations({m,p,active,travel}:{m:Mission;p:number;active:boolean;trave
 export function Space(props:{mode:Mode;m:Mission;day:number;shot:Shot;progress:number;journeyProgress:number;onMission:(i:number)=>void;reset:number;language?:Language;sceneKey?:string;onSceneReady?:(key:string)=>void;onApproachChange?:(active:boolean)=>void;cameraCommand?:CameraCommand}){return <Canvas shadows gl={{logarithmicDepthBuffer:true,antialias:true,toneMapping:T.ACESFilmicToneMapping,toneMappingExposure:1.05}} camera={{position:[1000,1600,6500],fov:44,near:.1,far:30000}} dpr={[1,2]}><color attach="background" args={['#eef3fc']}/><ambientLight intensity={props.mode==='story'?.4:0}/><directionalLight castShadow shadow-mapSize={[2048,2048]} shadow-camera-left={-60} shadow-camera-right={60} shadow-camera-top={60} shadow-camera-bottom={-60} shadow-camera-far={500} position={SUN_DIRECTION.clone().multiplyScalar(600)} intensity={props.mode==='story'?2.4:0}/><RenderSettings/><SceneContent {...props}/><CameraCommands command={props.cameraCommand} language={props.language}/></Canvas>}
 
 function SceneContent(props: Parameters<typeof Space>[0]) {
-  // The canvas has its own React root. Defer the destination inside that root
-  // so Suspense can keep rendering the previous world while assets are loading.
   const deferredScene = useDeferredValue(props);
   const visibleScene = deferredScene.sceneKey === props.sceneKey ? props : deferredScene;
   return <Suspense fallback={null}><SceneAssetsGate {...visibleScene}/></Suspense>;
 }
 
-/**
- * Do not remove the loading screen on a timer. Suspend for the actual base maps,
- * lunar height data and mission model, then confirm two WebGL render frames.
- * Optional progressive 8K imagery/DEM tiles continue loading in the background.
- */
 function SceneAssetsGate(props: Parameters<typeof Space>[0]) {
   const body = props.m.body;
   useLoader(T.TextureLoader, body === "mars" ? "/mars-nasa-viking.jpg" : "/moon.jpg");

@@ -10,7 +10,6 @@ const read=name=>readFileSync(new URL('../src/'+name,import.meta.url),'utf8');
 const math=url(stripTypeScriptTypes(read('sceneMath.ts')));
 const geology=url(stripTypeScriptTypes(read('marsGeology.ts')).replace("from './sceneMath'",`from '${math}'`));
 const stone=url(stripTypeScriptTypes(read('stoneMaterial.ts')).replace("from 'three'",`from '${import.meta.resolve('three')}'`));
-// Execute the actual seeded population builders without mounting a WebGL canvas.
 const hooks=url('export const useMemo=fn=>fn();export const useEffect=()=>{};');
 async function component(name){
  let code=(await transformWithOxc(read(name),name,{jsx:{runtime:'automatic'}})).code;

@@ -11,7 +11,6 @@ assert.ok(Math.abs(9.4*METRES_TO_SCENE/MOON_RENDER_RADIUS-9.4/MOON_RADIUS_METRES
 assert.equal(ringAngle(0),0);
 assert.ok(Math.abs(ringAngle(480)-Math.PI)<1e-12);
 for(let i=1;i<=480;i++)assert.ok(ringAngle(i)>ringAngle(i-1));
-// Global silhouette no longer has fourteen-degree gaps between the far rings.
 for(let i=162;i<=480;i++)assert.ok(ringAngle(i)-ringAngle(i-1)<Math.PI/180);
 assert.equal(localRelief(0,0),0);
 assert.equal(localRelief(5,0),0);

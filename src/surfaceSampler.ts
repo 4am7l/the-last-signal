@@ -1,5 +1,3 @@
-// Sample the rendered radial mesh, not just the higher-frequency source noise.
-// This keeps large distant rocks and walking feet on the visible triangles.
 export function radialGroundSampler(positions:ArrayLike<number>,radii:number[],sectors:number,unit:number,fallback:(x:number,z:number)=>number){
  const columns=sectors+1;
  return (x:number,z:number)=>{

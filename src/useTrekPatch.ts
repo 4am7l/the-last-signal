@@ -1,14 +1,9 @@
 import {useEffect,useState} from 'react';
 import * as T from 'three';
 
-// Official NASA/JPL Trek equirectangular WMTS layers. They are georegistered
-// global imagery, not new fictional ground textures. If CORS, data coverage
-// or the network fails, the base globe imagery remains fully functional.
 type Body='moon'|'mars';
 export type TrekPatch={
  texture:T.Texture;
- // Equirectangular UV: west, south, width, height in the same coordinates
- // as the global image (0..1, bottom-to-top).
  extent:T.Vector4;
  source:string;
 };
@@ -61,8 +56,6 @@ async function buildPatch(body:Body,latitude:number,longitude:number):Promise<Tr
  texture.magFilter=T.LinearFilter;
  texture.anisotropy=8;
  texture.needsUpdate=true;
- // NASA WMTS atlas is north-to-south. CanvasTexture's flipY maps the
- // northernmost row to v=1, matching our spherical UV convention.
  const minU=firstCol/cols,minV=1-(firstRow+tiles)/rows;
  return {
   texture,
@@ -81,8 +74,6 @@ export function useTrekPatch(body:string,lat:number,lon:number,enabled=true){
  const key=body+':'+lat.toFixed(4)+':'+lon.toFixed(4);
  const [ready,setReady]=useState<{key:string;patch:TrekPatch|null}|null>(null);
  useEffect(()=>{
-  // Initial orbital view should not request 16 local imagery tiles before
-  // the visitor selects a planet/site. Begin only once exploration starts.
   if(!enabled||(body!=='moon'&&body!=='mars'))return;
   let active=true;
   cachedPatch(body,lat,lon).then(patch=>{

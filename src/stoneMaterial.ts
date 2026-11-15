@@ -1,7 +1,5 @@
 import * as T from 'three';
 
-// Shared dust/mineral response, with separate basalt and oxide palettes supplied
-// by each instance. Screen filtering prevents distant grit from sparkling.
 export function stoneMaterial(){
  const mat=new T.MeshStandardMaterial({color:'#ffffff',vertexColors:true,roughness:1,metalness:0});
  mat.customProgramCacheKey=()=> 'weathered-stone-v1';

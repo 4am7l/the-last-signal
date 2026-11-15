@@ -10,7 +10,6 @@ assert.equal(eclipseVisibility(point,{position:toward.toArray(),radius:100}),0,'
 assert.equal(eclipseVisibility(point,{position:toward.clone().negate().toArray(),radius:100}),1,'body behind receiver cannot cast a solar shadow on it');
 assert.equal(eclipseVisibility(point,{position:toward.clone().addScaledVector(perpendicular,110).toArray(),radius:100}),1,'missed light ray remains lit');
 const partial=eclipseVisibility(point,{position:toward.clone().addScaledVector(perpendicular,100).toArray(),radius:100});assert.ok(partial>.45&&partial<.55);
-// Check shader extension against the actual shipped standard material chunks.
 const shader={vertexShader:T.ShaderLib.standard.vertexShader,fragmentShader:T.ShaderLib.standard.fragmentShader,uniforms:{}};
 solarShader(shader,[{position:toward.toArray(),radius:100}]);
 assert.ok(shader.vertexShader.includes('solarWorld=(modelMatrix*vec4(transformed,1.)).xyz;'));

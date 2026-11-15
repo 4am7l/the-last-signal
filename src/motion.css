@@ -5,7 +5,6 @@
   rotate: 180deg;
 }
 
-/* Material-style feedback: state tint and elevation, without changing layout. */
 :where(.action, .primary, .play, .source-link, .theme-toggle, .language-toggle,
  .site-header nav a, .filter-group button, .record-actions a, .body-picker a,
  .camera-dock button, .destination-missions li > button,

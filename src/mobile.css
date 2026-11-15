@@ -1,4 +1,3 @@
-/* Mobile-first interaction layer: full-sized WebGL view, safe-area controls and a movable mission drawer. */
 .mobileControls,.mobileSheetToggle{display:none}
 .canvas canvas{touch-action:none;-webkit-user-select:none;user-select:none}
 @media(max-width:850px){

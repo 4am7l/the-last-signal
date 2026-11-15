@@ -9,7 +9,6 @@ import {usePlanetTexture} from './usePlanetTexture';
 import {localRelief} from './lunarTerrain';
 import {mountains,surfaceDetail,marsRelief,lunarPinPlacement} from './sceneMath';
 import {SCENE_SUN_DIRECTION,solarShader,type Occluder} from './solar';
-// Equirectangular maps: Greenwich at u=.5, east-positive longitude.
 export function point(lat:number,lon:number,r=300){const a=T.MathUtils.degToRad(lat),b=T.MathUtils.degToRad(lon);return new T.Vector3(r*Math.cos(a)*Math.cos(b),r*Math.sin(a),-r*Math.cos(a)*Math.sin(b))}
 import {MarsAtmosphere as Atmosphere} from './MarsAtmosphere';
 export {MarsAtmosphere as Atmosphere} from './MarsAtmosphere';
@@ -43,7 +42,6 @@ export function lunarSiteDirection() {
  return direction.normalize();
 }
 
-// Persistent labels supply their own off-globe position even behind the camera.
 const keepPinVisible = () => {};
 
 export function SitePin({
@@ -136,7 +134,6 @@ export function SitePin({
  );
 }
 function Regolith({moon,launch}:{moon:boolean;launch:boolean}){const material=useMemo(()=>{const mat=new T.MeshStandardMaterial({color:launch?'#475349':moon?'#797773':'#9a6d50',roughness:1});mat.onBeforeCompile=shader=>{shader.vertexShader='varying vec3 vGround;\n'+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvGround=position;');shader.fragmentShader='varying vec3 vGround;\nfloat grain(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }\n'+shader.fragmentShader.replace('#include <color_fragment>','#include <color_fragment>\nfloat grit=grain(floor(vGround.xz*85.)); float strata=sin(vGround.x*.13+sin(vGround.z*.17))*sin(vGround.z*.08); diffuseColor.rgb*=.84+grit*.24+strata*.07;');};return mat},[moon,launch]);useEffect(()=>()=>material.dispose(),[material]);return <primitive object={material} attach="material"/>}
-// Illustrative metre-scale story terrain, shared relief functions with exploration.
 export function terrainHeight(x:number,z:number,moon:boolean){const radius=moon?1737400:3389500;return localRelief(x,z)*(moon?1:.35)+mountains(x,z,moon?'moon':'mars')+surfaceDetail(x,z,moon?'moon':'mars')-(x*x+z*z)/(2*radius)}
 export function Terrain({moon=false,launch=false}:{moon?:boolean;launch?:boolean}){
  const geometry=useMemo(()=>{

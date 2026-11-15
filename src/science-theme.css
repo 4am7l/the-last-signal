@@ -508,7 +508,6 @@ h1 {
 .reading-note p {
   max-width: 1000px;
 }
-/* Only the simulated sky remains dark; reading panels and controls use the light theme. */
 .explore-toolbar,
 .exploration-page .archive,
 .exploration-page .timebar {
@@ -973,7 +972,6 @@ h1 {
     font-size: 24px;
   }
 }
-/* Keep every legacy simulation label on the same text family. */
 .worldLabel,
 .pin,
 .sitePin,

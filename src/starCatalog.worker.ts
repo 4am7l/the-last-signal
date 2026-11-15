@@ -1,6 +1,3 @@
-// Catalogue data © David Nash, HYG v4.1, CC BY-SA 4.0.
-// https://github.com/astronexus/HYG-Database/tree/main/hyg/CURRENT
-// Transform only; no invented point sources and no claimed Gaia provenance.
 function csvRow(line:string){const fields:string[]=[];let value='',quoted=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'){if(quoted&&line[i+1]==='"'){value+='"';i++;}else quoted=!quoted;}else if(c===','&&!quoted){fields.push(value);value='';}else value+=c;}fields.push(value);return fields;}
 self.onmessage=async()=>{
  try{

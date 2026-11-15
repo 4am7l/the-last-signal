@@ -2,7 +2,6 @@ import {useRef} from 'react';
 import {useFrame,useThree} from '@react-three/fiber';
 import {useSimulation,PRESETS} from './simulation';
 
-// Ultra uses native device resolution up to 2x without dynamic quality scaling.
 export function RenderSettings(){
  const {gl,setDpr}=useThree();
  const settings=useSimulation();

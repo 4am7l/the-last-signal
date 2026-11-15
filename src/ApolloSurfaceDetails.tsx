@@ -3,8 +3,6 @@ import * as T from 'three';
 import {noise3} from './sceneMath';
 import {stoneMaterial} from './stoneMaterial';
 
-// Seeded illustrative Apollo 11 debris: fractured, partly buried basalt and
-// regolith pebbles. No towering monoliths or floating polygonal formations.
 type Shape='boulder'|'slab'|'gravel'|'outcrop';
 const palette=['#777672','#898783','#aba69c','#5f605e','#77736b','#99958e','#62615e'];
 const VARIANTS:Record<Shape,number>={boulder:4,slab:3,gravel:3,outcrop:4};
@@ -78,8 +76,6 @@ export function ApolloRocks({ground,unit,count,clearance}:{
      Math.abs(bounds.min.x),Math.abs(bounds.max.x),
      Math.abs(bounds.min.z),Math.abs(bounds.max.z));
     for(let i=0;i<n;i++){
-     // Apollo 11 is a low-relief basalt mare: nearby stones remain smaller
-     // than the lander, with only occasional metre-scale distant fragments.
      const hero=shape==='boulder'&&i<3;
      const size=distant?7+random()*15:hero?1.5+random()*2.1:shape==='boulder'?.16+Math.pow(random(),2.3)*1.5:
       shape==='slab'?.08+Math.pow(random(),2.25)*.85:
@@ -94,7 +90,6 @@ export function ApolloRocks({ground,unit,count,clearance}:{
       const reach=distant?2300:small?(far?300:70):far?900:220;
       const r=minRadius+Math.pow(random(),small?.69:.93)*reach;
       x=Math.cos(a)*r;z=Math.sin(a)*r;
-      // Leave a narrow unobstructed visitor approach from the camera side.
       const along=(x+z)*Math.SQRT1_2,across=Math.abs((x-z)*Math.SQRT1_2);
       if(!small&&along>0&&along<125&&across<6+radius)continue;
       if(!small&&occupied.some(p=>Math.hypot(x-p.x,z-p.z)<(radius+p.r)*1.15))continue;
@@ -117,8 +112,6 @@ export function ApolloRocks({ground,unit,count,clearance}:{
      dummy.position.set(0,0,0);dummy.updateMatrix();
      const base=rotatedBottom(geometry,dummy.matrix);
      const level=support??{height:ground(x,z),spread:0};
-     // Real contact uses the transformed silhouette, with regolith burying
-     // some of the lower facets so fragments do not levitate or balance.
      const burial=sy*unit*(distant?.38:small?.18:shape==='boulder'?.28:.24)+level.spread*.27;
      dummy.position.set(x*unit,level.height-base-burial,z*unit);
      dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);

@@ -21,7 +21,6 @@ function initialTheme(): ThemeMode {
     (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
 }
 
-/** A small independent theme control: the WebGL scene never rerenders for UI theme changes. */
 export function ThemeToggle() {
  const t = useExplorerText();
   const [theme, setTheme] = useState<ThemeMode>(initialTheme);
@@ -50,7 +49,6 @@ export function ThemeToggle() {
     try {
       window.localStorage.setItem("tls-theme", next);
     } catch {
-      // Storage is optional; the toggle works for the current page.
     }
   };
 

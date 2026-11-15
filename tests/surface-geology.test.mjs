@@ -7,7 +7,6 @@ const mathUrl=url(load('sceneMath'));
 const {fissureMask}=await import(mathUrl);
 const {createMarsRelief,marsCraterField,marsLandingRadius}=await import(url(load('marsGeology').replace("from './sceneMath'",`from '${mathUrl}'`)));
 
-// Real geometry grooves must stay bounded and outside equipment footprints.
 for(let x=-10;x<=10;x++)for(let z=-10;z<=10;z++)assert.ok(fissureMask(x,z)<1e-20);
 assert.equal(fissureMask(500,500),0);
 for(let a=-70;a<=155;a+=3){

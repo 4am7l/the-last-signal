@@ -24,7 +24,6 @@ export function decodeMola(buffer:ArrayBuffer,label:string):ElevationGrid{
  const sample=field('SAMPLE_TYPE'),offset=Number(field('OFFSET')?.split(/\s/)[0]),scale=Number(field('SCALING_FACTOR')?.split(/\s/)[0]);
  if(width!==1440||height!==720||bits!==16||sample!=='MSB_INTEGER'||!Number.isFinite(offset)||!Number.isFinite(scale)||buffer.byteLength!==width*height*2)throw Error('Unsupported MOLA label');
  const data=new DataView(buffer),metres=new Float32Array(width*height);
- // MEGR is planetary radius, in metres, not areoid-relative topography.
  for(let i=0;i<metres.length;i++){const radius=data.getInt16(i*2,false)*scale+offset;if(radius<3300000||radius>3450000)throw Error('Invalid MOLA radius');metres[i]=radius-3389500;}
  return {width,height,metres,longitudeOrigin:0,source:'NASA MGS/MOLA MEGR · 4 px/degree'};
 }

@@ -1,5 +1,4 @@
 import * as T from 'three';
-// One distant sun for every material, atmosphere and shadow ray.
 export const SUN_DIRECTION=new T.Vector3(-.72,.44,.54).normalize();
 export const SCENE_SUN_DIRECTION=SUN_DIRECTION.clone();
 export type Occluder={position:[number,number,number];radius:number};

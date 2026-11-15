@@ -19,8 +19,6 @@ export function SurfaceNavigation({active,body,unit,ground,center,equipmentRadiu
   const clear=()=>keys.current.clear();
   const move=(e:MouseEvent)=>{if(document.pointerLockElement===gl.domElement){angles.current.yaw-=e.movementX*.002;angles.current.pitch=T.MathUtils.clamp(angles.current.pitch-e.movementY*.002,-1.48,1.48)}};
   const lock=()=>{if(!window.matchMedia('(pointer:coarse)').matches&&document.pointerLockElement!==gl.domElement)gl.domElement.requestPointerLock()?.catch(()=>{})};
-  // Touch devices cannot use pointer lock. Dragging the actual 3D canvas looks around,
-  // while the on-screen movement pad emits the same key codes as the desktop controls.
   const touch= {id:-1,x:0,y:0};
   const touchDown=(e:PointerEvent)=>{if(e.pointerType!=='touch'||touch.id!==-1)return;touch.id=e.pointerId;touch.x=e.clientX;touch.y=e.clientY;};
   const touchMove=(e:PointerEvent)=>{
@@ -54,11 +52,6 @@ export function SurfaceNavigation({active,body,unit,ground,center,equipmentRadiu
   velocity.current.lerp(motion,1-Math.exp(-dt*10));
   const before=camera.position.clone(),candidate=before.clone().addScaledVector(velocity.current,dt*unit);
   const mx=candidate.x/unit,mz=candidate.z/unit;
-  // The old synthetic collider field did not match the rendered Mars rocks.
-  // Let the clear approach work without invisible blockers; retain lunar collision checks.
-  // Preserve actual equipment clearance and exploration radius. The old
-  // synthetic rock colliders did not match rendered Apollo stones and caused
-  // invisible walls across otherwise clear lunar walking routes.
   const blocked=Math.hypot(mx,mz)>200||Math.hypot(mx,mz)<equipmentRadius+.35;
   const oldFloor=ground(before.x/unit,before.z/unit),floor=ground(mx,mz);
   const horizontal=Math.hypot(candidate.x-before.x,candidate.z-before.z);

@@ -1,5 +1,3 @@
-// Units: kilometres, UTC milliseconds. Rendering basis: J2000 ecliptic (X,Z,-Y).
-// JPL SSD Table 1 (1800–2050), https://ssd.jpl.nasa.gov/planets/approx_pos.html
 export type Body='earth'|'moon'|'mars';
 export type Vec3=[number,number,number];
 export const AU_KM=149597870.7;
@@ -29,7 +27,6 @@ export function approximateEphemeris(epoch:number):Ephemeris{
  const year=new Date(epoch).getUTCFullYear();if(!Number.isFinite(epoch)||year<1800||year>2050)throw new RangeError('Supported dates: 1800–2050');
  const d=julianDay(epoch)-2451545,T=d/36525;
  const planet=(b:'earth'|'mars')=>{const p=elements[b][0].map((v,i)=>v+T*elements[b][1][i]);return kepler(p[0]*AU_KM,p[1],p[2],p[3],p[4],p[5]);};
- // Mean lunar ellipse only: omits solar perturbations and is NOT a precision ephemeris.
  const lunar=kepler(384400,.0549,5.145,218.3164477+13.17639648*d,83.3532465+.11140353*d,125.04452-.0529538083*d);
  const bary=planet('earth');
  const earth=bary.map((v,i)=>v-lunar[i]/82.30056) as Vec3;

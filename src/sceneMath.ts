@@ -1,6 +1,5 @@
 export const RADII_KM={earth:6371,moon:1737.4,mars:3389.5};
 export const EARTH_MOON_KM=384400;
-// Explicit illustrative orbital separation, not today's ephemeris.
 export const EXAMPLE_EARTH_MARS_KM=225000000;
 export function systemLayout(physical:boolean){
  const scale=300/RADII_KM.mars;
@@ -13,8 +12,6 @@ export function noise3(x:number,y:number,z:number){
  const mix=(a:number,b:number,t:number)=>a+(b-a)*t;
  return mix(mix(mix(hash(a,b,c),hash(a+1,b,c),u),mix(hash(a,b+1,c),hash(a+1,b+1,c),u),v),mix(mix(hash(a,b,c+1),hash(a+1,b,c+1),u),mix(hash(a,b+1,c+1),hash(a+1,b+1,c+1),u),v),w)*2-1;
 }
-// Finite, branching bedrock fissures. Identical metre coordinates in the
-// heightfield and fragment shader keep the shaded seams inside their grooves.
 export function fissureMask(x:number,z:number){
  const along=x*.83+z*.56,across=-x*.56+z*.83;
  const bend=7*Math.sin(along*.031)+2*Math.sin(along*.087);
@@ -32,7 +29,6 @@ float fissureMask(vec2 p){
  float branch=exp(-pow(abs(across-46.-bend-(along-74.)*.36)/.55,2.));
  return max(trunk,branch*smoothstep(48.,77.,along))*smoothstep(-125.,-80.,along)*(1.-smoothstep(160.,215.,along));
 }`;
-// Coherent visual relief only: no MOLA elevations are claimed.
 export function marsRelief(x:number,y:number,z:number){return noise3(x*5,y*5,z*5)*2400+noise3(x*19,y*19,z*19)*650+noise3(x*61,y*61,z*61)*180}
 export function mountains(x:number,z:number,body:'moon'|'mars'){
  const d=Math.hypot(x,z);if(d<100||d>24000)return 0;
@@ -44,14 +40,11 @@ export function mountains(x:number,z:number,body:'moon'|'mars'){
  }
  return h*smooth((d-100)/700)*(1-smooth((d-18000)/6000));
 }
-// Seeded random directions avoid the visible Fibonacci lattice during rotation.
-// Balanced hemispheres keep coverage even without imposing a visible pattern.
 export function starDirections(count:number){
  const points=new Float32Array(count*3);let seed=73519;
  const random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296};
  for(let i=0;i<count;i++){const y=(i%2?-1:1)*random(),r=Math.sqrt(1-y*y),a=random()*Math.PI*2;points.set([r*Math.cos(a),y,r*Math.sin(a)],i*3)}return points;
 }
-// Illustrative local geology, NOT a DEM reconstruction of a mission site.
 export function surfaceDetail(x:number,z:number,body:'moon'|'mars'){
  const d=Math.hypot(x,z),fade=smooth((d-9)/20)*(1-smooth((d-2600)/1400));
  if(!fade)return 0;
@@ -70,13 +63,11 @@ export function cameraTuning(altitude:number,radius:number,local:boolean){
  return {rotate:local?.32:Math.max(.035,Math.min(.65,ratio*.8)),
  zoom:local?.45:Math.max(.055,Math.min(.85,ratio*.95)),pan:local?.35:0};
 }
-// Zoom relative to clearance, not the planet-centre distance.
 export function zoomDistance(distance:number,min:number,max:number,inward:boolean){
  const clearance=inward?Math.max(0,distance-min):Math.max(distance-min,min*.015,1e-7);
  return Math.max(min,Math.min(max,min+clearance*(inward?.72:1.38)));
 }
 
-// Keep the landing action available at the edge while its anchor is out of view.
 export function lunarPinPlacement(
  projected: {x:number;y:number;z:number},
  facing: boolean,

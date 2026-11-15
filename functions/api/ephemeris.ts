@@ -1,4 +1,3 @@
-// Cloudflare Pages Function. Fixed upstream, bounded dates, no user-provided URLs.
 export async function onRequestGet({request}:{request:Request}):Promise<Response>{
  const date=new URL(request.url).searchParams.get('date')??'';
  const epoch=Date.parse(date+'T12:00:00Z');
@@ -6,7 +5,6 @@ export async function onRequestGet({request}:{request:Request}):Promise<Response
   return Response.json({error:'Expected date YYYY-MM-DD, 1800–2050'},{status:400});
  try{
   const positions:Record<string,number[]>={};
-  // JPL requests are deliberately serial; respect SSD API fair-use policy.
   for(const [body,id] of [['earth','399'],['moon','301'],['mars','499']]){
    const query=new URLSearchParams({format:'json',COMMAND:"'"+id+"'",OBJ_DATA:"'NO'",MAKE_EPHEM:"'YES'",EPHEM_TYPE:"'VECTORS'",CENTER:"'500@10'",TLIST:"'"+(epoch/86400000+2440587.5)+"'",TLIST_TYPE:"'JD'",TIME_TYPE:"'UT'",REF_PLANE:"'ECLIPTIC'",REF_SYSTEM:"'ICRF'",OUT_UNITS:"'KM-S'",VEC_TABLE:"'1'",CSV_FORMAT:"'YES'",VEC_CORR:"'NONE'"});
    const response=await fetch('https://ssd.jpl.nasa.gov/api/horizons.api?'+query,{signal:AbortSignal.timeout(15000)});

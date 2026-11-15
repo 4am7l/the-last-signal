@@ -1,8 +1,3 @@
-/**
- * Server-side NASA Image and Video Library proxy.
- * Returns official records and thumbnails; no API keys or third-party embeds.
- * This endpoint has a strict mission allowlist and response limit.
- */
 const queries: Record<string, { search: string; needle: RegExp }> = {
   apollo: { search: "Apollo 11 lunar surface", needle: /apollo[ -]?11|as11/i },
   opportunity: { search: "Mars Opportunity rover", needle: /opportunity/i },

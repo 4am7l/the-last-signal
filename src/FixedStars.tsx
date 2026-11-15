@@ -3,8 +3,6 @@ import {useFrame,useThree} from '@react-three/fiber';
 import * as T from 'three';
 import {useSimulation} from './simulation';
 
-// Photographic sky: ESO/S. Brunier, eso0932a (CC BY 4.0).
-// Photographic exposure/orientation is artistic; point stars use HYG J2000 coordinates.
 export function FixedStars({marsSurface}:{marsSurface:boolean}){
  const {gl}=useThree();
  const settings=useSimulation();
@@ -19,8 +17,6 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
    scene.userData.starSource='HYG v4.1 · '+data.count.toLocaleString()+' نجمة كتالوجية متاحة · J2000';
   };
   worker.onerror=()=>{scene.userData.starSource='تعذّر تحميل HYG — خلفية فوتوغرافية فقط';};
-  // The star catalogue is optional for first paint. Yield to the planetary
-  // renderer, then populate the same catalogue without changing its quality.
   const launch=window.setTimeout(()=>worker.postMessage({}),350);
   return()=>{window.clearTimeout(launch);worker.terminate();geometry?.dispose();};
  },[scene]);
@@ -46,8 +42,6 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
    if(!alive)return;
    loader.load('https://cdn.eso.org/images/large/eso0932a.jpg',install,undefined,()=>{if(alive)loader.load(mirror,install,undefined,()=>{})});
   };
-  // Show the lighter panorama first. Downloading/uploading the multi-
-  // megapixel version immediately competes with the planet and terrain.
   const scheduleUpgrade=()=>{
    if(!alive)return;
    upgradeTimer=window.setTimeout(upgrade,1300);
@@ -92,11 +86,11 @@ void main(){
  vec2 uv=vec2(atan(d.z,d.x)/6.2831853+.5,asin(clamp(d.y,-1.,1.))/3.14159265+.5);
  if(hasPanorama>.5){
   vec3 photograph=texture2D(panorama,uv).rgb;
-  // Lift photographed faint star clouds, retain dark lanes and real colour variation.
+
   float luminance=dot(photograph,vec3(.2126,.7152,.0722));
   photograph=mix(vec3(luminance),photograph,1.12);
   photograph=pow(max(photograph,vec3(0.)),vec3(.94))*1.65;
-  // Restrained optical glow from the photograph's brightest features only.
+
   vec3 bloom=vec3(0.);
   bloom+=max(texture2D(panorama,uv+texel*vec2(3.,0.)).rgb-.24,0.);
   bloom+=max(texture2D(panorama,uv-texel*vec2(3.,0.)).rgb-.24,0.);

@@ -4,8 +4,6 @@ import {marsApproachMask,marsCraterField,marsSiteSeed,marsRoverRoadPoint,marsRov
 import {noise3} from './sceneMath';
 import {stoneMaterial} from './stoneMaterial';
 
-// Distinct, high-detail eroded rock shapes rather than a few low-poly icosahedrons.
-// These are site-seeded illustrative formations, not surveyed NASA rock meshes.
 function randomFromSeed(seed:number){
  let s=seed>>>0||1;
  return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return (s>>>0)/4294967296};
@@ -31,8 +29,6 @@ function rockGeometry(shape:RockShape,variant:number){
  const a3=new T.Vector3(-.32,Math.sin(seed*.19),.87).normalize();
  for(let i=0;i<pos.count;i++){
   const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);
-  // Domain-warped, non-periodic rock fragments; no circular strata or
-  // stacked rings. Multiple frequencies change the actual 3D silhouette.
   const wx=x+noise3(x*1.3+seed*.1,y*1.1,z*1.3)*.16;
   const wy=y+noise3(x*1.15,y*1.4+seed*.13,z*1.2)*.16;
   const wz=z+noise3(x*1.4,y*1.1,z*1.4-seed*.07)*.16;
@@ -61,8 +57,6 @@ function rockGeometry(shape:RockShape,variant:number){
  return geo;
 }
 type PlacedRock={x:number;z:number;radius:number};
-// Support is measured under the *whole* intended footprint, not just the
-// rock centre. Distances are metres; ground() returns render-space elevation.
 function surveyFootprint(ground:(x:number,z:number)=>number,x:number,z:number,radius:number){
  const heights=[ground(x,z)];
  for(let i=0;i<8;i++){
@@ -73,9 +67,6 @@ function surveyFootprint(ground:(x:number,z:number)=>number,x:number,z:number,ra
  const mean=heights.reduce((a,b)=>a+b,0)/heights.length;
  return {mean,spread:high-low};
 }
-// The instanced rock is rotated and stretched before we calculate its real
-// lowest vertex. Computing placement from the unrotated bounding box was the
-// reason several large stones looked suspended or balanced on a point.
 function lowestVertexAfterTransform(geometry:T.BufferGeometry,matrix:T.Matrix4){
  const pos=geometry.getAttribute('position') as T.BufferAttribute;
  const e=matrix.elements;let low=Infinity;
@@ -96,8 +87,6 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
    return {x:Math.cos(a)*r,z:Math.sin(a)*r};
   });
   const totals:Record<RockShape,number>={
-   // Broad, partly buried outcrops carry detail into the visible hills.
-   // Their low profiles and terrain footprint checks avoid unsupported spires.
    outcrop:Math.max(30,Math.round(count*.04)),
    boulder:Math.max(155,Math.round(count*.32)),
    slab:Math.max(250,Math.round(count*.56)),
@@ -128,7 +117,6 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
       .023+Math.pow(rand(),2.25)*.24;
      const ysize=size*(giant?.72+rand()*.40:.72+rand()*.48);
      const scaleX=size*(.78+rand()*.40),scaleZ=size*(.78+rand()*.43);
-     // Actual projected radius includes the displaced source mesh extent.
      const footprint=Math.max(scaleX,scaleZ)*extent*(giant?1.15:1.08);
      const minDistance=Math.max(clearance+footprint+2,giant?landingRadius+125:landingRadius+3);
      let x=0,z=0,fit:{mean:number;spread:number}|null=null;
@@ -137,7 +125,6 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
      for(let attempt=0;attempt<tries;attempt++){
       const a=rand()*Math.PI*2,choice=rand();
       if(giant){
-       // Large formations in the middle/far landscape, not on the rover.
        const r=minDistance+(rand()<.55?150+rand()*650:900+rand()*2400);
        x=Math.cos(a)*r;z=Math.sin(a)*r;
       }else if(small){
@@ -163,27 +150,18 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
       }
       const radius=Math.hypot(x,z);
       if(radius<minDistance)continue;
-      // No boulder taller than the rover beside the mission exhibit. Larger
-      // rocks belong to background outcrops rather than the walking area.
       if(shape==='boulder'&&radius<landingRadius+110&&size>1.05)continue;
       if(shape==='slab'&&radius<landingRadius+32&&size>.65)continue;
-      // InSight sits on an open plain, Spirit beside a rockier shoulder,
-      // Opportunity in Eagle crater, Ingenuity on a broken Jezero plain.
       if(site==='insight'&&shape==='boulder'&&radius<landingRadius+85&&rand()<.58)continue;
       if(site==='opportunity'&&shape==='boulder'&&radius<landingRadius+70&&rand()<.4)continue;
       if(site==='ingenuity'&&shape==='slab'&&radius>landingRadius+130&&rand()<.3)continue;
-      // A navigable dirt strip has no boulder-sized obstacles.
       const path=marsApproachMask(x,z,landingRadius);
       if(!small&&path>.025)continue;
-      // Keep both wheel tracks free of boulders and slabs. The same site
-      // route also determines the displayed rover's heading.
       if(!small&&marsRoverRoadClearance(x,z,site,footprint+.55))continue;
       if(!small){
        const margin=giant?1.17:shape==='boulder'?1.12:1.04;
        if(occupied.some(p=>Math.hypot(x-p.x,z-p.z)<margin*(footprint+p.radius)))continue;
       }
-      // Sample whole support area before approving large rock placements.
-      // Flat/slightly sloping ground is plausible; isolated steep ridges are not.
       if(giant||size>.85){
        const sample=surveyFootprint(ground,x,z,Math.max(.35,footprint*.62));
        const allowed=size*unit*(giant?.40:shape==='boulder'?.28:.32);
@@ -193,7 +171,6 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
       found=true;break;
      }
      if(!found){
-      // Hide impossible placements instead of stacking/floating them elsewhere.
       dummy.position.set(0,-100000*unit,0);
       dummy.rotation.set(0,0,0);
       dummy.scale.set(0,0,0);
@@ -201,7 +178,6 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
       continue;
      }
      if(!small&&size>.65)occupied.push({x,z,radius:footprint});
-     // Heavy boulders barely tilt; remove vertical spires balanced on narrow ends.
      const lean=giant?.035:shape==='boulder'?.07:shape==='slab'?.11:.22;
      dummy.rotation.set((rand()-.5)*lean,rand()*Math.PI*2,(rand()-.5)*lean);
      dummy.scale.set(scaleX*unit,ysize*unit,scaleZ*unit);
@@ -209,10 +185,6 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
      dummy.updateMatrix();
      const lowest=lowestVertexAfterTransform(geometry,dummy.matrix);
      const support=fit??{mean:ground(x,z),spread:0};
-     // Embed the bottom 10–18% of the rock into local terrain, also accounting
-     // for the mild slope across the entire footprint.
-     // Sink an irregular lower band into the regolith, not just one pointed
-     // vertex touching the surface. This avoids apparently hovering stones.
      const burial=(giant?.38:small?.16:shape==='boulder'?.30:.24)*ysize*unit+support.spread*.32;
      dummy.position.set(x*unit,support.mean-lowest-burial,z*unit);
      dummy.updateMatrix();
@@ -237,8 +209,6 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
 }
 function trackGeometry(ground:(x:number,z:number)=>number,unit:number,side:number,site:string){
  const vertices:number[]=[],indices:number[]=[],steps=120;
- // The tracks originate beneath the rear wheel lane, then bend naturally as
- // one consistent pair. Their local heading is shared with the rover model.
  const yaw=marsRoverRoadYaw(site),lateralX=Math.sin(yaw),lateralZ=Math.cos(yaw);
  for(let i=0;i<=steps;i++){
   const t=i/steps,p=marsRoverRoadPoint(t,side,site);
@@ -270,7 +240,6 @@ function dustScuffGeometry(ground:(x:number,z:number)=>number,unit:number,radius
  const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vertices,3));
  geometry.setIndex(indices);geometry.computeVertexNormals();return geometry;
 }
-// Tracks are illustrative only: mission coordinates do not document wheel tracks.
 export function MarsGroundMarks({ground,unit,model,lat,lon,site}:{
  ground:(x:number,z:number)=>number;unit:number;model:string;lat:number;lon:number;site:string
 }){

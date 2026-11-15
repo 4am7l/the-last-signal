@@ -3,9 +3,6 @@ import {useFrame} from '@react-three/fiber';
 import * as T from 'three';
 import {SCENE_SUN_DIRECTION} from './solar';
 
-// Bounded single-scattering approximation, not a weather reconstruction.
-// Exponential density, integrated view/sun paths, planet shadow and dust phase.
-// Mars has a thin, dusty atmosphere: https://science.nasa.gov/mars/facts/
 export function MarsAtmosphere({r}:{r:number}){
  const mesh=useRef<T.Mesh>(null);
  const scale=useMemo(()=>new T.Vector3(),[]);
@@ -47,8 +44,8 @@ export function MarsAtmosphere({r}:{r:number}){
     void main(){
      #include <logdepthbuf_fragment>
      vec3 origin=(cameraPosition-planetCenter)/planetRadius;
-     // Mission DEM valleys can lie slightly below the mean datum. Do not
-     // integrate a fictitious path through solid rock from those viewpoints.
+
+
      origin*=max(1.,1.0000002/max(length(origin),.0001));
      vec3 ray=normalize(atmosphereWorld-cameraPosition),sun=normalize(sunDirection);
      vec2 air=sphereRange(origin,ray,1.018);
@@ -76,7 +73,7 @@ export function MarsAtmosphere({r}:{r:number}){
      }
      float alpha=clamp(1.-exp(-viewDepth*54.),0.,.985);
      if(alpha<.0001)discard;
-     // A narrow cool aureole in dusty twilight, rather than a blue Earth sky.
+
      float aureole=pow(max(0.,mu),24.);
      radiance=mix(radiance,radiance*vec3(.72,.94,1.32),aureole*.42);
      gl_FragColor=vec4(radiance/max(alpha,.0001),alpha);
