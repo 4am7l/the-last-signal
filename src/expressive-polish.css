@@ -1,0 +1,393 @@
+/*
+  The Last Signal — Scientific Expressive polish.
+  Bold NASA-adjacent scientific typography:
+  IBM Plex Sans Arabic (Arabic) + Space Grotesk (Latin/numerals).
+  Not a reproduction of NASA trademarks or custom NASA fonts.
+  Loaded after the legacy styles to give every route one M3 shape language.
+*/
+:root {
+  --tls-font-ui: "Space Grotesk", "IBM Plex Sans Arabic", system-ui, sans-serif;
+  --tls-font-ar: "IBM Plex Sans Arabic", "Space Grotesk", system-ui, sans-serif;
+  --tls-shape-card: 40px;
+  --tls-shape-media: 30px;
+  --tls-shape-sheet: 34px;
+  --tls-shape-chip: 999px;
+  --tls-shape-field: 22px;
+  --tls-title-weight: 700;
+  font-family: var(--tls-font-ar);
+  font-synthesis: none;
+}
+body, button, input, textarea, select, label, a, summary,
+.editorial-page, .exploration-page, .information,
+.site-header, .site-footer {
+  font-family: var(--tls-font-ar) !important;
+}
+.material-symbols-rounded {
+  font-family: "Material Symbols Rounded" !important;
+  font-weight: 400 !important;
+}
+h1, h2, h3, h4,
+.hero-copy h1, .page-intro h1, .section-heading h2,
+.nasa-gallery__heading h2, .nasa-lightbox__caption h2,
+.feature-copy h3, .record-copy h2, .destination h3,
+.guide-steps h2, .guide-notes h2, .dossier h2,
+.dossier h3, .science-reading h3, .reading-note h3,
+.exploration-page .welcome h1, .information h2 {
+  font-family: var(--tls-font-ar) !important;
+  font-weight: var(--tls-title-weight) !important;
+  letter-spacing: 0 !important;
+  text-wrap: pretty;
+}
+h1, h2 { line-height: 1.42; }
+h3, h4 { line-height: 1.6; }
+h1 em, h2 em { font-weight: inherit; }
+body { font-size: 15px; }
+p { line-height: 1.95; }
+button, .action, .primary, .play, .source-link,
+.theme-toggle, .filter-group button, .record-actions a,
+.guide-start a, .text-link, .tabs button, summary {
+  font-family: var(--tls-font-ar) !important;
+  font-weight: 600;
+}
+.kicker, .hero-bottom > span, .destination__overline, .destination__count,
+.record-year, .feature-copy > small, .record-copy > small,
+.mission-timeline time, .footer-credit > span, .site-header .brand small,
+.scene-arrival small, .missionList small, .coordinates, .card > span,
+.chapters small, .yearTicks button, .nasa-photo-card__caption p {
+  font-family: var(--tls-font-ui) !important;
+  font-weight: 600;
+}
+.site-header .brand {
+  font-family: var(--tls-font-ar) !important;
+  font-weight: 700;
+  letter-spacing: 0;
+}
+.site-header .brand small {
+  font-size: 10px;
+  letter-spacing: 1.3px;
+  font-weight: 700;
+}
+.hero-copy h1 { font-size: clamp(42px, 4.7vw, 76px); }
+.page-intro h1 { font-size: clamp(38px, 4.2vw, 64px); }
+.section-heading h2 {
+  font-size: clamp(28px, 3vw, 43px);
+  font-weight: 700 !important;
+  line-height: 1.4;
+}
+.feature-copy h3, .record-copy h2 { font-size: clamp(22px, 2.2vw, 30px); }
+.guide-steps h2, .science-reading h3 { font-weight: 700 !important; }
+.nasa-gallery__heading h2 { font-size: clamp(28px, 3.2vw, 40px); }
+.nasa-photo-card__caption h3 { font-family: var(--tls-font-ui) !important; font-weight: 700 !important; }
+.hero-copy p, .page-intro p, .section-heading > p {
+  font-family: var(--tls-font-ar);
+  font-size: clamp(13px, 1.15vw, 15px);
+  font-weight: 400;
+  line-height: 2;
+}
+
+/* Consistent pill controls, sheets and rounded rectangles across all routes */
+.site-header, .site-footer, .explore-toolbar,
+.archive-controls, .nasa-gallery, .nasa-lightbox__content,
+.exploration-page .archive, .exploration-page .timebar,
+.exploration-page .universe, .mission-strip,
+.guide-notes, .guide-start, .closing-section,
+.empty-state, .dossier {
+  border-radius: var(--tls-shape-card) !important;
+}
+.feature-card, .mission-record, .guide-steps article,
+.science-reading article, .reading-note, .reading-conclusion,
+.nasa-photo-card, .exploration-page .card,
+.exploration-page .welcome, .exploration-page .information,
+.exploration-page .missionMessage, .exploration-page .yearStory,
+.modal, .sceneTools, .simulationPanel {
+  border-radius: var(--tls-shape-sheet) !important;
+}
+:where(.feature-image, .feature-image img, .record-photo, .record-photo img,
+.dossier-photo, .destination > img, .photo, .photo img,
+.nasa-photo-card__open, .nasa-lightbox__content > img) {
+  border-radius: var(--tls-shape-media) !important;
+  overflow: hidden;
+}
+.theme-toggle, .source-link, .action, .primary, .play,
+.site-header nav a, .explore-toolbar nav a,
+.filter-group button, .record-actions a,
+.guide-start a, .text-link, .destination__cta,
+.close, .nasa-lightbox__close, .body-picker button,
+.distanceControls button, .mobileControlModes button,
+.timebar .yearTicks button {
+  border-radius: var(--tls-shape-chip) !important;
+}
+.search-field input, .sort-field select,
+input[type="search"], input[type="date"], select, textarea,
+.simulationPanel select, .simulationPanel input[type="date"] {
+  border-radius: var(--tls-shape-field) !important;
+}
+.exploration-page .information .tabs,
+.exploration-page .information .tabs button {
+  border-radius: 19px !important;
+}
+.missionList button, .exploration-page .chapters button,
+.exploration-page .card, .mobileDpad button, .mobileZoom button,
+.cameraButtons button, .sceneTools button, .worldLabel,
+.sitePin, .pin {
+  border-radius: 22px !important;
+}
+.exploration-page .archive .card { overflow: hidden; }
+.site-footer a { font-weight: 600; }
+.exploration-page .simulationPanel summary {
+  padding: 5px 6px;
+  border-radius: 16px;
+}
+.exploration-page .welcome, .exploration-page .information {
+  backdrop-filter: blur(16px);
+}
+/* Don't let additional decorative content obscure the scientific 3D canvas. */
+.sceneTools > span, .hero-note { display: none; }
+.explore-toolbar > div > small { display: none; }
+.missionMessage { box-shadow: none; }
+
+/* Google expressive destinations — editorial section heading with big curved cards. */
+.destinations-section {
+  padding-top: clamp(38px, 5vw, 72px);
+  padding-bottom: clamp(50px, 6vw, 85px);
+}
+.destinations-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  background: var(--md-sys-color-surface-container);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: 38px !important;
+  padding: clamp(24px, 3.7vw, 42px);
+  margin-bottom: clamp(18px, 2.4vw, 28px);
+}
+.destinations-heading h2 {
+  font-size: clamp(31px, 3.4vw, 48px);
+  font-weight: 700 !important;
+  margin-top: 16px;
+  color: var(--md-sys-color-on-surface);
+}
+.destinations-heading > p {
+  color: var(--md-sys-color-on-surface-variant);
+  font-size: clamp(13px, 1.1vw, 15px);
+  max-width: 400px;
+  line-height: 2;
+}
+.destinations-kicker {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 40px;
+  padding: 7px 17px;
+  border-radius: 999px;
+  background: var(--md-sys-color-secondary-container);
+  color: var(--md-sys-color-on-surface);
+  font-family: var(--tls-font-ar) !important;
+  font-weight: 600;
+}
+.destinations-kicker > .material-symbols-rounded {
+  font-size: 20px;
+  color: var(--md-sys-color-primary);
+}
+.destinations {
+  gap: clamp(12px, 2.5vw, 26px);
+  align-items: stretch;
+}
+.destination.destination--expressive {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  min-height: 450px;
+  padding: 11px;
+  gap: 0;
+  position: relative;
+  isolation: isolate;
+  border: 1px solid var(--md-sys-color-outline-variant) !important;
+  border-radius: 42px !important;
+  background: var(--md-sys-color-surface-container-low);
+  overflow: hidden;
+  color: var(--md-sys-color-on-surface);
+  text-align: start;
+}
+.destination.destination--expressive::after { display: none; content: none; }
+.destination--expressive > .destination__media {
+  position: relative;
+  inset: auto;
+  display: block;
+  flex: 0 0 auto;
+  height: clamp(230px, 23vw, 310px);
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 32px 32px 23px 32px;
+  background: var(--md-sys-color-surface-container-high);
+}
+.destination--expressive.mars > .destination__media {
+  border-radius: 32px 32px 32px 23px;
+}
+.destination--expressive .destination__media img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  object-position: center;
+  opacity: 1;
+  filter: none;
+  transform: scale(1);
+  transition: transform 500ms var(--md-sys-motion-easing);
+}
+.destination--expressive:hover .destination__media img {
+  transform: scale(1.035);
+}
+.destination__media-icon {
+  position: absolute;
+  top: 16px;
+  inset-inline-end: 16px;
+  display: grid;
+  place-items: center;
+  width: 47px;
+  height: 47px;
+  border-radius: 50%;
+  background: var(--md-sys-color-surface-container-low);
+  color: var(--md-sys-color-primary);
+  box-shadow: 0 4px 14px #121f421a;
+  font-size: 26px;
+}
+.destination--expressive > .destination__content {
+  position: relative;
+  inset: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  flex: 1;
+  padding: clamp(18px, 2vw, 28px) clamp(13px, 2vw, 26px) 18px;
+  color: var(--md-sys-color-on-surface);
+}
+.destination--expressive .destination__overline {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.destination__title-row {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 18px;
+  justify-content: space-between;
+  margin: 8px 0 2px;
+}
+.destination--expressive h3 {
+  font-size: clamp(30px, 3vw, 43px);
+  font-weight: 700 !important;
+  color: var(--md-sys-color-on-surface);
+  margin: 0;
+  line-height: 1.45;
+}
+.destination--expressive .destination__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 13px;
+  min-height: 34px;
+  border-radius: 999px;
+  font-family: var(--tls-font-ar) !important;
+  letter-spacing: 0;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--md-sys-color-on-surface-variant);
+  border: 1px solid var(--md-sys-color-outline-variant);
+}
+.destination--expressive p {
+  max-width: 55ch;
+  margin: 10px 0 19px;
+  font-size: 14px;
+  line-height: 1.85;
+  color: var(--md-sys-color-on-surface-variant);
+}
+.destination--expressive .destination__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: auto;
+  padding: 11px 17px;
+  min-height: 48px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: var(--tls-font-ar) !important;
+  letter-spacing: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+  transition: background 200ms var(--md-sys-motion-easing), transform 200ms var(--md-sys-motion-easing);
+}
+.destination__cta > .material-symbols-rounded {
+  font-size: 21px;
+  transition: transform 200ms var(--md-sys-motion-easing);
+}
+.destination--expressive:hover .destination__cta {
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+}
+.destination--expressive:hover .destination__cta > .material-symbols-rounded {
+  transform: translateX(-3px);
+}
+
+/* Preserve heavy headings and roundness even in the secondary editorial sections. */
+.science-reading article,
+.guide-steps article {
+  background: var(--md-sys-color-surface-container-low);
+}
+.feature-grid, .record-grid { gap: clamp(12px, 2vw, 22px); }
+.feature-card, .mission-record { overflow: hidden; }
+.feature-image { border-radius: 28px; }
+.feature-copy h3, .record-copy h2 { font-weight: 700 !important; }
+.guide-start, .closing-section { border-radius: 40px !important; }
+.nasa-gallery__heading h2 { font-weight: 700 !important; }
+.nasa-gallery .nasa-photo-card__open { border-radius: 24px !important; }
+.nasa-gallery .nasa-photo-card { border-radius: 30px !important; }
+.nasa-gallery .nasa-photo-card__caption h3 { font-family: var(--tls-font-ui) !important; }
+.modal, .nasa-lightbox__content { border-radius: 36px !important; }
+.photo img { border-radius: 22px !important; }
+
+@media (max-width: 950px) {
+  .destinations-heading { flex-direction: column; align-items: stretch; }
+  .destinations-heading > p { max-width: none; }
+  .destination--expressive > .destination__media { height: clamp(215px, 27vw, 270px); }
+}
+@media (max-width: 760px) {
+  :root { --tls-shape-card: 28px; --tls-shape-sheet: 25px; --tls-shape-media: 22px; }
+  .destinations-section { padding-inline: 12px; }
+  .destinations-heading { border-radius: 28px !important; padding: 23px; margin-bottom: 14px; }
+  .destinations-heading h2 { font-size: clamp(28px, 8vw, 37px); margin-top: 13px; }
+  .destinations { grid-template-columns: 1fr; gap: 14px; }
+  .destination.destination--expressive { border-radius: 30px !important; padding: 8px; min-height: 0; }
+  .destination--expressive > .destination__media {
+    border-radius: 24px 24px 18px 24px;
+    height: clamp(210px, 52vw, 340px);
+  }
+  .destination--expressive.mars > .destination__media { border-radius: 24px 24px 24px 18px; }
+  .destination--expressive > .destination__content { padding: 16px 13px 14px; }
+  .destination--expressive h3 { font-size: 32px; }
+  .destination__media-icon { width: 40px; height: 40px; font-size: 23px; }
+  .destination--expressive .destination__cta { width: 100%; }
+  .hero-copy h1 { font-size: clamp(34px, 8vw, 46px); }
+  .page-intro h1 { font-size: clamp(33px, 8vw, 48px); }
+  .section-heading h2 { font-size: clamp(26px, 6.5vw, 34px); }
+  .site-header { border-radius: 26px !important; }
+  .exploration-page .information { border-radius: 28px 28px 0 0 !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .destination--expressive .destination__media img,
+  .destination--expressive .destination__cta,
+  .destination__cta > .material-symbols-rounded {
+    transition: none !important;
+    transform: none !important;
+  }
+}
