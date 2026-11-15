@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useGLTF } from "@react-three/drei";
-import { Box3, Mesh, Vector3 } from "three";
+import { Box3, Mesh, Object3D, Vector3 } from "three";
 import { eagle } from "./eagle";
 
 const modelPath = "/models/apollo.glb";
@@ -18,19 +18,22 @@ export function EagleDescentStage({ unit, ground, night }: {
   const { scene } = useEagleModel();
   const stage = useMemo(() => {
     const object = scene.clone(true);
-    const ascentParts: Mesh[] = [];
+    const ascentParts: Object3D[] = [];
     object.traverse((part) => {
-      if (!(part instanceof Mesh)) return;
-      // Three removes spaces when it imports node names.
-      const originalName = part.userData.name ?? part.name;
-      if (!descentParts.test(originalName)) {
+      // GLTFLoader wraps nodes with multiple material primitives in a Group.
+      // The original part name is on that group, above its renderable meshes.
+      const originalName = part.userData.name;
+      if (typeof originalName === "string" && originalName !== "lunarlande" && !descentParts.test(originalName)) {
         ascentParts.push(part);
-        return;
       }
-      part.castShadow = true;
-      part.receiveShadow = true;
     });
     ascentParts.forEach((part) => part.removeFromParent());
+    object.traverse((part) => {
+      if (part instanceof Mesh) {
+        part.castShadow = true;
+        part.receiveShadow = true;
+      }
+    });
     const box = new Box3().setFromObject(object);
     const center = box.getCenter(new Vector3());
     const size = box.getSize(new Vector3());
