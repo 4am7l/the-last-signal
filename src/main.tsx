@@ -287,7 +287,9 @@ function App() {
   useEffect(() => {
     const esc = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (!document.querySelector('.nasa-lightbox')) {
+        if (!document.querySelector('[role="dialog"][aria-modal="true"]')) {
+          const panel = document.querySelector(".explorer-panels > details[open]");
+          if (panel?.contains(document.activeElement)) panel.querySelector("summary")?.focus();
           closeDetails();
           setOpenPanel(null);
         }

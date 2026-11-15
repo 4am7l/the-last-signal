@@ -177,7 +177,7 @@
   z-index: 1;
   inset-block-start: calc(100% + 8px);
   inset-inline-end: 0;
-  inline-size: min(100%, 350px);
+  inline-size: min(calc(100% - var(--equipment-handle-width)), 350px);
   max-block-size: min(54dvh, 28rem);
   padding: 14px;
   overflow: auto;
@@ -189,8 +189,10 @@
   box-shadow: 0 12px 32px #0004;
 }
 .explorer-panels .explorer-timeline .explorer-panel-content {
-  inline-size: min(100%, 650px);
+  inline-size: min(calc(100% - var(--equipment-handle-width)), 650px);
 }
+[dir="ltr"] .explorer-panels .explorer-panel-content { margin-inline-end: var(--equipment-handle-width); }
+[dir="ltr"] .details-dock-open .explorer-panels .explorer-panel-content { margin-inline-end: 0; }
 .explorer-panel-content > input[type="range"] { width: 100%; }
 .explorer-panels .simulationPanel .explorer-panel-content label { min-inline-size: 0; }
 .explorer-panels .simulationPanel .explorer-panel-content select { max-inline-size: 100%; }
@@ -426,7 +428,14 @@
   background: var(--md-sys-color-surface-container-low);
   direction: inherit;
 }
-.fullscreen-explorer .mobileControls { inset-inline-end: max(12px, env(safe-area-inset-right)); }
+.fullscreen-explorer .mobileControls {
+  left: max(12px, env(safe-area-inset-left));
+  right: max(12px, env(safe-area-inset-right));
+}
+@media (max-width: 850px) and (max-height: 480px) {
+  .fullscreen-explorer .mobileControls { right: calc(12px + var(--equipment-handle-width)); }
+  .fullscreen-explorer .mobileDpad { --dpad-size: 44px; }
+}
 .fullscreen-explorer .mobileControlLayout { gap: 8px; }
 .fullscreen-explorer .mobileDpad {
   --dpad-size: clamp(44px, 12vw, 48px);
@@ -475,3 +484,9 @@
   margin-block-start: 12px;
 }
 .sceneError__actions .action { min-height: 44px; }
+
+.explorer-panels .simulationPanel .inspection-toggle {
+  justify-content: flex-start;
+  min-block-size: 38px;
+}
+.simulationPanel .inspection-toggle > input { accent-color: var(--accent); }
