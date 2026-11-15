@@ -55,6 +55,15 @@ test("equipment changes keep the previous scene visible behind the loading card"
   assert.match(space, /<SceneAssetsGate \{\.\.\.visibleScene\}/);
 });
 
+test("returning to the globe reuses equipment loading while body switches stay direct", () => {
+  const main = file("src/main.tsx");
+  assert.match(main, /onClick=\{\(\) => change\("planet"\)\}/);
+  assert.match(main, /function change\(next: Mode\)\s*\{\s*select\(index, next, false\);\s*\}/);
+  const picker = main.match(/<nav className="body-picker"[\s\S]*?<\/nav>/)?.[0] ?? "";
+  assert.match(picker, /href=\{exploreHref\(mission, "planet"\)\}/);
+  assert.doesNotMatch(picker, /onClick=|setSceneSelection/);
+});
+
 test("Material 3 Expressive morph stays accessible and respects reduced motion", () => {
   const indicator = file("src/PlanetLoadingIndicator.tsx");
   const css = file("src/planet-loader.css");

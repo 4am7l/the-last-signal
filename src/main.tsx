@@ -250,15 +250,7 @@ function App() {
     setReset((v) => v + 1);
   }
   function change(next: Mode) {
-    if (approaching && mode === next) return;
-    if (next === "location" || next === "model" || next === "story") {
-      select(index, next, false);
-      return;
-    }
-    window.location.hash = exploreHref(missions[index].id, next);
-    setMode(next);
-    setPlaying(false);
-    setReset((v) => v + 1);
+    select(index, next, false);
   }
   useEffect(() => {
     document.documentElement.lang = language;
