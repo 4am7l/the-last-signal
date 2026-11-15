@@ -101,7 +101,6 @@ function App() {
   });
   const cameraMove = (kind: CameraCommand["kind"]) =>
     setCameraCommand((previous) => ({ id: previous.id + 1, kind }));
-  const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [readySceneKey, setReadySceneKey] = useState<string | null>(null);
   const [failedSceneKey, setFailedSceneKey] = useState<string | null>(null);
   useEffect(() => {
@@ -148,7 +147,7 @@ function App() {
     setFilm(n);
     setPlaying(false);
   }
-  const [apolloDetailsOpen, setApolloDetailsOpen] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const isApollo = m.id === "apollo";
 
   function select(i: number, next: Mode = "model") {
@@ -157,13 +156,11 @@ function App() {
     setFilm(0);
     setPlaying(false);
     setMode(next);
-    setMobilePanelOpen(true);
     setReset((v) => v + 1);
   }
   function change(next: Mode) {
     window.location.hash = exploreHref(missions[index].id, next);
     setMode(next);
-    setMobilePanelOpen(next !== "overview" && next !== "planet");
     setPlaying(false);
     setReset((v) => v + 1);
   }
@@ -178,7 +175,7 @@ function App() {
     }[route.page];
   }, [language, route.page]);
   useEffect(() => {
-    setApolloDetailsOpen(false);
+    setDetailsOpen(false);
     setMode(route.mode);
     setIndex(
       Math.max(
@@ -188,7 +185,6 @@ function App() {
     );
     setFilm(0);
     setPlaying(false);
-    setMobilePanelOpen(!["overview", "planet"].includes(route.mode));
     setReset((v) => v + 1);
     window.scrollTo({ top: 0, behavior: "instant" });
   }, [route.page, route.mode, route.mission]);
@@ -243,7 +239,7 @@ function App() {
   useEffect(() => {
     const esc = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (!document.querySelector('.nasa-lightbox')) setApolloDetailsOpen(false);
+        if (!document.querySelector('.nasa-lightbox')) setDetailsOpen(false);
         setImage(null);
         setSources(false);
         setPlaying(false);
@@ -285,7 +281,7 @@ function App() {
       )}{" "}
       {route.page === "guide" && <Guide />}
       {route.page === "explore" && (
-        <div className={`exploration-page fullscreen-explorer${isApollo ? " has-apollo-dock" : ""}${isApollo && apolloDetailsOpen ? " apollo-dock-open" : ""}`}>
+        <div className={`exploration-page fullscreen-explorer${detailsOpen ? " details-dock-open" : ""}`}>
           <div className="explorer-stage">
           <header className="fullscreen-toolbar">
             <a className="action action-line" href="#/">
@@ -331,25 +327,11 @@ function App() {
                 )}
               </div>
             )}
-            {!isApollo && (
-            <details className="explorer-resources">
-              <summary>{t("أرشيف وصور", "Archive and photos")}</summary>
-              <div className="explorer-resources__content">
-                <a className="text-link" href={`#/archive?mission=${m.id}`}>
-                  {t("سجل " + missionName + " ←", missionName + " record →")}
-                </a>
-                <button className="source-link" onClick={() => setSources(true)}>
-                  {t("المصادر والدقة", "Sources and accuracy")}
-                </button>
-                <NasaGallery mission={m.id} compact />
-              </div>
-            </details>
-            )}
           </div>
           <main
             id="main-content"
             tabIndex={-1}
-            className={`universe ${mode}${!isApollo && mobilePanelOpen ? " has-panel" : ""}`}
+            className={`universe ${mode}`}
           >
             <div className="canvas" aria-busy={sceneLoading}>
               <Boundary key={sceneKey} view={mode} language={language} onError={() => setFailedSceneKey(sceneKey)}>
@@ -376,9 +358,7 @@ function App() {
             {sceneLoading && (
               <PlanetLoadingIndicator key={sceneKey} body={m.body} mission={mode === "overview" ? undefined : missionName} />
             )}
-            {mode !== "overview" && (
-              <>
-                {mode === "planet" ? (!isApollo && (
+            {mode === "planet" && !isApollo && (
                   <section className="welcome">
                     <h1>{bodyName}</h1>
                     <p>
@@ -404,175 +384,12 @@ function App() {
                       )}
                     </div>
                   </section>
-                )) : (!isApollo && (
-                  <aside
-                    className={
-                      "information " +
-                      (mobilePanelOpen ? "mobile-expanded" : "mobile-collapsed")
-                    }
-                  >
-                    <button
-                      className="mobileSheetToggle"
-                      aria-expanded={mobilePanelOpen}
-                      onClick={() => setMobilePanelOpen((v) => !v)}
-                    >
-                      <span className="mobileSheetGrip" />
-                      {mobilePanelOpen
-                        ? t("إخفاء تفاصيل المهمة", "Hide mission details")
-                        : t("عرض تفاصيل " + m.name, "Show " + m.en + " details")}
-                      <span aria-hidden="true">
-                        {mobilePanelOpen ? "⌄" : "⌃"}
-                      </span>
-                    </button>
-                    {!english && <div className="eyebrow">{m.en}</div>}
-                    <h2>{missionName}</h2>
-                    <p>{missionCopy.intro}</p>
-                    <div className="tabs">
-                      {(
-                        [
-                          ["story", t("الرحلة", "Mission")],
-                          ["model", t("المجسّم", "3D model")],
-                          ["location", t("الموقع", "Location")],
-                        ] as const
-                      ).map(([v, t]) => (
-                        <button
-                          key={v}
-                          className={mode === v ? "active" : ""}
-                          onClick={() => change(v)}
-                        >
-                          {t}
-                        </button>
-                      ))}
-                    </div>
-                    {mode === "story" ? (
-                      <article aria-live="polite">
-                        <span className="date">{date}</span>
-                        <h3>{displayedShot.title}</h3>
-                        <div className="missionMessage">
-                          <span>
-                            {t("سجل المهمة ·", "Mission log ·")}{" "}
-                            {shot.phase === "end"
-                              ? t("انتهى الاتصال", "End of operations")
-                              : t("إعادة سرد", "Reconstruction")}
-                          </span>
-                          <p>{displayedShot.text}</p>
-                          <a
-                            href={shot.source}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
-                            {t("مصدر هذه المرحلة ↗", "Source for this phase ↗")}
-                          </a>
-                        </div>
-                        {yearStory && (
-                          <div className="yearStory">
-                            <small>
-                              {t(`قصة عام ${year} · ملخص سنوي`, `${year} · Annual summary`)}
-                            </small>
-                            <h3>{yearStory[0]}</h3>
-                            <p>{yearStory[1]}</p>
-                          </div>
-                        )}
-                        {!exact && (
-                          <small>
-                            أحدث محطة موثّقة قبل التاريخ المختار: {event.date}.
-                            لا تتوفر نقطة تتبع يومية هنا.
-                          </small>
-                        )}
-                        <p className="disclosure">
-                          {t("نماذج الصاروخ والغلاف والرافعة والقاعدة القمرية مبسطة. تسلسل النقل والهبوط مستند إلى المصادر؛ الحركة ليست بيانات ملاحة أو مسار عجلات موثّقاً.", "The rocket, aeroshell, sky crane and lunar base are simplified. The animation reconstructs mission phases from published sources.")}
-                        </p>
-                      </article>
-                    ) : mode === "location" ? (
-                      <>
-                        <p>
-                          {t("قرّب بعجلة الفأرة أو بإصبعين للوصول مباشرة إلى المعدات على سطح الجرم، دون زر نزول.", "Zoom with the mouse wheel or pinch to approach the equipment on the surface.")}
-                        </p>
-                        <h3>{missionCopy.site}</h3>
-                        <div className="coordinates" dir="ltr">
-                          {Math.abs(m.lat)}° {m.lat < 0 ? "S" : "N"} / {m.lon}°
-                          E
-                        </div>
-                        <p className="disclosure">{missionCopy.frame}</p>
-                        <a
-                          href={m.locationSource}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {t("مصدر الإحداثيات ↗", "Coordinate source ↗")}
-                        </a>
-                        <h3>{t("أين توجد الآن؟", "Where is it now?")}</h3>
-                        <p>{missionCopy.final}</p>
-                        <a
-                          href={m.finalSource}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {t("الموقع الأخير في السجل الرسمي ↗", "Final location in the official record ↗")}
-                        </a>
-                        {m.id === "opportunity" && (
-                          <button
-                            className="photo"
-                            onClick={() =>
-                              setImage("/photos/opportunity-map.jpg")
-                            }
-                          >
-                            <img
-                              src="/photos/opportunity-map.jpg"
-                              alt={t("خريطة ناسا لمسار أوبورتيونيتي وموقع الاتصال الأخير", "NASA map of Opportunity’s traverse and last contact site")}
-                            />
-                            <span>{t("افتح خريطة الموقع النهائي ⤢", "Open the final location map ⤢")}</span>
-                          </button>
-                        )}
-                      </>
-                    ) : (
-                      <>
-                        <h3>{t("المعدات وسط أفق الكوكب", "Equipment on the surface")}</h3>
-                        <a
-                          href={dimensions[m.model].source}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {english ? englishDimensions[m.model] : dimensions[m.model].label} · {t("مصدر القياس ↗", "Measurement source ↗")}
-                        </a>
-                        <p>{missionCopy.detail}</p>
-                        <p className="disclosure">
-                          {t("اسحب لتدوير المجسّم، واستعمل عجلة الفأرة أو إصبعين للتقريب. المجسّم مضبوط على البعد المنشور. على القمر يظهر مجسّم إيغل التاريخي على الكرة نفسها؛ مرحلة الصعود غادرت لاحقاً. الصخور والأرضية بيئة توضيحية وليست مسحاً للموقع.", "Drag to rotate the model. Pinch or scroll to zoom. Equipment is scaled to published dimensions and local terrain is illustrative.")}
-                        </p>
-                        <a
-                          href={m.modelSource}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {t("مجسّم ناسا الأصلي ومصدره ↗", "Original NASA model ↗")}
-                        </a>
-                        <button
-                          className="primary"
-                          onClick={() => select(index, "story")}
-                        >
-                          {t("افتح قصة الرحلة ▶", "Watch the mission ▶")}
-                        </button>
-                      </>
-                    )}
-                    <button
-                      className="photo"
-                      onClick={() => setImage(`/photos/${m.id}.jpg`)}
-                    >
-                      <img src={`/photos/${m.id}.jpg`} alt={missionCopy.photoCaption} />
-                      <span>{t("عرض الصورة كاملة ⤢", "View full photo ⤢")}</span>
-                    </button>
-                    <small>{missionCopy.photoCaption}</small>
-                  </aside>
-                ))}
-              </>
             )}
             <MobileControls
               mode={mode}
-              panelOpen={mobilePanelOpen}
               onCamera={cameraMove}
               onReset={() => setReset((v) => v + 1)}
               onFocus={() => change("model")}
-              onTogglePanel={isApollo ? undefined : () => setMobilePanelOpen((v) => !v)}
             />
             <SimulationPanel />
             <div className="sceneTools">
@@ -708,32 +525,151 @@ function App() {
             </details>
           )}
           </div>
-            {isApollo && (
-              <div className="apollo-explorer-dock">
-                <button type="button" className="apollo-details-toggle"
-                  aria-label={apolloDetailsOpen ? t("إغلاق تفاصيل أبولو 11", "Close Apollo 11 details") : t("فتح تفاصيل أبولو 11", "Open Apollo 11 details")}
-                  aria-expanded={apolloDetailsOpen} aria-controls="apollo-explorer-details"
-                  onClick={() => setApolloDetailsOpen((open) => !open)}>
-                  <span aria-hidden="true">{apolloDetailsOpen ? "›" : "‹"}</span>
-                  <span className="apollo-details-label">{t("تفاصيل أبولو 11", "Apollo 11 details")}</span>
+              <div className="equipment-dock">
+                <button type="button" className="equipment-details-toggle"
+                  aria-label={detailsOpen ? t("إغلاق التفاصيل", "Close details") : t("فتح التفاصيل", "Open details")}
+                  aria-expanded={detailsOpen} aria-controls="equipment-details"
+                  onClick={() => setDetailsOpen((open) => !open)}>
+                  <span aria-hidden="true">{detailsOpen ? "›" : "‹"}</span>
+                  <span className="equipment-details-label">{t("التفاصيل", "Details")}</span>
                 </button>
-                  <aside id="apollo-explorer-details" className="apollo-explorer-details" aria-labelledby="apollo-explorer-title" hidden={!apolloDetailsOpen}>
-                    <h2 id="apollo-explorer-title">{t("أبولو 11", "Apollo 11")}</h2>
-                    <p>{missionCopy.site} · <bdi>{m.lat}° N, {m.lon}° E</bdi></p>
-                    <div className="apollo-explorer-actions">
+                  <aside id="equipment-details" className="equipment-details" aria-labelledby="equipment-title" hidden={!detailsOpen}>
+                    <h2 id="equipment-title">{missionName}</h2>
+                    <p>{missionCopy.site} · <bdi>{Math.abs(m.lat)}° {m.lat < 0 ? "S" : "N"}, {m.lon}° E</bdi></p>
+                    <div className="equipment-actions">
                       <button type="button" className="action action-solid" onClick={() => change("location")}>{t("موقع الهبوط", "Landing site")}</button>
                       <button type="button" className="action action-line" onClick={() => change("model")}>{t("المجسّم", "3D model")}</button>
                       <button type="button" className="action action-line" onClick={() => change("story")}>{t("قصة الرحلة", "Mission story")}</button>
                     </div>
-                    <details className="apollo-explorer-photos">
+                    <details className="equipment-photos" key={m.id}>
                       <summary>{t("الصور والمصادر", "Photos and sources")}</summary>
+                      {!isApollo && (
+                        <button type="button" className="photo" onClick={() => setImage(`/photos/${m.id}.jpg`)}>
+                          <img src={`/photos/${m.id}.jpg`} alt={missionCopy.photoCaption} loading="lazy" />
+                          <span>{t("عرض الصورة كاملة", "View full photo")}</span>
+                        </button>
+                      )}
                       <NasaGallery mission={m.id} compact />
                     </details>
-                    <ApolloBrief />
+                    {isApollo && <ApolloBrief />}
+                    {mode === "overview" || mode === "planet" ? <p>{missionCopy.intro}</p> : (
+                      <div className="equipment-mode-details">
+                        {mode === "story" ? (
+                          <article aria-live="polite">
+                            <span className="date">{date}</span>
+                            <h3>{displayedShot.title}</h3>
+                            <div className="missionMessage">
+                              <span>
+                                {t("سجل المهمة ·", "Mission log ·")}{" "}
+                                {shot.phase === "end"
+                                  ? t("انتهى الاتصال", "End of operations")
+                                  : t("إعادة سرد", "Reconstruction")}
+                              </span>
+                              <p>{displayedShot.text}</p>
+                              <a
+                                href={shot.source}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                {t("مصدر هذه المرحلة ↗", "Source for this phase ↗")}
+                              </a>
+                            </div>
+                            {yearStory && (
+                              <div className="yearStory">
+                                <small>
+                                  {t(`قصة عام ${year} · ملخص سنوي`, `${year} · Annual summary`)}
+                                </small>
+                                <h3>{yearStory[0]}</h3>
+                                <p>{yearStory[1]}</p>
+                              </div>
+                            )}
+                            {!exact && (
+                              <small>
+                                أحدث محطة موثّقة قبل التاريخ المختار: {event.date}.
+                                لا تتوفر نقطة تتبع يومية هنا.
+                              </small>
+                            )}
+                            <p className="disclosure">
+                              {t("نماذج الصاروخ والغلاف والرافعة والقاعدة القمرية مبسطة. تسلسل النقل والهبوط مستند إلى المصادر؛ الحركة ليست بيانات ملاحة أو مسار عجلات موثّقاً.", "The rocket, aeroshell, sky crane and lunar base are simplified. The animation reconstructs mission phases from published sources.")}
+                            </p>
+                          </article>
+                        ) : mode === "location" ? (
+                          <>
+                            <p>
+                              {t("قرّب بعجلة الفأرة أو بإصبعين للوصول مباشرة إلى المعدات على سطح الجرم، دون زر نزول.", "Zoom with the mouse wheel or pinch to approach the equipment on the surface.")}
+                            </p>
+                            <h3>{missionCopy.site}</h3>
+                            <div className="coordinates" dir="ltr">
+                              {Math.abs(m.lat)}° {m.lat < 0 ? "S" : "N"} / {m.lon}°
+                              E
+                            </div>
+                            <p className="disclosure">{missionCopy.frame}</p>
+                            <a
+                              href={m.locationSource}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {t("مصدر الإحداثيات ↗", "Coordinate source ↗")}
+                            </a>
+                            <h3>{t("أين توجد الآن؟", "Where is it now?")}</h3>
+                            <p>{missionCopy.final}</p>
+                            <a
+                              href={m.finalSource}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {t("الموقع الأخير في السجل الرسمي ↗", "Final location in the official record ↗")}
+                            </a>
+                            {m.id === "opportunity" && (
+                              <button
+                                className="photo"
+                                onClick={() =>
+                                  setImage("/photos/opportunity-map.jpg")
+                                }
+                              >
+                                <img
+                                  src="/photos/opportunity-map.jpg"
+                                  alt={t("خريطة ناسا لمسار أوبورتيونيتي وموقع الاتصال الأخير", "NASA map of Opportunity’s traverse and last contact site")}
+                                />
+                                <span>{t("افتح خريطة الموقع النهائي ⤢", "Open the final location map ⤢")}</span>
+                              </button>
+                            )}
+                          </>
+                        ) : (
+                          <>
+                            <h3>{t("المعدات وسط أفق الكوكب", "Equipment on the surface")}</h3>
+                            <a
+                              href={dimensions[m.model].source}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {english ? englishDimensions[m.model] : dimensions[m.model].label} · {t("مصدر القياس ↗", "Measurement source ↗")}
+                            </a>
+                            <p>{missionCopy.detail}</p>
+                            <p className="disclosure">
+                              {t("اسحب لتدوير المجسّم، واستعمل عجلة الفأرة أو إصبعين للتقريب. المجسّم مضبوط على البعد المنشور. على القمر يظهر مجسّم إيغل التاريخي على الكرة نفسها؛ مرحلة الصعود غادرت لاحقاً. الصخور والأرضية بيئة توضيحية وليست مسحاً للموقع.", "Drag to rotate the model. Pinch or scroll to zoom. Equipment is scaled to published dimensions and local terrain is illustrative.")}
+                            </p>
+                            <a
+                              href={m.modelSource}
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              {t("مجسّم ناسا الأصلي ومصدره ↗", "Original NASA model ↗")}
+                            </a>
+                            <button
+                              className="primary"
+                              onClick={() => select(index, "story")}
+                            >
+                              {t("افتح قصة الرحلة ▶", "Watch the mission ▶")}
+                            </button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                    <button type="button" className="action action-line" onClick={() => setSources(true)}>{t("المصادر والدقة", "Sources and accuracy")}</button>
                     <a className="action action-line" href={`#/archive?mission=${m.id}`}>{t("سجل المهمة الكامل", "Full mission record")}</a>
                   </aside>
               </div>
-            )}
         </div>
       )}
       {route.page !== "explore" && (

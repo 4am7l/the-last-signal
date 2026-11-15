@@ -292,7 +292,7 @@
 }
 
 .fullscreen-explorer .explorer-entry,
-.apollo-explorer-actions {
+.equipment-actions {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -315,24 +315,24 @@
   position: absolute;
   inset: 0;
 }
-.fullscreen-explorer.has-apollo-dock {
-  --apollo-drawer-width: clamp(240px, 38vw, 460px);
-  --apollo-handle-width: 38px;
+.fullscreen-explorer {
+  --equipment-drawer-width: clamp(240px, 38vw, 460px);
+  --equipment-handle-width: 38px;
 }
-.apollo-dock-open .explorer-stage {
-  right: var(--apollo-drawer-width);
+.details-dock-open .explorer-stage {
+  right: var(--equipment-drawer-width);
 }
-.apollo-explorer-dock {
+.equipment-dock {
   position: absolute;
   z-index: 95;
   inset-block: 0;
-  right: calc(0px - var(--apollo-drawer-width));
-  width: var(--apollo-drawer-width);
+  right: calc(0px - var(--equipment-drawer-width));
+  width: var(--equipment-drawer-width);
   transition: right 230ms var(--md-sys-motion-easing, ease);
   pointer-events: none;
 }
-.apollo-dock-open .apollo-explorer-dock { right: 0; }
-.apollo-details-toggle {
+.details-dock-open .equipment-dock { right: 0; }
+.equipment-details-toggle {
   position: absolute;
   top: 50%;
   right: 100%;
@@ -342,48 +342,56 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: var(--apollo-handle-width);
+  width: var(--equipment-handle-width);
   min-height: 128px;
   padding: 8px 4px;
   border: 1px solid var(--line);
   border-right: 0;
-  border-radius: 14px 0 0 14px !important;
+  border-radius: var(--md-sys-shape-corner-medium) 0 0 var(--md-sys-shape-corner-medium) !important;
   background: var(--paper);
   color: var(--ink);
   pointer-events: auto;
   cursor: pointer;
 }
-.apollo-details-toggle:hover,
-.apollo-details-toggle:focus-visible {
+.equipment-details-toggle:hover,
+.equipment-details-toggle:focus-visible {
   background: var(--md-sys-color-primary-container);
   color: var(--md-sys-color-on-primary-container);
 }
-.apollo-details-toggle > [aria-hidden] { font-size: 22px; line-height: 1; }
-.apollo-details-label { writing-mode: vertical-rl; font-size: .82rem; }
-.apollo-explorer-details {
+.equipment-details-toggle > [aria-hidden] { font-size: 22px; line-height: 1; }
+.equipment-details-label { writing-mode: vertical-rl; font-size: .82rem; }
+.equipment-details {
   height: 100%;
   box-sizing: border-box;
   overflow: auto;
   overscroll-behavior: contain;
   padding: max(20px, env(safe-area-inset-top)) 18px max(20px, env(safe-area-inset-bottom));
   border-left: 1px solid var(--line);
+  border-radius: var(--tls-shape-sheet) 0 0 var(--tls-shape-sheet);
   background: var(--paper);
   color: var(--ink);
   pointer-events: auto;
 }
 @media (prefers-reduced-motion: reduce) {
-  .apollo-explorer-dock { transition: none; }
+  .equipment-dock { transition: none; }
 }
-.apollo-explorer-details h2 { margin: 0; }
-.apollo-explorer-details .apollo-brief p { line-height: 1.65; }
-.apollo-explorer-photos { margin-block: 14px; border-block: 1px solid var(--line); }
-.apollo-explorer-photos summary { padding: 12px 0; cursor: pointer; }
-.apollo-explorer-photos .nasa-gallery { margin: 0; }
+.equipment-details h2 { margin: 0; }
+.equipment-details .apollo-brief p { line-height: 1.65; }
+.equipment-photos { margin-block: 14px; border-block: 1px solid var(--line); }
+.equipment-photos summary { padding: 12px 0; cursor: pointer; }
+.equipment-photos .nasa-gallery { margin: 0; }
 @media (max-width: 550px) {
   .fullscreen-explorer .explorer-navigation { gap: 4px; }
   .fullscreen-explorer .explorer-navigation .action { font-size: 11px; padding-inline: 7px; }
-  .fullscreen-explorer.has-apollo-dock { --apollo-drawer-width: min(78vw, 360px); }
-  .apollo-dock-open .explorer-stage { right: 0; }
-  .apollo-explorer-details { padding-inline: 12px; }
-  .apollo-explorer-actions .action { min-width: 0; }
+  .fullscreen-explorer { --equipment-drawer-width: min(78vw, 360px); }
+  .details-dock-open .explorer-stage { right: 0; }
+  .equipment-details { padding-inline: 12px; }
+  .equipment-actions .action { min-width: 0; }
+}
+
+.equipment-details > .action { margin-block: 8px; margin-inline-end: 6px; }
+.equipment-mode-details > a { color: var(--md-sys-color-primary); }
+.equipment-photos summary { border-radius: var(--tls-shape-field); }
+.fullscreen-explorer :is(.action, .cameraButtons button, .sceneTools > button, .mobileControls button, .tabs button) {
+  border-radius: var(--tls-shape-chip);
 }

@@ -1,10 +1,10 @@
 /* Material 3 shapes and typography refinements, loaded after the base styles. */
 :root {
-  --tls-shape-card: 40px;
-  --tls-shape-media: 30px;
-  --tls-shape-sheet: 34px;
-  --tls-shape-chip: 999px;
-  --tls-shape-field: 22px;
+  --tls-shape-card: var(--md-sys-shape-corner-extra-large);
+  --tls-shape-media: var(--md-sys-shape-corner-large);
+  --tls-shape-sheet: var(--md-sys-shape-corner-extra-large);
+  --tls-shape-chip: var(--md-sys-shape-corner-full);
+  --tls-shape-field: var(--md-sys-shape-corner-medium);
   --tls-title-weight: 700;
 }
 .material-symbols-rounded {
@@ -110,7 +110,7 @@ input[type="search"], input[type="date"], select, textarea,
 .exploration-page .card, .mobileDpad button, .mobileZoom button,
 .cameraButtons button, .sceneTools button, .worldLabel,
 .sitePin, .pin {
-  border-radius: 22px !important;
+  border-radius: var(--tls-shape-field) !important;
 }
 .exploration-page .archive .card { overflow: hidden; }
 .site-footer a { font-weight: 600; }
@@ -178,7 +178,7 @@ input[type="search"], input[type="date"], select, textarea,
   position: relative;
   isolation: isolate;
   border: 1px solid var(--md-sys-color-outline-variant) !important;
-  border-radius: 42px !important;
+  border-radius: var(--tls-shape-card) !important;
   background: var(--md-sys-color-surface-container-low);
   overflow: hidden;
   color: var(--md-sys-color-on-surface);
@@ -194,11 +194,11 @@ input[type="search"], input[type="date"], select, textarea,
   padding: 0;
   margin: 0;
   overflow: hidden;
-  border-radius: 32px 32px 23px 32px;
+  border-radius: var(--tls-shape-media);
   background: var(--md-sys-color-surface-container-high);
 }
 .destination--expressive.mars > .destination__media {
-  border-radius: 32px 32px 32px 23px;
+  border-radius: var(--tls-shape-media);
 }
 .destination--expressive .destination__media img {
   width: 100%;
@@ -301,10 +301,10 @@ input[type="search"], input[type="date"], select, textarea,
 .feature-image { border-radius: 28px; }
 .feature-copy h3, .record-copy h2 { font-weight: 700 !important; }
 .nasa-gallery__heading h2 { font-weight: 700 !important; }
-.nasa-gallery .nasa-photo-card__open { border-radius: 24px !important; }
-.nasa-gallery .nasa-photo-card { border-radius: 30px !important; }
-.modal, .nasa-lightbox__content { border-radius: 36px !important; }
-.photo img { border-radius: 22px !important; }
+.nasa-gallery .nasa-photo-card__open { border-radius: var(--tls-shape-media) !important; }
+.nasa-gallery .nasa-photo-card { border-radius: var(--tls-shape-card) !important; }
+.modal, .nasa-lightbox__content { border-radius: var(--tls-shape-sheet) !important; }
+.photo img { border-radius: var(--tls-shape-field) !important; }
 
 @media (max-width: 950px) {
   .destination--expressive > .destination__media { height: clamp(215px, 27vw, 270px); }
@@ -313,19 +313,19 @@ input[type="search"], input[type="date"], select, textarea,
   :root { --tls-shape-card: 28px; --tls-shape-sheet: 25px; --tls-shape-media: 22px; }
   .destinations-section { padding-inline: 12px; }
   .destinations { grid-template-columns: 1fr; gap: 14px; }
-  .destination.destination--expressive { border-radius: 30px !important; padding: 8px; }
+  .destination.destination--expressive { border-radius: var(--tls-shape-card) !important; padding: 8px; }
   .destination--expressive > .destination__media {
-    border-radius: 24px 24px 18px 24px;
+    border-radius: var(--tls-shape-media);
     height: clamp(210px, 52vw, 340px);
   }
-  .destination--expressive.mars > .destination__media { border-radius: 24px 24px 24px 18px; }
+  .destination--expressive.mars > .destination__media { border-radius: var(--tls-shape-media); }
   .destination--expressive > .destination__content { padding: 16px 13px 14px; }
   .destination--expressive h3 { font-size: 32px; }
   .destination--expressive .destination__cta { width: 100%; }
   .hero-copy h1 { font-size: clamp(34px, 8vw, 46px); }
   .page-intro h1 { font-size: clamp(33px, 8vw, 48px); }
   .section-heading h2 { font-size: clamp(26px, 6.5vw, 34px); }
-  .site-header { border-radius: 26px !important; }
+  .site-header { border-radius: var(--tls-shape-sheet) !important; }
   .exploration-page .information { border-radius: 28px 28px 0 0 !important; }
 }
 @media (prefers-reduced-motion: reduce) {
