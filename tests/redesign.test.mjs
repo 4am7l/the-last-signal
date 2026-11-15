@@ -55,3 +55,28 @@ test("NASA media endpoints are restricted to official hosts and lazy high-res re
   assert.match(gallery, /nasa-asset\?id=/);
   assert.match(gallery, /loading=\{index > 1 \? "lazy" : "eager"\}/);
 });
+
+test("Scientific typography loads once and applies heavy bilingual headings", () => {
+  const index = file("index.html");
+  const legacy = file("src/science-theme.css");
+  const polish = file("src/expressive-polish.css");
+  const entry = file("src/main.tsx");
+  assert.match(index, /IBM\+Plex\+Sans\+Arabic/);
+  assert.match(index, /Space\+Grotesk/);
+  assert.doesNotMatch(legacy, /@import url\("https:\/\/fonts\.googleapis/);
+  assert.match(polish, /--tls-title-weight:\s*700/);
+  assert.match(polish, /\.destinations-heading/);
+  assert.match(polish, /\.destination--expressive/);
+  assert.match(polish, /--tls-shape-card:/);
+  assert.ok(entry.indexOf('import "./expressive-polish.css";') > entry.indexOf('import "./nasa-gallery.css";'));
+});
+
+test("Moon and Mars destination cards retain functional exploration links", () => {
+  const page = file("src/Experience.tsx");
+  assert.match(page, /aria-labelledby="destinations-title"/);
+  assert.match(page, /id="destinations-title">أين توجد هذه المعدات؟/);
+  assert.match(page, /destination--expressive/);
+  assert.match(page, /href=\{exploreHref\(d\.id, "planet"\)\}/);
+  assert.match(page, /destination__media/);
+  assert.match(page, /destination__cta/);
+});
