@@ -4,12 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>الإشارة الأخيرة — رحلات استكشاف الفضاء</title>
-    <meta name="theme-color" content="#f8f9ff" />
+    <meta name="theme-color" content="#fcfaf7" />
     <meta name="color-scheme" content="light dark" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&amp;family=Space+Grotesk:wght@400;500;600;700&amp;display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0&amp;display=swap" rel="stylesheet" />
+    <link rel="preload" href="/fonts/ibm-plex-sans-arabic-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/ibm-plex-sans-arabic-700.woff2" as="font" type="font/woff2" crossorigin />
     <script>
       /* Set theme before React paints, preventing a white flash in dark mode. */
       try {
@@ -20,7 +18,7 @@
         document.documentElement.dataset.theme = theme;
         document.documentElement.style.colorScheme = theme;
         document.querySelector('meta[name="theme-color"]').setAttribute(
-          "content", theme === "dark" ? "#12151c" : "#f8f9ff"
+          "content", theme === "dark" ? "#181626" : "#fcfaf7"
         );
       } catch {
         document.documentElement.dataset.theme = "light";
@@ -28,7 +26,7 @@
     </script>
     <meta
       name="description"
-      content="الإشارة الأخيرة: أرشيف عربي تفاعلي لمهمات القمر والمريخ. استكشف المعدات ثلاثية الأبعاد، ومواقع الهبوط، وقصص الرحلات بمصادرها."
+      content="الإشارة الأخيرة: مغامرة عربية لاستكشاف القمر والمريخ لعمر 8–16 سنة. اكتشف قصص المهمات، وشاهد مجسّماتها، وتعلّم من صور ناسا ومصادرها."
     />
   </head>
   <body>
