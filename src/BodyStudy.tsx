@@ -2,8 +2,14 @@ import { useEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import type { OrbitControls as Controls } from "three-stdlib";
-import { Planet } from "./Planet";
+import { Vector3 } from "three";
+import { eagle } from "./eagle";
+import { ApolloSiteMarker } from "./ApolloSiteMarker";
+import { Planet, point } from "./Planet";
 import { SUN_DIRECTION } from "./solar";
+
+const center = new Vector3();
+const apolloPosition = point(eagle.latitude, eagle.longitude, 300);
 
 /** One body per scene. Display radius is normalized; this is not a size comparison. */
 export function BodyStudy({
@@ -19,7 +25,13 @@ export function BodyStudy({
   const controls = useRef<Controls>(null);
   useEffect(() => {
     camera.up.set(0, 1, 0);
-    camera.position.set(0, 100, 950).multiplyScalar(framingScale);
+    if (body === "moon") {
+      camera.position.copy(apolloPosition).normalize().multiplyScalar(950);
+      camera.position.y += 100;
+    } else {
+      camera.position.set(0, 100, 950);
+    }
+    camera.position.multiplyScalar(framingScale);
     camera.near = 0.1;
     camera.far = 10000;
     camera.updateProjectionMatrix();
@@ -45,6 +57,7 @@ export function BodyStudy({
         intensity={3}
       />
       <Planet key={body} body={body} r={300} pos={[0, 0, 0]} />
+      {body === "moon" && <ApolloSiteMarker position={apolloPosition} center={center} />}
     </>
   );
 }

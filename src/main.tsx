@@ -98,10 +98,13 @@ function App() {
   }, [route.page]);
 
   const sceneKey = `${mode}:${body}`;
+  const sceneGroupKey = `${mode === "overview" ? "overview" : "terrain"}:${body}`;
   useEffect(() => {
     setReadySceneKey(null);
-    setFailedSceneKey(null);
   }, [sceneKey]);
+  useEffect(() => {
+    setFailedSceneKey(null);
+  }, [sceneGroupKey]);
 
   useEffect(() => {
     if (!sources) return;
@@ -145,7 +148,7 @@ function App() {
     return () => window.removeEventListener("keydown", close);
   }, []);
 
-  const sceneFailed = failedSceneKey === sceneKey;
+  const sceneFailed = failedSceneKey === sceneGroupKey;
   const sceneLoading = readySceneKey !== sceneKey && !sceneFailed;
   const bodyName = body === "moon" ? t("القمر", "Moon") : t("المريخ", "Mars");
 
@@ -191,11 +194,14 @@ function App() {
               {mode === "overview" && (
                 <a className="action action-solid" href={exploreHref(body, "planet")}>{t("استكشف السطح", "Explore the surface")}</a>
               )}
+              {body === "moon" && mode === "overview" && (
+                <a className="action action-line explorer-land" href={eagle.simulationHref}>{t("اهبط في موقع أبولو 11", "Land at Apollo 11")}</a>
+              )}
               {mode === "planet" && (
                 <a className="action action-solid" href={body === "moon" ? eagle.simulationHref : exploreHref(body, "surface")}>{body === "moon" ? t("انزل إلى موقع إيغل", "Descend to Eagle") : t("انزل للسطح", "Descend to the surface")}</a>
               )}
               {mode !== "overview" && (
-                <a className="action action-line" href={exploreHref(body, mode === "surface" ? "planet" : "overview")} aria-label={t("رجوع إلى منظر الجرم الكامل", "Back to the full globe")}>
+                <a className="action action-line" href={exploreHref(body, mode === "surface" ? "planet" : "overview")} aria-label={mode === "surface" ? t("رجوع إلى منظر الجرم الكامل داخل المحاكاة", "Back to the full globe in the simulation") : undefined}>
                   <span aria-hidden="true">{t("→", "←")}</span> {t("رجوع", "Back")}
                 </a>
               )}
@@ -209,7 +215,7 @@ function App() {
           </div>
           <main id="main-content" tabIndex={-1} className={`universe ${mode}`}>
             <div className="canvas" aria-busy={sceneLoading}>
-              <Boundary key={sceneKey} onError={() => setFailedSceneKey(sceneKey)} fallback={(webglUnavailable) => (
+              <Boundary key={sceneGroupKey} onError={() => setFailedSceneKey(sceneGroupKey)} fallback={(webglUnavailable) => (
                 <section className="error scene-error" role="alert">
                   <h2>{webglUnavailable ? t("تعذّر تشغيل WebGL 2", "WebGL 2 could not start") : t("تعذّر تحميل المشهد", "The scene could not load")}</h2>
                   <p>{webglUnavailable

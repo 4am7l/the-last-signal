@@ -51,7 +51,7 @@ export function Space({ cameraCommand, ...props }: SceneProps & { cameraCommand:
 function SceneAssetsGate({ body, mode, reset, sceneKey, onSceneReady }: SceneProps) {
   useLoader(T.TextureLoader, body === "mars" ? "/mars-nasa-viking.jpg" : "/moon.jpg");
   useLoader(T.TextureLoader, "/moon-height.jpg");
-  const scene = (
+  return (
     <>
       {mode === "overview" ? <BodyStudy body={body} reset={reset} /> : (
         <>
@@ -59,15 +59,15 @@ function SceneAssetsGate({ body, mode, reset, sceneKey, onSceneReady }: ScenePro
           <FixedStars marsSurface={body === "mars"} />
         </>
       )}
+      {body === "moon" && mode === "surface" && <EagleAssets />}
       <FirstSceneFrame key={sceneKey} sceneKey={sceneKey} onReady={onSceneReady} />
     </>
   );
-  return body === "moon" && mode === "surface" ? <EagleAssets>{scene}</EagleAssets> : scene;
 }
 
-function EagleAssets({ children }: { children: React.ReactNode }) {
+function EagleAssets() {
   useEagleModel();
-  return children;
+  return null;
 }
 
 function FirstSceneFrame({ sceneKey, onReady }: { sceneKey: string; onReady: (key: string) => void }) {

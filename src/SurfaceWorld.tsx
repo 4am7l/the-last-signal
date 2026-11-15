@@ -17,6 +17,7 @@ import {surfaceDetail,noise3,cameraTuning} from './sceneMath';
 import type {Destination} from './navigation';
 import {createMarsRelief} from './marsGeology';
 import {MarsRocks} from './MarsSurfaceDetails';
+import {ApolloSiteMarker} from './ApolloSiteMarker';
 import {EagleModel} from './EagleModel';
 import {eagle} from './eagle';
 import {LunarRocks} from './LunarSurfaceDetails';
@@ -232,6 +233,7 @@ export function SurfaceWorld({mode,body,reset}: {mode:'planet'|'surface';body:De
     ? <LunarRocks ground={surface.ground} unit={UNIT} clearance={6} count={preset.rocks}/>
     : <MarsRocks ground={surface.ground} unit={UNIT} clearance={3} count={preset.rocks} lat={lat} lon={lon} landingRadius={landingRadius}/>}
    {moon&&(mode==='surface'||close)&&<Suspense fallback={null}><EagleModel unit={UNIT} ground={surface.ground} night={night}/></Suspense>}
+   {moon&&mode==='planet'&&!close&&<ApolloSiteMarker position={new T.Vector3(0,surface.ground(0,0),0)} center={surface.center}/>}
    {!moon && <group position={surface.center}><Atmosphere r={R}/></group>}
  </>;
 }

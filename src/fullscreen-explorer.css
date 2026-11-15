@@ -325,3 +325,30 @@
   justify-content: center;
   gap: 8px;
 }
+
+.apollo-site-marker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--tls-shape-chip);
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 4px 16px #0004;
+  white-space: nowrap;
+  text-align: start;
+}
+.apollo-site-marker[hidden] { display: none; }
+.apollo-site-marker strong,
+.apollo-site-marker small { display: block; }
+.apollo-site-marker small { font-size: .72rem; }
+.apollo-site-marker:hover,
+.apollo-site-marker:focus-visible,
+.explorer-land {
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+
+.fullscreen-explorer .explorer-entry { flex-wrap: wrap; }
