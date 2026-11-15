@@ -298,6 +298,38 @@ function App() {
               <ThemeToggle />
             </div>
           </header>
+          <div className="explorer-navigation">
+            {mode === "overview" ? (
+              <div className="explorer-entry">
+                <h1 className="explorer-visually-hidden">{bodyName}</h1>
+                <a className="action action-solid" href={exploreHref(m.id, "planet")}>
+                  {t("مواقع المهمات", "Mission sites")} <span aria-hidden="true">{english ? "→" : "←"}</span>
+                </a>
+              </div>
+            ) : (
+              <nav className="breadcrumb" aria-label={t("مسار الاستكشاف", "Exploration path")}>
+                <button onClick={() => change("overview")}>{t("الأجرام", "Moon and Mars")}</button>
+                <span aria-hidden="true">/</span>
+                <button onClick={() => change("planet")}>{bodyName}</button>
+                <span aria-hidden="true">/</span>
+                <span className="breadcrumb__current">
+                  {mode === "planet" ? t("اختر مهمة", "Select a mission") : missionName}
+                </span>
+              </nav>
+            )}
+            <details className="explorer-resources">
+              <summary>{t("أرشيف وصور", "Archive and photos")}</summary>
+              <div className="explorer-resources__content">
+                <a className="text-link" href={`#/archive?mission=${m.id}`}>
+                  {t("سجل " + missionName + " ←", missionName + " record →")}
+                </a>
+                <button className="source-link" onClick={() => setSources(true)}>
+                  {t("المصادر والدقة", "Sources and accuracy")}
+                </button>
+                <NasaGallery mission={m.id} compact />
+              </div>
+            </details>
+          </div>
           <main
             id="main-content"
             tabIndex={-1}
@@ -328,26 +360,8 @@ function App() {
             {sceneLoading && (
               <PlanetLoadingIndicator key={sceneKey} body={m.body} mission={mode === "overview" ? undefined : missionName} />
             )}
-            {mode === "overview" ? (
-              <div className="explorer-entry">
-                <h1 className="explorer-visually-hidden">
-                  {bodyName}
-                </h1>
-                <a className="action action-solid" href={exploreHref(m.id, "planet")}>
-                  {t("مواقع المهمات", "Mission sites")} <span aria-hidden="true">{english ? "→" : "←"}</span>
-                </a>
-              </div>
-            ) : (
+            {mode !== "overview" && (
               <>
-                <div className="breadcrumb">
-                  <button onClick={() => change("overview")}>{t("الأجرام", "Moon and Mars")}</button>
-                  <span>/</span>
-                  <button onClick={() => change("planet")}>
-                    {bodyName}
-                  </button>
-                  <span>/</span>
-                  <span>{mode === "planet" ? t("اختر مهمة", "Select a mission") : missionName}</span>
-                </div>
                 {mode === "planet" ? (
                   <section className="welcome">
                     <h1>{bodyName}</h1>
@@ -677,18 +691,6 @@ function App() {
               </div>
             </details>
           )}
-          <details className="explorer-resources">
-            <summary>{t("أرشيف وصور", "Archive and photos")}</summary>
-            <div className="explorer-resources__content">
-              <a className="text-link" href={`#/archive?mission=${m.id}`}>
-                {t("سجل " + missionName + " ←", missionName + " record →")}
-              </a>
-              <button className="source-link" onClick={() => setSources(true)}>
-                {t("المصادر والدقة", "Sources and accuracy")}
-              </button>
-              <NasaGallery mission={m.id} compact />
-            </div>
-          </details>
         </div>
       )}
       {route.page !== "explore" && (

@@ -1,6 +1,8 @@
 .fullscreen-explorer {
   --explorer-gap: 12px;
   --explorer-top: calc(68px + env(safe-area-inset-top));
+  --explorer-navigation-height: 44px;
+  --explorer-content-top: calc(var(--explorer-top) + var(--explorer-navigation-height) + 8px);
   --explorer-bottom: calc(var(--explorer-gap) + env(safe-area-inset-bottom));
   position: fixed;
   inset: 0;
@@ -88,13 +90,14 @@
 }
 
 .explorer-entry {
-  position: absolute;
-  inset-block-start: var(--explorer-top);
-  inset-inline-start: var(--explorer-gap);
-  z-index: 10;
+  pointer-events: auto;
 }
 
-.explorer-entry .action { gap: 10px; padding-inline: 15px; }
+.explorer-entry .action {
+  min-height: var(--explorer-navigation-height);
+  gap: 6px;
+  padding-inline: clamp(8px, 2vw, 15px);
+}
 .explorer-visually-hidden {
   position: absolute;
   width: 1px;
@@ -104,9 +107,41 @@
   white-space: nowrap;
 }
 
-.fullscreen-explorer .breadcrumb { top: var(--explorer-top); }
+.explorer-navigation {
+  position: absolute;
+  top: var(--explorer-top);
+  inset-inline: var(--explorer-gap);
+  z-index: 25;
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 8px;
+  pointer-events: none;
+}
+
+.explorer-navigation .breadcrumb {
+  position: static;
+  min-width: 0;
+  min-height: var(--explorer-navigation-height);
+  gap: clamp(4px, 1.5vw, 10px);
+  padding: 0 8px;
+  white-space: nowrap;
+  pointer-events: auto;
+}
+
+.explorer-navigation .breadcrumb button {
+  flex: none;
+  padding-inline: 2px;
+}
+
+.breadcrumb__current {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .fullscreen-explorer .planet .welcome {
-  top: calc(var(--explorer-top) + 45px);
+  top: var(--explorer-content-top);
   max-height: min(40dvh, 360px) !important;
   overflow: auto !important;
   pointer-events: auto;
@@ -114,7 +149,6 @@
 .fullscreen-explorer .sceneTools { bottom: var(--explorer-bottom); }
 .fullscreen-explorer .simulationPanel { max-height: 45dvh; }
 
-.explorer-resources,
 .fullscreen-explorer .explorer-timeline {
   position: absolute;
   z-index: 25;
@@ -128,18 +162,42 @@
 }
 
 .explorer-resources {
-  top: var(--explorer-top);
-  inset-inline-end: var(--explorer-gap);
-  width: max-content;
-  max-width: calc(100% - 2 * var(--explorer-gap));
-  max-height: min(65dvh, 660px);
+  flex: none;
+  margin-inline-start: auto;
+  pointer-events: auto;
 }
 
-.explorer-resources[open] { width: 520px; }
-.explorer-resources__content { padding: 0 12px 12px; }
-.explorer-resources__content .nasa-gallery { margin: 12px 0 0; }
-
 .explorer-resources > summary,
+.explorer-resources__content {
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--tls-shape-field);
+}
+
+.explorer-resources > summary {
+  min-height: var(--explorer-navigation-height);
+  padding: 11px clamp(8px, 2vw, 14px);
+  cursor: pointer;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.explorer-resources__content {
+  position: absolute;
+  top: calc(100% + 8px);
+  inset-inline-end: 0;
+  width: min(520px, 100%);
+  max-height: min(65dvh, 660px);
+  padding: 12px;
+  overflow: auto;
+  overscroll-behavior: contain;
+  box-shadow: 0 12px 36px #0d21471a;
+}
+
+.explorer-resources__content .nasa-gallery { margin: 12px 0 0; }
+.explorer-resources__content .source-link { width: auto; font-size: 12px; }
+
 .explorer-timeline > summary {
   cursor: pointer;
   padding: 11px 14px;
@@ -161,10 +219,10 @@
 .explorer-timeline > input[type=range] { width: calc(100% - 28px); }
 
 @media (min-width: 851px) {
-  .fullscreen-explorer .information { top: var(--explorer-top); }
+  .fullscreen-explorer .information { top: var(--explorer-content-top); }
   .fullscreen-explorer .explorer-timeline {
     bottom: auto;
-    top: var(--explorer-top);
+    top: var(--explorer-content-top);
   }
 }
 
@@ -177,12 +235,15 @@
     max-width: calc(100% - 2 * var(--explorer-gap));
   }
   .fullscreen-explorer .planet .welcome p { display: none; }
+  .fullscreen-explorer .information {
+    max-height: max(0px, calc(100% - var(--explorer-content-top)));
+  }
   .fullscreen-explorer .overview .mobileControls,
   .fullscreen-explorer .planet .mobileControls {
     bottom: var(--explorer-bottom);
   }
   .fullscreen-explorer .universe .simulationPanel {
-    top: calc(var(--explorer-top) + 48px);
+    top: var(--explorer-content-top);
     bottom: auto;
     inset-inline-start: auto;
     inset-inline-end: var(--explorer-gap);
