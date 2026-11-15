@@ -152,12 +152,6 @@
   text-overflow: ellipsis;
 }
 
-.fullscreen-explorer .planet .welcome {
-  top: var(--explorer-content-top);
-  max-height: min(40dvh, 360px) !important;
-  overflow: auto !important;
-  pointer-events: auto;
-}
 .fullscreen-explorer .sceneTools { bottom: var(--explorer-bottom); }
 .fullscreen-explorer .simulationPanel { max-height: 45dvh; }
 
@@ -241,11 +235,6 @@
 @media (max-width: 850px) {
   .fullscreen-explorer .fullscreen-toolbar { --explorer-gap: 8px; }
   .fullscreen-explorer .theme-toggle { width: 44px; padding: 8px; }
-  .fullscreen-explorer .planet .welcome {
-    width: max-content;
-    max-width: calc(100% - 2 * var(--explorer-gap));
-  }
-  .fullscreen-explorer .planet .welcome p { display: none; }
   .fullscreen-explorer .information {
     max-height: max(0px, calc(100% - var(--explorer-content-top)));
   }
@@ -377,6 +366,13 @@
   .equipment-dock { transition: none; }
 }
 .equipment-details h2 { margin: 0; }
+.equipment-details .missionList {
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  margin-block: 10px 16px;
+}
+.equipment-details .missionList button { min-height: 44px; }
+.drawer-content > .action { margin-block-start: 8px; }
 .equipment-details .apollo-brief p { line-height: 1.65; }
 .equipment-photos { margin-block: 14px; border-block: 1px solid var(--line); }
 .equipment-photos summary { padding: 12px 0; cursor: pointer; }

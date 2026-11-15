@@ -43,14 +43,15 @@
 
   .fullscreen-toolbar,
   .explorer-entry,
-  .fullscreen-explorer .welcome,
   .fullscreen-explorer .sceneTools,
   .fullscreen-explorer .mobileControls,
   .fullscreen-explorer .simulationPanel,
   .fullscreen-explorer .explorer-timeline {
     animation: panel-enter 340ms var(--md-sys-motion-easing) both;
   }
-  .fullscreen-explorer .welcome { animation-delay: 75ms; }
+  .details-dock-open .drawer-content {
+    animation: panel-enter 260ms var(--md-sys-motion-easing) both;
+  }
   .equipment-dock { transition-duration: 300ms; }
   .equipment-details { transition: visibility 0s; }
   .equipment-details[inert] { transition-delay: 300ms; }
