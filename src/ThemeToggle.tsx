@@ -63,7 +63,7 @@ export function ThemeToggle() {
       aria-pressed={dark}
       onClick={toggle}
     >
-      <span className="material-symbols-rounded" aria-hidden="true">
+      <span className="material-symbols-rounded" key={theme} aria-hidden="true">
         {dark ? "light_mode" : "dark_mode"}
       </span>
     </button>

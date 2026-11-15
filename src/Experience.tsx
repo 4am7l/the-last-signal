@@ -1,6 +1,5 @@
 import { FalconBrief } from "./FalconBrief";
 import { ApolloBrief } from "./ApolloBrief";
-import { apolloPhoto } from "./apollo";
 import { LanguageToggle } from "./LanguageToggle";
 import { useLanguage, useExplorerText } from "./explorer-language";
 import { englishEvent, englishExplanations, missionEnglish } from "./explorer-english";
@@ -110,14 +109,18 @@ export function Home() {
           </div>
         </div>
         <figure className="hero-figure">
-          <img
-            className="hero-photo"
-            src="/photos/apollo.jpg"
-            alt={t(apolloPhoto.ar, apolloPhoto.en)}
-            fetchPriority="high"
-          />
+          <div className="hero-media">
+            <img
+              className="hero-photo"
+              src="/photos/apollo-11-portrait.jpg"
+              alt={t("باز ألدرين على سطح القمر", "Buzz Aldrin on the lunar surface")}
+              width={960}
+              height={600}
+              fetchPriority="high"
+            />
+          </div>
           <figcaption className="hero-caption">
-            <a href={apolloPhoto.source} target="_blank" rel="noreferrer">{t(apolloPhoto.ar, apolloPhoto.en)}</a>
+            <a href="https://nssdc.gsfc.nasa.gov/imgcat/html/object_page/a11_h_40_5903.html" target="_blank" rel="noreferrer">{t("باز ألدرين، أبولو 11 · ناسا", "Buzz Aldrin, Apollo 11 · NASA")}</a>
             <a href={exploreHref("apollo", "location")}>{t("موقع الهبوط ←", "Landing site →")}</a>
           </figcaption>
         </figure>
@@ -374,6 +377,7 @@ export function Archive({ initialMission }: { initialMission?: string }) {
         {chosen && (
           <section
             className="dossier"
+            key={chosen.id}
             id="mission-dossier"
             tabIndex={-1}
             aria-label={t(`سجل ${missionName(chosen)}`, `${chosen.en} record`)}

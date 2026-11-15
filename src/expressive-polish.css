@@ -138,12 +138,17 @@ input[type="search"], input[type="date"], select, textarea,
 }
 .hero-copy p { max-width: 48ch; }
 .hero-figure { width: 100%; margin: 0; }
+.hero-media {
+  aspect-ratio: 8 / 5;
+  overflow: hidden;
+  border-radius: var(--tls-shape-media);
+  background: #14171d;
+}
 .hero-figure .hero-photo {
   display: block;
-  height: auto;
-  aspect-ratio: 5 / 4;
-  object-position: 50% 37%;
-  border-radius: var(--tls-shape-media);
+  width: 100%;
+  height: 100%;
+  object-position: 53% center;
 }
 .hero-figure .hero-caption {
   position: static;
@@ -335,35 +340,4 @@ input[type="search"], input[type="date"], select, textarea,
     transition: none !important;
     transform: none !important;
   }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .signal-hero .hero-copy {
-    animation: editorial-reveal 420ms var(--md-sys-motion-easing) both;
-  }
-
-  .signal-hero .hero-figure {
-    animation: editorial-reveal 500ms var(--md-sys-motion-easing) 70ms both;
-  }
-
-  :is(.editorial-page, .fullscreen-explorer) :is(.action, .cameraButtons button):active {
-    transform: scale(.97);
-  }
-
-  @supports (animation-timeline: view()) and (animation-range: entry 0% entry 100%) {
-    .editorial-page :is(.destination, .feature-card, .science-reading article, .guide-steps article) {
-      animation: editorial-reveal linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 30%;
-    }
-
-    .editorial-page :is(.destination, .feature-card, .science-reading article, .guide-steps article):focus-within {
-      animation: none;
-    }
-  }
-}
-
-@keyframes editorial-reveal {
-  from { opacity: .45; translate: 0 12px; }
-  to { opacity: 1; translate: 0 0; }
 }

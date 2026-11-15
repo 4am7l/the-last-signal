@@ -25,6 +25,7 @@ import "./nasa-gallery.css";
 import "./expressive-polish.css";
 import "./planet-loader.css";
 import "./fullscreen-explorer.css";
+import "./motion.css";
 const Space = lazy(() => import("./Space").then((m) => ({ default: m.Space })));
 class Boundary extends React.Component<
   { children: React.ReactNode; onError?: () => void; language: Language; view: Mode },
@@ -532,10 +533,10 @@ function App() {
                   aria-label={detailsOpen ? t("إغلاق التفاصيل", "Close details") : t("فتح التفاصيل", "Open details")}
                   aria-expanded={detailsOpen} aria-controls="equipment-details"
                   onClick={() => setDetailsOpen((open) => !open)}>
-                  <span aria-hidden="true">{detailsOpen ? "›" : "‹"}</span>
+                  <span className="equipment-details-chevron" aria-hidden="true">‹</span>
                   <span className="equipment-details-label">{t("التفاصيل", "Details")}</span>
                 </button>
-                  <aside id="equipment-details" className="equipment-details" aria-labelledby="equipment-title" hidden={!detailsOpen}>
+                  <aside id="equipment-details" className="equipment-details" aria-labelledby="equipment-title" inert={!detailsOpen}>
                     <h2 id="equipment-title">{missionName}</h2>
                     <p>{missionCopy.site} · <bdi>{Math.abs(m.lat)}° {m.lat < 0 ? "S" : "N"}, {m.lon}° E</bdi></p>
                     <div className="equipment-actions">
