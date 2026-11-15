@@ -755,6 +755,15 @@ function App() {
               {t("الشريط يعرض تسلسل المحطات المؤرخة من الانطلاق إلى نهاية المهمة. كل مرحلة لها وقت عرض مستقل، مع ملخص لكل سنة. الرسائل إعادة سرد تعليمية وليست اتصالات مقتبسة. الحركة ليست بيانات SPICE أو إعادة بناء لمسارات العجلات أو الرحلات الـ72.", "The timeline follows documented mission events. The animations and mission messages are educational reconstructions.")}
             </p>
             <p>
+              <a href="https://www.eso.org/public/images/eso0932a/" target="_blank" rel="noreferrer">
+                {t("بانوراما درب التبانة", "Milky Way panorama")} · ESO/S. Brunier
+              </a>
+              {" · "}
+              <a href="https://github.com/astronexus/HYG-Database" target="_blank" rel="noreferrer">
+                {t("كتالوج النجوم", "Star catalogue")} · HYG
+              </a>
+            </p>
+            <p>
               {t("الإحداثيات تحمل اسم مرجعها وتميز موقع الهبوط عن الموقع الأخير. لا ندعي إحداثيات نهائية دقيقة عندما لا توجد بيانات موثّقة مدمجة.", "Each record cites its coordinate reference and identifies the landing site and last known location.")}
             </p>
             {missions.map((x) => (

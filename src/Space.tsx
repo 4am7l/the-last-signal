@@ -12,6 +12,7 @@ import {Planet,SitePin,Terrain,terrainHeight,point} from './Planet';
 import {SurfaceWorld} from './SurfaceWorld';
 import {SystemOverview} from './SystemOverview';
 import {BodyStudy} from './BodyStudy';
+import {FixedStars} from './FixedStars';
 
 import {SUN_DIRECTION} from './solar';
 import {CameraCommands,type CameraCommand} from './CameraCommands';
@@ -77,7 +78,11 @@ function MissionAssetsGate(props: Parameters<typeof Space>[0]) {
 }
 
 function ReadyWorld(props: Parameters<typeof Space>[0]) {
-  return <><World {...props}/><FirstSceneFrame key={props.sceneKey} sceneKey={props.sceneKey ?? ""} onReady={props.onSceneReady}/></>;
+  return <>
+    <World {...props}/>
+    {props.mode !== "overview" && <FixedStars marsSurface={props.m.body === "mars"}/>}
+    <FirstSceneFrame key={props.sceneKey} sceneKey={props.sceneKey ?? ""} onReady={props.onSceneReady}/>
+  </>;
 }
 
 function FirstSceneFrame({sceneKey,onReady}:{sceneKey:string;onReady?:(key:string)=>void}) {

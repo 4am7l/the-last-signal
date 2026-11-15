@@ -78,14 +78,17 @@ float noise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mi
 float fbm(vec3 p){return noise(p)*.5+noise(p*2.03+7.)*.25+noise(p*4.11+13.)*.125+noise(p*8.21+19.)*.0625;}
 void main(){
  vec3 d=normalize(skyDirection);float latitude=d.y;
- float disk=exp(-latitude*latitude*90.);
- float core=pow(max(d.x,0.),18.)*exp(-latitude*latitude*30.);
- float cloud=fbm(d*16.);
- float split=latitude+(fbm(d*11.+5.)-.45)*.12;
- float dust=exp(-split*split*340.)*smoothstep(.22,.66,fbm(d*34.+3.));
- vec3 stellar=mix(vec3(.065,.095,.13),vec3(.38,.25,.14),pow(max(d.x,0.),3.));
- vec3 color=(stellar*disk*(.35+cloud*1.6)+vec3(.8,.64,.44)*core)*exp(-dust*vec3(3.4,4.1,5.2));
- color+=vec3(.018,.025,.045)*exp(-latitude*latitude*10.)*(.3+cloud);
+ vec3 color=vec3(0.);
+ if(photoBlend<.995){
+  float disk=exp(-latitude*latitude*90.);
+  float core=pow(max(d.x,0.),18.)*exp(-latitude*latitude*30.);
+  float cloud=fbm(d*16.);
+  float split=latitude+(fbm(d*11.+5.)-.45)*.12;
+  float dust=exp(-split*split*340.)*smoothstep(.22,.66,fbm(d*34.+3.));
+  vec3 stellar=mix(vec3(.065,.095,.13),vec3(.38,.25,.14),pow(max(d.x,0.),3.));
+  color=(stellar*disk*(.35+cloud*1.6)+vec3(.8,.64,.44)*core)*exp(-dust*vec3(3.4,4.1,5.2));
+  color+=vec3(.018,.025,.045)*exp(-latitude*latitude*10.)*(.3+cloud);
+ }
  vec2 uv=vec2(atan(d.z,d.x)/6.2831853+.5,asin(clamp(d.y,-1.,1.))/3.14159265+.5);
  if(hasPanorama>.5){
   vec3 photograph=texture2D(panorama,uv).rgb;
