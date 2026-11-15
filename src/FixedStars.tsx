@@ -1,7 +1,7 @@
 import {useMemo,useEffect,useState} from 'react';
 import {useFrame,useThree} from '@react-three/fiber';
 import * as T from 'three';
-import {useSimulation,PRESETS} from './simulation';
+import {useSimulation} from './simulation';
 
 // Photographic sky: ESO/S. Brunier, eso0932a (CC BY 4.0).
 // Photographic exposure/orientation is artistic; point stars use HYG J2000 coordinates.
@@ -24,7 +24,7 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
   const launch=window.setTimeout(()=>worker.postMessage({}),350);
   return()=>{window.clearTimeout(launch);worker.terminate();geometry?.dispose();};
  },[scene]);
- useEffect(()=>{catalog?.setDrawRange(0,Math.min(settings.starCount,PRESETS[settings.quality].stars,catalog.attributes.position.count));},[catalog,settings.starCount,settings.quality]);
+ useEffect(()=>{catalog?.setDrawRange(0,Math.min(settings.starCount,catalog.attributes.position.count));},[catalog,settings.starCount]);
  const orientation=useMemo(()=>new T.Matrix4().makeRotationX(.02).multiply(new T.Matrix4().makeRotationZ(-.32)).multiply(new T.Matrix4().makeRotationY(Math.PI/2)),[]);
  const rotationScratch=useMemo(()=>new T.Matrix4(),[]);
  const uniforms=useMemo(()=>({skyRotation:{value:new T.Matrix3()},starRotation:{value:new T.Matrix3()},pixelRatio:{value:1},visibility:{value:1},panorama:{value:null as T.Texture|null},hasPanorama:{value:0},photoBlend:{value:0},texel:{value:new T.Vector2(1/6000,1/3000)}}),[]);
@@ -73,29 +73,40 @@ export function FixedStars({marsSurface}:{marsSurface:boolean}){
    <shaderMaterial side={T.BackSide} toneMapped={false} transparent depthWrite={false} depthTest uniforms={uniforms}
     vertexShader={`uniform mat3 skyRotation;varying vec3 skyDirection;void main(){skyDirection=position;vec3 d=mat3(viewMatrix)*skyRotation*position;vec4 p=projectionMatrix*vec4(d,1.);gl_Position=vec4(p.xy,p.w,p.w);}`}
     fragmentShader={`uniform sampler2D panorama;uniform float hasPanorama;uniform float photoBlend;uniform float visibility;uniform vec2 texel;varying vec3 skyDirection;
+float hash(vec3 p){return fract(sin(dot(p,vec3(127.1,311.7,74.7)))*43758.5453);}
+float noise(vec3 p){vec3 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(mix(hash(i),hash(i+vec3(1,0,0)),f.x),mix(hash(i+vec3(0,1,0)),hash(i+vec3(1,1,0)),f.x),f.y),mix(mix(hash(i+vec3(0,0,1)),hash(i+vec3(1,0,1)),f.x),mix(hash(i+vec3(0,1,1)),hash(i+vec3(1,1,1)),f.x),f.y),f.z);}
+float fbm(vec3 p){return noise(p)*.5+noise(p*2.03+7.)*.25+noise(p*4.11+13.)*.125+noise(p*8.21+19.)*.0625;}
 void main(){
- vec3 d=normalize(skyDirection);
- // The bundled catalogue supplies the stars immediately. Keep the fallback
- // black instead of inventing luminous procedural galactic clouds.
+ vec3 d=normalize(skyDirection);float latitude=d.y;
  vec3 color=vec3(0.);
+ if(photoBlend<.995){
+  float disk=exp(-latitude*latitude*90.);
+  float core=pow(max(d.x,0.),18.)*exp(-latitude*latitude*30.);
+  float cloud=fbm(d*16.);
+  float split=latitude+(fbm(d*11.+5.)-.45)*.12;
+  float dust=exp(-split*split*340.)*smoothstep(.22,.66,fbm(d*34.+3.));
+  vec3 stellar=mix(vec3(.065,.095,.13),vec3(.38,.25,.14),pow(max(d.x,0.),3.));
+  color=(stellar*disk*(.35+cloud*1.6)+vec3(.8,.64,.44)*core)*exp(-dust*vec3(3.4,4.1,5.2));
+  color+=vec3(.018,.025,.045)*exp(-latitude*latitude*10.)*(.3+cloud);
+ }
  vec2 uv=vec2(atan(d.z,d.x)/6.2831853+.5,asin(clamp(d.y,-1.,1.))/3.14159265+.5);
  if(hasPanorama>.5){
   vec3 photograph=texture2D(panorama,uv).rgb;
   // Lift photographed faint star clouds, retain dark lanes and real colour variation.
   float luminance=dot(photograph,vec3(.2126,.7152,.0722));
   photograph=mix(vec3(luminance),photograph,1.12);
-  photograph=pow(max(photograph,vec3(0.)),vec3(1.16))*.48;
+  photograph=pow(max(photograph,vec3(0.)),vec3(.94))*1.65;
   // Restrained optical glow from the photograph's brightest features only.
   vec3 bloom=vec3(0.);
   bloom+=max(texture2D(panorama,uv+texel*vec2(3.,0.)).rgb-.24,0.);
   bloom+=max(texture2D(panorama,uv-texel*vec2(3.,0.)).rgb-.24,0.);
   bloom+=max(texture2D(panorama,uv+texel*vec2(0.,3.)).rgb-.24,0.);
   bloom+=max(texture2D(panorama,uv-texel*vec2(0.,3.)).rgb-.24,0.);
-  photograph+=bloom*.025;
+  photograph+=bloom*.07;
   photograph=photograph/(vec3(1.)+photograph*.32);
   color=mix(color,photograph,photoBlend);
  }
- gl_FragDepth=1.;gl_FragColor=vec4(color,visibility*.58);
+ gl_FragDepth=1.;gl_FragColor=vec4(color,visibility);
  #include <colorspace_fragment>
 }`}/>
   </mesh>
@@ -103,11 +114,11 @@ void main(){
    <shaderMaterial toneMapped={false} transparent depthWrite={false} depthTest uniforms={uniforms}
     vertexShader={`uniform mat3 starRotation;uniform float pixelRatio;attribute float magnitude;attribute float temperature;varying float brightness;varying vec3 tint;
 void main(){vec3 direction=mat3(viewMatrix)*starRotation*position;vec4 p=projectionMatrix*vec4(direction,1.);gl_Position=vec4(p.xy,p.w,p.w);
-brightness=clamp(pow(10.,-.18*(magnitude-1.)),.09,1.);
+brightness=clamp(pow(10.,-.14*(magnitude-2.)),.015,1.);
 tint=temperature<5800.?mix(vec3(1.,.57,.30),vec3(1.,.97,.91),clamp((temperature-2500.)/3300.,0.,1.)):mix(vec3(1.,.97,.91),vec3(.63,.77,1.),clamp((temperature-5800.)/10000.,0.,1.));
-gl_PointSize=(1.8+pow(brightness,.7)*2.8)*pixelRatio;}`}
+gl_PointSize=(1.3+pow(brightness,.7)*5.3)*pixelRatio;}`}
     fragmentShader={`uniform float visibility;uniform float photoBlend;varying float brightness;varying vec3 tint;
-void main(){float r=length(gl_PointCoord-.5);float core=exp(-r*r*72.);float halo=exp(-r*r*13.)*.16*smoothstep(.4,.9,brightness);float alpha=(core+halo)*brightness*visibility*mix(1.65,1.45,photoBlend)*(1.-smoothstep(.4,.5,r));if(alpha<.002)discard;gl_FragDepth=1.;gl_FragColor=vec4(tint,clamp(alpha,0.,1.));
+void main(){float r=length(gl_PointCoord-.5);float core=exp(-r*r*72.);float halo=exp(-r*r*13.)*.16*smoothstep(.4,.9,brightness);float alpha=(core+halo)*brightness*visibility*mix(.95,.64,photoBlend)*(1.-smoothstep(.4,.5,r));if(alpha<.002)discard;gl_FragDepth=1.;gl_FragColor=vec4(tint,alpha);
 #include <colorspace_fragment>
 }`}/>
   </points>}

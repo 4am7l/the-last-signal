@@ -128,13 +128,10 @@ The local terrain is 24 km across with planetary curvature, deterministic illust
   an illustrative rendering model, not measured weather or a full spectral solver.
   Reference: https://science.nasa.gov/mars/facts/ . No atmosphere is added to the Moon.
 - Day/night haze colours now interpolate in the correct order. Mars daylight
-  suppresses the stellar sky; night and orbital views retain visible stars.
-- The 6,000 brightest HYG v4.1 records are bundled locally under CC BY-SA 4.0.
-  Default draw count is 4,500; quality caps are 1,800 / 2,800 / 4,200 / 5,500.
-  A local worker retains J2000 directions, magnitude ordering and colour index.
-  See public/stars-hyg-bright.LICENSE.txt for attribution and modifications.
-- Point stars use small, brighter cores; optional photographic Milky Way is
-  subdued. There are no procedural luminous cloud substitutes when it is offline.
+  attenuates the stellar sky.
+- The sky uses a photographic Milky Way panorama with a procedural fallback.
+  A worker loads up to 100,000 HYG v4.1 catalogue stars (CC BY-SA 4.0)
+  using J2000 directions ordered by magnitude.
 - Inspection lighting adds invisible overhead fill and a generated reflection
   environment so metallic equipment remains readable at night. The existing
   inspection toggle restores natural lighting and the prior scene environment.

@@ -234,7 +234,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onApproachChange,language="
    const darkness=T.MathUtils.smoothstep(localSun.y,-.26,-.06);
    marsFog.copy(marsNightSky).lerp(marsTwilight,darkness).lerp(marsDaySky,dusk);
    const skyHaze=haze*daylight;
-   scene.userData.skyVisibility=1-skyHaze*.98;
+   scene.userData.skyVisibility=1-skyHaze*.46;
    if(scene.background instanceof T.Color)scene.background.copy(sky).lerp(marsFog,skyHaze*.65);
    if(haze>.01){
     if(!(scene.fog instanceof T.FogExp2))scene.fog=new T.FogExp2(marsFog,0);
