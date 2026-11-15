@@ -1,9 +1,10 @@
+import { pathfinder } from "./pathfinder";
 import { surveyor } from "./surveyor";
 import { intrepid } from "./intrepid";
 import { falcon } from "./falcon";
 import { apolloCatalog, apolloPhoto } from "./apollo";
 export type Event={date:string;title:string;text:string;stage:'launch'|'cruise'|'landing'|'surface'|'end'};
-export type Mission={id:string;name:string;en:string;body:'mars'|'moon';model:string;site:string;lat:number;lon:number;frame:string;locationSource:string;final:string;finalSource:string;intro:string;detail:string;photoCaption:string;source:string;modelSource:string;events:Event[]};
+export type Mission={id:string;searchAliases?:string;name:string;en:string;body:'mars'|'moon';model:string;site:string;lat:number;lon:number;frame:string;locationSource:string;final:string;finalSource:string;intro:string;detail:string;photoCaption:string;source:string;modelSource:string;events:Event[]};
 const e=(date:string,title:string,text:string,stage:Event['stage']):Event=>({date,title,text,stage});
 const mer='https://atmos.nmsu.edu/data_and_services/atmospheres_data/MARS/MER/spirit/logs/MER_MISSION.pdf';
 const roverModel='https://science.nasa.gov/resource/spirit-and-opportunity-rover-3d-model/';
@@ -16,4 +17,5 @@ export const missions:Mission[]=[
 intrepid,
 falcon,
 surveyor,
+pathfinder,
 ];

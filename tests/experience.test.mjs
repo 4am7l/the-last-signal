@@ -20,7 +20,8 @@ const apolloModule = asModule(stripTypeScriptTypes(readFileSync(new URL("../src/
 const falconModule = asModule(stripTypeScriptTypes(readFileSync(new URL("../src/falcon.ts", import.meta.url), "utf8")));
 const intrepidModule = asModule(stripTypeScriptTypes(readFileSync(new URL("../src/intrepid.ts", import.meta.url), "utf8")));
 const surveyorModule = asModule(stripTypeScriptTypes(readFileSync(new URL("../src/surveyor.ts", import.meta.url), "utf8")));
-const { missions } = await load("../src/data.ts", { "./apollo": apolloModule, "./falcon": falconModule, "./intrepid": intrepidModule, "./surveyor": surveyorModule });
+const pathfinderModule = asModule(stripTypeScriptTypes(readFileSync(new URL("../src/pathfinder.ts", import.meta.url), "utf8")));
+const { missions } = await load("../src/data.ts", { "./apollo": apolloModule, "./falcon": falconModule, "./intrepid": intrepidModule, "./surveyor": surveyorModule, "./pathfinder": pathfinderModule });
 const ids = missions.map((m) => m.id);
 test("every mission deep link round trips all simulation modes", () => {
   for (const mission of ids)
@@ -57,13 +58,13 @@ test("archive search supports Arabic variants, English case, location and combin
   assert.ok(matchesMission(apollo, "بحر السكون", "moon"));
   assert.ok(!matchesMission(apollo, "Apollo", "mars"));
   assert.ok(!matchesMission(apollo, "unknown", "all"));
-  assert.equal(missions.filter((m) => matchesMission(m, "", "mars")).length, 4);
+  assert.equal(missions.filter((m) => matchesMission(m, "", "mars")).length, 5);
 });
 
 
 test("Apollo 15 lands at the published Falcon site with its own timeline and locally available photos", async () => {
   const { falcon, falconGallery } = await import(falconModule);
-  const { shotsFor } = await load("../src/journey.ts", { "./falcon": falconModule, "./intrepid": intrepidModule, "./surveyor": surveyorModule });
+  const { shotsFor } = await load("../src/journey.ts", { "./falcon": falconModule, "./intrepid": intrepidModule, "./surveyor": surveyorModule, "./pathfinder": pathfinderModule });
   assert.deepEqual([falcon.body, falcon.lat, falcon.lon], ["moon", 26.13239, 3.63330]);
   const shots = shotsFor(falcon);
   assert.ok(shots.every((shot) => shot.date.startsWith("1971")));
@@ -75,7 +76,7 @@ test("Apollo 15 lands at the published Falcon site with its own timeline and loc
 
 test("Intrepid has the LRO landing coordinates, its 1969 timeline and local gallery", async () => {
   const { intrepid, intrepidGallery } = await import(intrepidModule);
-  const { shotsFor } = await load("../src/journey.ts", { "./falcon": falconModule, "./intrepid": intrepidModule, "./surveyor": surveyorModule });
+  const { shotsFor } = await load("../src/journey.ts", { "./falcon": falconModule, "./intrepid": intrepidModule, "./surveyor": surveyorModule, "./pathfinder": pathfinderModule });
   assert.ok(ids.includes(intrepid.id));
   assert.deepEqual([intrepid.body, intrepid.lat, intrepid.lon], ["moon", -3.0128, 336.5781]);
   const shots = shotsFor(intrepid);
@@ -85,6 +86,20 @@ test("Intrepid has the LRO landing coordinates, its 1969 timeline and local gall
   for (const asset of ["/models/apollo.glb", "/photos/apollo12.jpg", ...intrepidGallery.map(photo => photo.thumbnail)]) {
     assert.ok(readFileSync(new URL("../public" + asset, import.meta.url)).length > 0, asset);
   }
+});
+
+test("Pathfinder links to Ares Vallis and includes the mission photos and both vehicles", async () => {
+  const { pathfinder, pathfinderGallery, pathfinderTimeline } = await import(pathfinderModule);
+  assert.deepEqual([pathfinder.body, pathfinder.lat, pathfinder.lon], ["mars", 19.1, 326.48]);
+  assert.ok(matchesMission(pathfinder, "Ares", "mars"));
+  assert.equal(pathfinderTimeline.find(shot => shot.phase === "touchdown").date, "1997-07-04");
+  for (const { thumbnail } of pathfinderGallery) {
+    assert.equal(readFileSync(new URL("../public" + thumbnail, import.meta.url)).readUInt16BE(0), 0xffd8);
+  }
+  const model = readFileSync(new URL("../public" + pathfinder.modelSource, import.meta.url));
+  const { nodes } = JSON.parse(model.subarray(20, 20 + model.readUInt32LE(12)));
+  assert.equal(nodes.filter(node => node.name?.startsWith("Solar panel petal")).length, 3);
+  assert.equal(nodes.filter(node => node.name === "Sojourner wheel").length, 6);
 });
 
 test("Intrepid retains every primitive of its landing legs and braces", async () => {

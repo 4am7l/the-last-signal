@@ -1,3 +1,4 @@
+import { pathfinder } from "./pathfinder";
 import { surveyor } from "./surveyor";
 import { IntrepidBrief } from "./IntrepidBrief";
 import { FalconBrief } from "./FalconBrief";
@@ -138,7 +139,7 @@ export function Home() {
           </a>
         </div>
         <div className="feature-grid">
-          {[missions[0], missions[2], missions[3], ...missions.filter((mission) => mission.body === "moon")].map((m) => (
+          {[missions[0], missions[2], missions[3], pathfinder, ...missions.filter((mission) => mission.body === "moon")].map((m) => (
             <a
               className="feature-card"
               href={`#/archive?mission=${m.id}`}
@@ -639,6 +640,7 @@ const explanations: Record<
   string,
   { goal: string; finding: string; ending: string }
 > = {
+  pathfinder: { goal: pathfinder.intro, finding: pathfinder.detail, ending: pathfinder.final },
   surveyor3: { goal: surveyor.intro, finding: surveyor.detail, ending: surveyor.final },
   opportunity: {
     goal: "البحث في صخور المريخ عن أدلة على وجود الماء في الماضي.",

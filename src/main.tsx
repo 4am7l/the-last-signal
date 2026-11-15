@@ -745,14 +745,14 @@ function App() {
                               </a>
                               <p>{missionCopy.detail}</p>
                               <p className="disclosure">
-                                {t("اسحب لتدوير المجسّم، واستعمل عجلة الفأرة أو إصبعين للتقريب. المجسّم مضبوط على البعد المنشور. الصخور والأرضية بيئة توضيحية وليست مسحاً للموقع.", "Drag to rotate the model. Pinch or scroll to zoom. Equipment is scaled to published dimensions and local terrain is illustrative.")}
+                                {t("اسحب لتدوير المجسّم، واستعمل عجلة الفأرة أو إصبعين للتقريب. مقياس المعدات مبني على الأبعاد المنشورة. الصخور والأرضية بيئة توضيحية وليست مسحاً للموقع.", "Drag to rotate the model. Pinch or scroll to zoom. Equipment is scaled to published dimensions and local terrain is illustrative.")}
                               </p>
                               <a
                                 href={m.modelSource}
                                 target="_blank"
                                 rel="noreferrer"
                               >
-                                {m.id === "surveyor3" ? t("افتح ملف المجسّم التقريبي GLB ↗", "Open the reconstruction GLB ↗") : t("مجسّم ناسا الأصلي ومصدره ↗", "Original NASA model ↗")}
+                                {m.modelSource.startsWith("/") ? t("افتح ملف المجسّم التقريبي GLB ↗", "Open the reconstruction GLB ↗") : t("مجسّم ناسا الأصلي ومصدره ↗", "Original NASA model ↗")}
                               </a>
                               <button
                                 className="primary"

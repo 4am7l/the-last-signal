@@ -1,3 +1,4 @@
+import { pathfinderGallery, pathfinderSource } from "./pathfinder";
 import { surveyorGallery, surveyorSource } from "./surveyor";
 import { intrepidArchive, intrepidGallery } from "./intrepid";
 import { falconArchive, falconGallery } from "./falcon";
@@ -20,6 +21,7 @@ type NasaPhoto = {
 type NasaResult = { mission: string; photos: NasaPhoto[]; error?: string };
 
 const names: Record<string, string> = {
+  pathfinder: "مارس باثفايندر",
   surveyor3: "سيرفيور 3",
   apollo: "أبولو 11",
   apollo12: "أبولو 12",
@@ -42,7 +44,7 @@ export function NasaGallery({
   const name = t(names[mission] ?? "المهمات", missions.find(item => item.id === mission)?.en ?? "Missions");
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const localGallery = mission === "apollo" ? apolloGallery : mission === "apollo12" ? intrepidGallery : mission === "apollo15" ? falconGallery : mission === "surveyor3" ? surveyorGallery : null;
+  const localGallery = mission === "apollo" ? apolloGallery : mission === "apollo12" ? intrepidGallery : mission === "apollo15" ? falconGallery : mission === "surveyor3" ? surveyorGallery : mission === "pathfinder" ? pathfinderGallery : null;
   const localPhotos: NasaPhoto[] | undefined = localGallery?.map((image) => ({
     id: image.id,
     title: t(image.ar, image.en),
@@ -181,7 +183,7 @@ export function NasaGallery({
         </div>
         <a
           className="action action-line"
-          href={localPhotos ? (mission === "apollo12" ? intrepidArchive : mission === "apollo15" ? falconArchive : mission === "surveyor3" ? surveyorSource : apolloImageArchive) : "https://images.nasa.gov/search?q=" + encodeURIComponent(name)}
+          href={localPhotos ? (mission === "apollo12" ? intrepidArchive : mission === "apollo15" ? falconArchive : mission === "surveyor3" ? surveyorSource : mission === "pathfinder" ? pathfinderSource : apolloImageArchive) : "https://images.nasa.gov/search?q=" + encodeURIComponent(name)}
           target="_blank"
           rel="noopener noreferrer"
         >
