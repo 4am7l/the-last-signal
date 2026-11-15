@@ -38,7 +38,7 @@ export function PlanetLoadingIndicator({
           ? `نحمّل تضاريس ${name} وصوره ومجسّمات المهمة قبل عرض المشهد.`
           : `نحمّل سطح ${name} وخرائطه لتبدأ الاستكشاف.`}</p>
         {elapsed >= 6 && (
-          <small>تجهيز التفاصيل ثلاثية الأبعاد مستمر… {elapsed} ث</small>
+          <small aria-hidden="true">تجهيز التفاصيل ثلاثية الأبعاد مستمر… {elapsed} ث</small>
         )}
       </div>
     </div>
