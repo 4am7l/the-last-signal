@@ -1,3 +1,4 @@
+import { FalconBrief } from "./FalconBrief";
 import { ApolloBrief } from "./ApolloBrief";
 import { apolloPhoto } from "./apollo";
 import { LanguageToggle } from "./LanguageToggle";
@@ -97,7 +98,7 @@ export function Home() {
         <div className="hero-copy">
           <h1>{t("ماذا تركنا على القمر والمريخ؟", "What did we leave on the Moon and Mars?")}</h1>
           <p>
-            {t("من مرحلة الهبوط التي بقيت في بحر السكون إلى مروحية إنجينيويتي على المريخ. تصفّح خمس مهمات لناسا وتعرّف إلى معداتها ومواقعها.", "From the descent stage at Tranquility Base to the Ingenuity helicopter on Mars. Explore five NASA missions and the equipment they left behind.")}
+            {t("من مرحلة الهبوط التي بقيت في بحر السكون إلى مروحية إنجينيويتي على المريخ. تصفّح مهمات ناسا وتعرّف إلى معداتها ومواقعها.", "From the descent stage at Tranquility Base to the Ingenuity helicopter on Mars. Explore NASA missions and the equipment they left behind.")}
           </p>
           <div className="hero-actions">
             <a className="action action-solid" href="#/explore">
@@ -131,9 +132,9 @@ export function Home() {
               body: "moon",
               title: t("القمر", "Moon"),
               id: "apollo",
-              text: t("تعرّف إلى موقع أبولو 11 والمعدات التي بقيت على سطح القمر.", "Visit the Apollo 11 landing site and the equipment that remains on the Moon."),
+              text: t("استكشف موقعي أبولو 11 وأبولو 15 والمعدات التي بقيت على القمر.", "Visit the Apollo 11 and Apollo 15 landing sites and the equipment left on the Moon."),
               img: "apollo",
-              count: t("مهمة واحدة", "One mission"),
+              count: t("مهمتان", "Two missions"),
             },
             {
               body: "mars",
@@ -182,7 +183,7 @@ export function Home() {
           </a>
         </div>
         <div className="feature-grid">
-          {[missions[0], missions[2], missions[3]].map((m) => (
+          {[missions[0], missions[2], missions[3], ...missions.filter((mission) => mission.body === "moon")].map((m) => (
             <a
               className="feature-card"
               href={`#/archive?mission=${m.id}`}
@@ -266,7 +267,7 @@ export function Archive({ initialMission }: { initialMission?: string }) {
       <section className="page-intro">
         <h1>{t("أرشيف المهمات", "Mission archive")}</h1>
         <p>
-          {t("سجلات خمس مهمات لناسا على القمر والمريخ، مع صور المعدات ومواقع الهبوط.", "Records from five NASA missions to the Moon and Mars, with equipment photos and landing sites.")}
+          {t("سجلات مهمات لناسا على القمر والمريخ، مع صور المعدات ومواقع الهبوط.", "Records from NASA missions to the Moon and Mars, with equipment photos and landing sites.")}
         </p>
       </section>
       <section className="archive-browser" aria-label={t("أرشيف المهمات", "Mission archive")}>
@@ -397,7 +398,7 @@ export function Archive({ initialMission }: { initialMission?: string }) {
                   alt={copy(chosen).photoCaption}
                 />
                 <small className="photo-credit">{copy(chosen).photoCaption}</small>
-                {chosen.id === "apollo" ? <ApolloBrief /> : <MissionExplanation mission={chosen} />}
+                {chosen.id === "apollo" ? <ApolloBrief /> : chosen.id === "apollo15" ? <FalconBrief /> : <MissionExplanation mission={chosen} />}
                 <NasaGallery mission={chosen.id} compact />
                 <h3>{t("كيف تعمل المعدات؟", "How does the equipment work?")}</h3>
                 <p>{copy(chosen).detail}</p>

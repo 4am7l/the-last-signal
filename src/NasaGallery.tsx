@@ -1,3 +1,4 @@
+import { falconArchive, falconGallery } from "./falcon";
 import { apolloGallery, apolloImageArchive } from "./apollo";
 import { missions } from "./data";
 import { createPortal } from "react-dom";
@@ -18,6 +19,7 @@ type NasaResult = { mission: string; photos: NasaPhoto[]; error?: string };
 
 const names: Record<string, string> = {
   apollo: "أبولو 11",
+  apollo15: "أبولو 15",
   opportunity: "أوبورتيونيتي",
   spirit: "سبيريت",
   insight: "إنسايت",
@@ -36,7 +38,8 @@ export function NasaGallery({
   const name = t(names[mission] ?? "المهمات", missions.find(item => item.id === mission)?.en ?? "Missions");
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const apolloPhotos: NasaPhoto[] | null = mission === "apollo" ? apolloGallery.map((image) => ({
+  const localGallery = mission === "apollo" ? apolloGallery : mission === "apollo15" ? falconGallery : null;
+  const localPhotos: NasaPhoto[] | undefined = localGallery?.map((image) => ({
     id: image.id,
     title: t(image.ar, image.en),
     description: "",
@@ -44,8 +47,8 @@ export function NasaGallery({
     date: "",
     center: "NASA",
     source: image.source,
-    full: image.id === "AS11-40-5927" || image.id === "LM diagram" ? image.thumbnail : image.source,
-  })) : null;
+    full: "full" in image && typeof image.full === "string" ? image.full : image.id === "AS11-40-5927" || image.id === "LM diagram" ? image.thumbnail : image.source,
+  }));
   const [remotePhotos, setPhotos] = useState<NasaPhoto[]>([]);
   const [error, setError] = useState(false);
   const [open, setOpen] = useState<NasaPhoto | null>(null);
@@ -54,7 +57,7 @@ export function NasaGallery({
   const lastTrigger = useRef<HTMLButtonElement | null>(null);
   const lightboxRef = useRef<HTMLDivElement | null>(null);
   const heading = useId();
-  const photos = apolloPhotos ?? remotePhotos;
+  const photos = localPhotos ?? remotePhotos;
 
   useEffect(() => {
     const element = ref.current;
@@ -77,7 +80,7 @@ export function NasaGallery({
   }, [visible]);
 
   useEffect(() => {
-    if (!visible || mission === "apollo") return;
+    if (!visible || localGallery) return;
     const controller = new AbortController();
     setLoading(true);
     setError(false);
@@ -102,7 +105,7 @@ export function NasaGallery({
         if (!controller.signal.aborted) setLoading(false);
       });
     return () => controller.abort();
-  }, [mission, visible]);
+  }, [mission, visible, localGallery]);
 
   useEffect(() => {
     if (!open) {
@@ -174,7 +177,7 @@ export function NasaGallery({
         </div>
         <a
           className="action action-line"
-          href={apolloPhotos ? apolloImageArchive : "https://images.nasa.gov/search?q=" + encodeURIComponent(name)}
+          href={localPhotos ? (mission === "apollo15" ? falconArchive : apolloImageArchive) : "https://images.nasa.gov/search?q=" + encodeURIComponent(name)}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -182,13 +185,13 @@ export function NasaGallery({
           <span className="material-symbols-rounded" aria-hidden="true">open_in_new</span>
         </a>
       </div>
-      {!apolloPhotos && loading && (
+      {!localPhotos && loading && (
         <div className="nasa-gallery__loading" role="status">
           <span className="material-symbols-rounded" aria-hidden="true">image_search</span>
           {t("جارٍ جلب الصور من مكتبة ناسا…", "Loading photos from NASA…")}
         </div>
       )}
-      {(apolloPhotos || !loading) && photos.length > 0 && (
+      {(localPhotos || !loading) && photos.length > 0 && (
         <div className="nasa-gallery__grid">
           {photos.map((photo, index) => (
             <article className="nasa-photo-card" key={photo.id}>
@@ -223,7 +226,7 @@ export function NasaGallery({
           ))}
         </div>
       )}
-      {!apolloPhotos && visible && !loading && (error || !photos.length) && (
+      {!localPhotos && visible && !loading && (error || !photos.length) && (
         <div className="nasa-gallery__fallback">
           <img src={"/photos/" + mission + ".jpg"} alt={t("صورة أرشيفية من مهمة ", "Archival photo from ") + name} loading="lazy" />
           <div>
@@ -233,7 +236,7 @@ export function NasaGallery({
         </div>
       )}
       <p className="nasa-gallery__disclaimer">
-        {apolloPhotos ? t("المصادر: مكتب تاريخ ناسا وأرشيف NSSDCA.", "Sources: NASA History Office and NSSDCA.") : t("المصدر: NASA Image and Video Library. بعض المواد قد تتضمن حقوقًا لطرف ثالث؛ راجع سجل الصورة الأصلي. الموقع مشروع تعليمي مستقل وغير معتمد من NASA.", "Source: NASA Image and Video Library. Consult the original photo record for rights information. This is an independent educational project.")}
+        {localPhotos ? t("المصادر موضّحة مع كل صورة.", "Sources and credits are listed with each image.") : t("المصدر: NASA Image and Video Library. بعض المواد قد تتضمن حقوقًا لطرف ثالث؛ راجع سجل الصورة الأصلي. الموقع مشروع تعليمي مستقل وغير معتمد من NASA.", "Source: NASA Image and Video Library. Consult the original photo record for rights information. This is an independent educational project.")}
       </p>
       {open && createPortal(
         <div className="nasa-lightbox" role="dialog" aria-modal="true" aria-label={t("صورة NASA: ", "NASA photo: ") + open.title}>

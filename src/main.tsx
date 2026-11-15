@@ -1,3 +1,4 @@
+import { FalconBrief } from "./FalconBrief";
 import { ApolloBrief } from "./ApolloBrief";
 import { LanguageToggle } from "./LanguageToggle";
 import { ExplorerLanguage, type Language } from "./explorer-language";
@@ -149,6 +150,7 @@ function App() {
   }
   const [detailsOpen, setDetailsOpen] = useState(false);
   const isApollo = m.id === "apollo";
+  const isFalcon = m.id === "apollo15";
 
   function select(i: number, next: Mode = "model") {
     window.location.hash = exploreHref(missions[i].id, next);
@@ -320,9 +322,9 @@ function App() {
                   <span aria-hidden="true">{english ? "←" : "→"}</span>
                   {mode === "planet" ? t("المعاينة", "Preview") : t("الرجوع للمواقع", "Back to sites")}
                 </button>
-                {isApollo && mode === "planet" && (
+                {m.body === "moon" && mode === "planet" && (
                   <button type="button" className="action action-solid" onClick={() => change("location")}>
-                    {t("اهبط عند أبولو 11", "Land at Apollo 11")} <span aria-hidden="true">↓</span>
+                    {t(`اهبط عند ${missionName}`, `Land at ${missionName}`)} <span aria-hidden="true">↓</span>
                   </button>
                 )}
               </div>
@@ -343,7 +345,7 @@ function App() {
                     shot={shot}
                     progress={progress}
                     journeyProgress={film / frames.length}
-                    onWorld={(b) => select(b === "mars" ? 0 : 4, "planet")}
+                    onWorld={(b) => select(b === m.body ? index : missions.findIndex((mission) => mission.body === b), "planet")}
                     onMission={(i) => select(i, "location")}
                     reset={reset}
                     overviewBody={m.body}
@@ -358,7 +360,7 @@ function App() {
             {sceneLoading && (
               <PlanetLoadingIndicator key={sceneKey} body={m.body} mission={mode === "overview" ? undefined : missionName} />
             )}
-            {mode === "planet" && !isApollo && (
+            {mode === "planet" && (
                   <section className="welcome">
                     <h1>{bodyName}</h1>
                     <p>
@@ -552,6 +554,7 @@ function App() {
                       <NasaGallery mission={m.id} compact />
                     </details>
                     {isApollo && <ApolloBrief />}
+                    {isFalcon && <FalconBrief />}
                     {mode === "overview" || mode === "planet" ? <p>{missionCopy.intro}</p> : (
                       <div className="equipment-mode-details">
                         {mode === "story" ? (
@@ -647,7 +650,7 @@ function App() {
                             </a>
                             <p>{missionCopy.detail}</p>
                             <p className="disclosure">
-                              {t("اسحب لتدوير المجسّم، واستعمل عجلة الفأرة أو إصبعين للتقريب. المجسّم مضبوط على البعد المنشور. على القمر يظهر مجسّم إيغل التاريخي على الكرة نفسها؛ مرحلة الصعود غادرت لاحقاً. الصخور والأرضية بيئة توضيحية وليست مسحاً للموقع.", "Drag to rotate the model. Pinch or scroll to zoom. Equipment is scaled to published dimensions and local terrain is illustrative.")}
+                              {t("اسحب لتدوير المجسّم، واستعمل عجلة الفأرة أو إصبعين للتقريب. المجسّم مضبوط على البعد المنشور. تعرض المجسّمات القمرية المركبات في هيئة الهبوط، بمرحلتي الهبوط والصعود. الصخور والأرضية بيئة توضيحية وليست مسحاً للموقع.", "Drag to rotate the model. Pinch or scroll to zoom. Equipment is scaled to published dimensions and local terrain is illustrative.")}
                             </p>
                             <a
                               href={m.modelSource}

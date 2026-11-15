@@ -7,8 +7,8 @@ import { Planet, point, SitePin } from "./Planet";
 import { missions } from "./data";
 import { SUN_DIRECTION } from "./solar";
 
-const apolloIndex = missions.findIndex((mission) => mission.id === "apollo");
-const apollo = missions[apolloIndex];
+const lunarSites = missions.flatMap((mission, index) => mission.body === "moon" ? [{ mission, index }] : []);
+const apollo = missions.find((mission) => mission.id === "apollo")!;
 const globeCenter = new Vector3();
 const globeRotation = new Quaternion();
 
@@ -62,10 +62,11 @@ export function BodyStudy({
         intensity={3}
       />
       <Planet key={body} body={body} r={300} pos={[0, 0, 0]} />
-      {body === "moon" && (
-        <SitePin m={apollo} rotation={globeRotation} center={globeCenter} radius={300} selected
-          label={language === "en" ? apollo.en : apollo.name} onClick={() => onMission(apolloIndex)} />
-      )}
+      {body === "moon" && lunarSites.map(({ mission, index }) => (
+        <SitePin key={mission.id} m={mission} rotation={globeRotation} center={globeCenter} radius={300}
+          selected={mission.id === "apollo"} label={language === "en" ? mission.en : mission.name}
+          onClick={() => onMission(index)} />
+      ))}
     </>
   );
 }

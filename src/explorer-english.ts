@@ -1,3 +1,4 @@
+import { falconEnglish, falconTimeline } from "./falcon";
 import { apolloPhoto } from "./apollo";
 import type { Mission } from "./data";
 import type { Phase, Shot } from "./journey";
@@ -5,6 +6,7 @@ import type { Phase, Shot } from "./journey";
 type MissionCopy = Pick<Mission, "intro" | "site" | "frame" | "final" | "detail" | "photoCaption">;
 
 export const missionEnglish: Record<string, MissionCopy> = {
+  apollo15: falconEnglish,
   apollo: {
     intro: "Eagle made the first crewed lunar landing and carried the EASEP surface experiments.",
     site: "Tranquility Base · Sea of Tranquility",
@@ -111,6 +113,8 @@ const archiveEventCopy: Record<string, [string, string]> = {
 };
 
 export function englishEvent(event: Mission["events"][number]) {
+  const falconEvent = falconTimeline.find((item) => item.date === event.date && item.title === event.title);
+  if (falconEvent) return [falconEvent.enTitle, falconEvent.enText];
   return archiveEventCopy[event.date]
     ?? eventCopy[`${event.date}:${event.stage}`]
     ?? eventCopy[event.date];
@@ -145,6 +149,7 @@ export const englishExplanations: Record<string, { goal: string; finding: string
 };
 
 export const englishAnnualStories: Record<string, Record<number, [string, string]>> = {
+  apollo15: { 1971: ["Hadley–Apennine", "Falcon landed and the crew explored the area using the lunar rover."] },
   opportunity: {
     2003: ["Launch", "A Delta II rocket carried Opportunity inside its protective fairing."],
     2004: ["Eagle and Endurance", "The rover began looking for evidence of water in the rocks."],
@@ -195,6 +200,10 @@ export const englishAnnualStories: Record<string, Record<number, [string, string
 };
 
 export function englishShot(shot: Shot, missionId: string) {
+  if (missionId === "apollo15") {
+    const event = falconTimeline.find((item) => item.date === shot.date && item.phase === shot.phase);
+    if (event) return { ...shot, title: event.enTitle, text: event.enText };
+  }
   const annual = shot.annual ? englishAnnualStories[missionId]?.[Number(shot.date.slice(0, 4))] : undefined;
   const [title, text] = annual ?? eventCopy[`${shot.date}:${shot.phase}`]
     ?? eventCopy[shot.date] ?? phaseCopy[shot.phase];
