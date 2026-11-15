@@ -5,10 +5,8 @@ type Destination = "moon" | "mars";
 
 export function PlanetLoadingIndicator({
   body,
-  mission,
 }: {
   body: Destination;
-  mission?: string;
 }) {
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
@@ -18,7 +16,7 @@ export function PlanetLoadingIndicator({
       setElapsed(Math.floor((performance.now() - started) / 1000));
     }, 1000);
     return () => window.clearInterval(id);
-  }, [body, mission]);
+  }, [body]);
 
   const t = useExplorerText();
   const name = body === "moon" ? t("القمر", "Moon") : t("المريخ", "Mars");
@@ -36,9 +34,7 @@ export function PlanetLoadingIndicator({
         </div>
         <span className="planet-loading-eyebrow">THE LAST SIGNAL · EXPLORATION</span>
         <h2>{t(`جارٍ تجهيز ${name}`, `Preparing ${name}`)}</h2>
-        <p>{mission
-          ? t(`نحمّل تضاريس ${name} وصوره ومجسّمات المهمة قبل عرض المشهد.`, "Loading terrain, textures and mission models.")
-          : t(`نحمّل سطح ${name} وخرائطه لتبدأ الاستكشاف.`, "Loading the surface and its textures.")}</p>
+        <p>{t("نحمّل تفاصيل السطح وخرائطه.", "Loading the surface and its textures.")}</p>
         {elapsed >= 6 && (
           <small aria-hidden="true">{t(`تجهيز التفاصيل ثلاثية الأبعاد مستمر… ${elapsed} ث`, `Preparing 3D details… ${elapsed} s`)}</small>
         )}

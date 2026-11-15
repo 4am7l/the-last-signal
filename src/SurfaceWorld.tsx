@@ -1,44 +1,45 @@
 import {useElevation} from './useElevation';
 import {elevationAt} from './elevation';
 import {useSimulation,useEphemeris,PRESETS} from './simulation';
-import {renderLayout,solarIrradiance} from './science';
+import {solarIrradiance} from './science';
 import {bodyOrientation} from './orientation';
 import {SurfaceNavigation} from './SurfaceNavigation';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {useFrame,useLoader,useThree} from '@react-three/fiber';
-import {OrbitControls,Html} from '@react-three/drei';
+import {OrbitControls} from '@react-three/drei';
 import type {OrbitControls as Controls} from 'three-stdlib';
 import * as T from 'three';
-import {Atmosphere,SitePin,point} from './Planet';
+import {Atmosphere,point} from './Planet';
 import {usePlanetTexture} from './usePlanetTexture';
 import {useTrekPatch,type TrekPatch} from './useTrekPatch';
-import {missions} from './data';
-import {dimensions} from './journey';
 import {SUN_DIRECTION,SCENE_SUN_DIRECTION} from './solar';
-import {marsRelief,mountains,surfaceDetail,noise3,cameraTuning,systemLayout,RADII_KM} from './sceneMath';
-import {Model,type Space} from './Space';
-import {createMarsRelief,marsApproachMask,marsLandingRadius,marsLandingTransition,marsRoverRoadYaw} from './marsGeology';
-import {MarsRocks,MarsGroundMarks} from './MarsSurfaceDetails';
-import {ApolloRocks} from './ApolloSurfaceDetails';
+import {surfaceDetail,noise3,cameraTuning} from './sceneMath';
+import type {Destination} from './navigation';
+import {createMarsRelief} from './marsGeology';
+import {MarsRocks} from './MarsSurfaceDetails';
+import {LunarRocks} from './LunarSurfaceDetails';
 import {MOON_RENDER_RADIUS as R,MOON_RADIUS_METRES,MARS_RADIUS_METRES,localRelief,ringAngle} from './lunarTerrain';
-// One continuous sphere, with logarithmically spaced rings resolving the landing site.
-export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=false,focusPair=true,language="ar"}:Parameters<typeof Space>[0]){
+// Resolve the terrain around a neutral descent point on each body.
+export function SurfaceWorld({mode,body,reset}: {mode:'planet'|'surface';body:Destination;reset:number}){
+ const lat=0,lon=0;
+ const landingRadius=9;
+ const surfaceDistance=24;
  const settings=useSimulation(),preset=PRESETS[settings.quality],ephemeris=useEphemeris(settings.date);
- const bodyToSystem=useMemo(()=>bodyOrientation(m.body,ephemeris.epoch),[m.body,ephemeris.epoch]);
- const moon=m.body==='moon',radiusMetres=moon?MOON_RADIUS_METRES:MARS_RADIUS_METRES,UNIT=R/radiusMetres;
+ const bodyToSystem=useMemo(()=>bodyOrientation(body,ephemeris.epoch),[body,ephemeris.epoch]);
+ const moon=body==='moon',radiusMetres=moon?MOON_RADIUS_METRES:MARS_RADIUS_METRES,UNIT=R/radiusMetres;
  const [close,setClose]=useState(false);
- const incomingDem=useElevation(m.body),heldDem=useRef({body:m.body,grid:incomingDem});
- if(!close||heldDem.current.body!==m.body)heldDem.current={body:m.body,grid:incomingDem};
+ const incomingDem=useElevation(body),heldDem=useRef({body:body,grid:incomingDem});
+ if((mode==='planet'&&!close)||heldDem.current.body!==body)heldDem.current={body:body,grid:incomingDem};
  const dem=heldDem.current.grid;
- const controls=useRef<Controls>(null),pin=useRef<HTMLDivElement>(null);
- const {camera,scene,gl,size}=useThree();
- const orbitFraming=mode==='planet'?Math.max(1,.9*size.height/Math.max(size.width,1)):1;
+ const controls=useRef<Controls>(null);
+ const {camera,scene,size}=useThree();
+ const orbitFraming=Math.max(1,.9*size.height/Math.max(size.width,1));
  const coarsePointer=typeof window!=='undefined'&&window.matchMedia('(pointer: coarse)').matches;
  // Resolve the best available orbital imagery while still in overview, not
  // in the middle of a guided landing animation.
- const map=usePlanetTexture(m.body,true);
- const nasaPatch=useTrekPatch(m.body,m.lat,m.lon,mode!=='overview');
- const nasaPatchFade=useMemo(()=>({value:0}),[m.id,m.body]);
+ const map=usePlanetTexture(body,true);
+ const nasaPatch=useTrekPatch(body,lat,lon,true);
+ const nasaPatchFade=useMemo(()=>({value:0}),[body]);
  const height=useLoader(T.TextureLoader,'/moon-height.jpg');
  // Image readback allocates a full RGBA buffer. Reuse it when the site,
  // quality or DEM changes; only the lunar fallback samples these pixels.
@@ -48,36 +49,30 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   const ctx=c.getContext('2d')!;ctx.drawImage(image,0,0);
   return {width:c.width,height:c.height,pixels:ctx.getImageData(0,0,c.width,c.height).data};
  },[height]);
- const landingRadius=useMemo(()=>marsLandingRadius(m.id,dimensions[m.model].span),[m.id,m.model]);
- const marsReliefAt=useMemo(()=>createMarsRelief(m.lat,m.lon,landingRadius,m.id),[m.lat,m.lon,landingRadius,m.id]);
+ const marsReliefAt=useMemo(()=>createMarsRelief(lat,lon,landingRadius),[lat,lon,landingRadius]);
  // This is one continuous spherical heightfield at every altitude. Only
  // small decorative rocks are gated by proximity; the globe never swaps meshes.
  const globeOnly=!close;
  const surface=useMemo(()=>{
   const {width,height:pixelHeight,pixels}=heightPixels;
-  const q=new T.Quaternion().setFromUnitVectors(point(m.lat,m.lon,1),new T.Vector3(0,1,0)),inv=q.clone().invert();
+  const q=new T.Quaternion().setFromUnitVectors(point(lat,lon,1),new T.Vector3(0,1,0)),inv=q.clone().invert();
   function sample(n:T.Vector3){const local=n.clone().applyQuaternion(inv);const u=((Math.atan2(-local.z,local.x)/(2*Math.PI)+.5)%1+1)%1,v=Math.acos(T.MathUtils.clamp(local.y,-1,1))/Math.PI;
    const x=u*width-.5,y=T.MathUtils.clamp(v*pixelHeight-.5,0,pixelHeight-1),ix=Math.floor(x),iy=Math.floor(y),fx=x-ix,fy=y-iy;
    const at=(a:number,b:number)=>pixels[(Math.min(pixelHeight-1,b)*width+(a%width+width)%width)*4]/255;
    return {u,v:1-v,h:dem?elevationAt(dem,Math.asin(local.y)*180/Math.PI,Math.atan2(-local.z,local.x)*180/Math.PI)*UNIT:moon?(T.MathUtils.lerp(T.MathUtils.lerp(at(ix,iy),at(ix+1,iy),fx),T.MathUtils.lerp(at(ix,iy+1),at(ix+1,iy+1),fx),fy)-.5)*2.1:0};
   }
   const base=sample(new T.Vector3(0,1,0)).h;
-  // Keep all Martian landers on the local ground rather than on a DEM
-  // interpolation bump. Blend the measured elevation back smoothly away
-  // from the equipment without changing the global planetary terrain.
-  const siteHeight=(rawHeight:number,distance:number)=>moon?rawHeight:
-   T.MathUtils.lerp(base,rawHeight,T.MathUtils.smoothstep(distance,landingRadius,landingRadius+marsLandingTransition(m.id)));
   const detailAt=(x:number,z:number)=>{
    const distance=Math.hypot(x,z);
    // No visual displacement exists beyond these radii. Avoid thousands of
    // noise evaluations on the far hemisphere during the initial render.
    if(distance>(moon?4000:13500))return 0;
-   const pad=Math.max(2,dimensions[m.model].span*.65);
+   const pad=2;
    const fade=T.MathUtils.smoothstep(distance,pad,pad+4)*(1-T.MathUtils.smoothstep(distance,800,1600));
    const soil=(noise3(x*1.8,3,z*1.8)*.055+noise3(x*.35,9,z*.35)*.16+noise3(x*.07,5,z*.07)*.32)*fade;
    if(moon){
     // Geometry displacement at short range, rather than just magnified pixels.
-    // Fade it out below the landing gear to avoid floating equipment.
+    // Blend the fine detail around the camera target.
     const closeMicro=(noise3(x*1.7,27,z*1.7)*.075+
      noise3(x*4.8,41,z*4.8)*.022+
      noise3(x*10.5,59,z*10.5)*.006)*
@@ -85,20 +80,18 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
      (1-T.MathUtils.smoothstep(distance,170,480));
     return localRelief(x,z)+surfaceDetail(x,z,'moon')*.36+soil*.45+closeMicro;
    }
-   const nearBlend=T.MathUtils.smoothstep(distance,landingRadius,landingRadius+marsLandingTransition(m.id));
+   const nearBlend=T.MathUtils.smoothstep(distance,landingRadius,landingRadius+28);
    // Resolve metre- and decimetre-scale rock chips geometrically near the
-   // camera. Keep the lander footing and the walking approach smooth.
+   // camera.
    const closeDetail=T.MathUtils.smoothstep(distance,pad+2,pad+10)*
     (1-T.MathUtils.smoothstep(distance,180,430));
    const stoneGrain=(noise3(x*.83,31,z*.83)*.105+
-    noise3(x*2.7,37,z*2.7)*.022)*closeDetail*
-    (1-.65*marsApproachMask(x,z,landingRadius));
+    noise3(x*2.7,37,z*2.7)*.022)*closeDetail;
    const closeMicro=(noise3(x*1.4,43,z*1.4)*.085+
     noise3(x*4.1,51,z*4.1)*.025+
     noise3(x*9.8,63,z*9.8)*.007)*
     T.MathUtils.smoothstep(distance,pad+2,pad+10)*
-    (1-T.MathUtils.smoothstep(distance,180,530))*
-    (1-.55*marsApproachMask(x,z,landingRadius));
+    (1-T.MathUtils.smoothstep(distance,180,530));
    return marsReliefAt(x,z)+
     (surfaceDetail(x,z,'mars')*.33+soil*.31)*nearBlend+stoneGrain+closeMicro;
   };
@@ -114,7 +107,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
    for(let i=0;i<=sectors;i++){const b=i/sectors*Math.PI*2,n=new T.Vector3(Math.sin(a)*Math.cos(b),Math.cos(a),Math.sin(a)*Math.sin(b));const s=sample(n);
     // Local crater bowls and rims are illustrative and fade into the mapped globe.
     const x=n.x*radiusMetres,z=n.z*radiusMetres,detail=n.y>0?detailAt(x,z):0;
-    const h=siteHeight(s.h,Math.hypot(x,z));const p=n.multiplyScalar(R+h+detail*UNIT);p.y-=R+base;positions.push(p.x,p.y,p.z);uv.push(s.u,s.v);
+    const h=s.h;const p=n.multiplyScalar(R+h+detail*UNIT);p.y-=R+base;positions.push(p.x,p.y,p.z);uv.push(s.u,s.v);
     if(j<rings&&i<sectors){const k=j*(sectors+1)+i;indices.push(k,k+1,k+sectors+1,k+1,k+sectors+2,k+sectors+1)}
    }
   }
@@ -147,53 +140,37 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   out.setAttribute('normal',new T.Float32BufferAttribute(normals,3));
   out.setAttribute('uv',new T.Float32BufferAttribute(uv,2));
   out.setIndex(indices);
-  return {ground:(x:number,z:number)=>{const n=new T.Vector3(x*UNIT,R,z*UNIT).normalize();const h=siteHeight(sample(n).h,Math.hypot(x,z));return (R+h+detailAt(x,z)*UNIT)*n.y-R-base},rotation:q,geometry:out,center:new T.Vector3(0,-R-base,0),base};
- },[heightPixels,m.lat,m.lon,moon,radiusMetres,UNIT,m.body,m.model,preset,dem,marsReliefAt,landingRadius,m.id,coarsePointer,settings.quality]);
+  return {ground:(x:number,z:number)=>{const n=new T.Vector3(x*UNIT,R,z*UNIT).normalize();const h=sample(n).h;return (R+h+detailAt(x,z)*UNIT)*n.y-R-base},rotation:q,geometry:out,center:new T.Vector3(0,-R-base,0),base};
+ },[heightPixels,lat,lon,moon,radiusMetres,UNIT,body,preset,dem,marsReliefAt,landingRadius,coarsePointer,settings.quality]);
  useEffect(()=>()=>surface.geometry.dispose(),[surface]);
- // A floating local origin preserves centimetre detail while every body stays
- // in one shared solar-system layout. Rebase the camera, not the universe.
- const layout=useMemo(()=>renderLayout(ephemeris,physicalDistances),[physicalDistances,ephemeris]);
  const localRotation=useMemo(()=>surface.rotation.clone().multiply(bodyToSystem.clone().invert()),[surface,bodyToSystem]);
- const frame=useMemo(()=>{
-  const scale=R/(RADII_KM[m.body]*layout.scale);
-  const localToSystem=new T.Matrix4().compose(new T.Vector3(...layout[m.body]),localRotation.clone().invert(),new T.Vector3(1/scale,1/scale,1/scale)).multiply(new T.Matrix4().makeTranslation(-surface.center.x,-surface.center.y,-surface.center.z));
-  const systemToLocal=localToSystem.clone().invert();
-  return {localToSystem,systemToLocal,scale};
- },[layout,m.body,surface,localRotation]);
- const previousFrame=useRef(new T.Matrix4());
- const systemUp=useMemo(()=>new T.Vector3(0,1,0).transformDirection(frame.systemToLocal),[frame]);
- const surfaceUp=useMemo(()=>new T.Vector3(0,1,0),[]);
- const inspectionSpan=Math.max(4,dimensions[m.model].span)*UNIT;
- const localSun=useMemo(()=>new T.Vector3(...ephemeris[m.body]).negate().normalize().applyQuaternion(localRotation),[ephemeris,m.body,localRotation]);
+ const localSun=useMemo(()=>new T.Vector3(...ephemeris[body]).negate().normalize().applyQuaternion(localRotation),[ephemeris,body,localRotation]);
  // Local horizon determines whether direct sunlight or a faint cinematic night fill is active.
  const daylight=T.MathUtils.smoothstep(localSun.y,-.035,.055);
  const night=1-daylight;
  const nightDirection=useMemo(()=>new T.Vector3(-.35,.82,.45).normalize(),[]);
- const flight=useRef<{from:T.Vector3;target:T.Vector3;to:T.Vector3;look:T.Vector3;t:number;stage:'overview'|'orbit'|'align'|'descent'}|null>(null),guided=useRef(false);
+ const flight=useRef<{from:T.Vector3;target:T.Vector3;to:T.Vector3;look:T.Vector3;t:number;stage:'orbit'|'align'|'descent'}|null>(null),guided=useRef(false);
  const descentArmed=useRef(true);
  const previousDistance=useRef(Infinity),sky=useMemo(()=>new T.Color('#05070d'),[]),marsDaySky=useMemo(()=>new T.Color('#a17c69'),[]),marsTwilight=useMemo(()=>new T.Color('#74616b'),[]),marsNightSky=useMemo(()=>new T.Color('#111522'),[]),marsFog=useMemo(()=>new T.Color(),[]);
  useEffect(()=>{
   const ctl=controls.current;if(!ctl)return;
   camera.up.set(0,1,0); // Each body now owns an independent local scene.
-  previousFrame.current.copy(frame.localToSystem);
-  SCENE_SUN_DIRECTION.copy(localSun);scene.userData.skyRotation=localRotation.clone();
   camera.far=10000;camera.near=.000005;camera.updateProjectionMatrix();
-  guided.current=mode==='model'||mode==='location';setClose(false);
+  guided.current=mode==='surface';setClose(false);
   const near=guided.current,reframe=near&&camera.position.length()<5;
-  const focusPosition=new T.Vector3(22,9,32).normalize().multiplyScalar(Math.max(4,dimensions[m.model].span*3)*UNIT),focusTarget=new T.Vector3(0,dimensions[m.model].span*.22*UNIT,0);
-  const endBody=new T.Vector3(...(physicalDistances&&focusPair?layout.moon:layout.mars));
-  const span=Math.max(1500,endBody.length()*1.3);
-  const overviewCenter=endBody.clone().multiplyScalar(.5);
-  const overviewPosition=overviewCenter.clone().add(new T.Vector3(.15,.8,1).normalize().multiplyScalar(span)).applyMatrix4(frame.systemToLocal);
-  const overviewTarget=overviewCenter.clone().applyMatrix4(frame.systemToLocal);
+  const focusPosition=new T.Vector3(22,9,32).normalize().multiplyScalar(surfaceDistance*UNIT),focusTarget=new T.Vector3(0,1.7*UNIT,0);
   const orbitOffset=new T.Vector3(160,170,680).sub(surface.center);
   const globeDistance=orbitOffset.length()*orbitFraming;
   const globePosition=orbitOffset.multiplyScalar(orbitFraming).add(surface.center);
-  flight.current={from:camera.position.clone(),target:ctl.target.clone(),to:mode==='overview'?overviewPosition:reframe?focusPosition:near?new T.Vector3(0,150,250):globePosition,look:mode==='overview'?overviewTarget:reframe?focusTarget:surface.center.clone(),t:0,stage:mode==='overview'?'overview':reframe?'descent':near?'align':'orbit'};
+  flight.current={from:camera.position.clone(),target:ctl.target.clone(),to:reframe?focusPosition:near?new T.Vector3(0,150,250):globePosition,look:reframe?focusTarget:surface.center.clone(),t:0,stage:reframe?'descent':near?'align':'orbit'};
   previousDistance.current=Infinity;descentArmed.current=true;
   ctl.enabled=false;ctl.minDistance=.000001;ctl.maxDistance=Math.max(1800,globeDistance);
   if(mode==='planet')ctl.maxPolarAngle=Math.PI-.02;
- },[mode,reset,m.id,frame,camera,scene,localSun,physicalDistances,focusPair,orbitFraming]);
+ },[mode,reset,camera,surface,orbitFraming,UNIT]);
+ useEffect(()=>{
+  SCENE_SUN_DIRECTION.copy(localSun);
+  scene.userData.skyRotation=localRotation.clone();
+ },[scene,localSun,localRotation]);
  useEffect(()=>()=>{camera.up.set(0,1,0);SCENE_SUN_DIRECTION.copy(SUN_DIRECTION);delete scene.userData.skyRotation;scene.userData.skyVisibility=1},[scene]);
  useEffect(()=>{scene.userData.skyVisibility=1;scene.fog=null;if(scene.background instanceof T.Color)scene.background.copy(sky);return()=>{scene.fog=null;if(scene.background instanceof T.Color)scene.background.set('#eef3fc')}},[scene,sky]);
  useFrame((_,dt)=>{const ctl=controls.current;if(!ctl)return;
@@ -202,16 +179,14 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   // Tile downloads may finish at any time: reveal new NASA detail gently
   // so an asynchronous image never produces another visual pop.
   nasaPatchFade.value=T.MathUtils.damp(nasaPatchFade.value,nasaPatch?1:0,2.1,Math.min(dt,.05));
-  if(settings.navigation!=='orbit'&&close&&!flight.current)return;
-  const viewUp=mode==='overview'?systemUp:surfaceUp;
-  camera.up.lerp(viewUp,1-Math.exp(-Math.min(dt,.05)*6)).normalize();
-  ctl.enabled=!flight.current&&(settings.navigation==='orbit'||!close);
+  if(mode==='surface'&&settings.navigation!=='orbit'&&close&&!flight.current)return;
+  camera.up.lerp(T.Object3D.DEFAULT_UP,1-Math.exp(-Math.min(dt,.05)*6)).normalize();
+  ctl.enabled=!flight.current&&(mode==='planet'||settings.navigation==='orbit'||!close);
   if(flight.current){ctl.minDistance=.000001;const f=flight.current;f.t=Math.min(1,f.t+Math.min(dt,.05)/(f.stage==='descent'?5:2));if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)f.t=1;const s=f.t*f.t*(3-2*f.t);
-   if(f.stage==='overview'){camera.position.lerpVectors(f.from,f.to,s);ctl.target.lerpVectors(f.target,f.look,s)}
-   else if(f.stage==='descent'){const ratio=Math.pow(f.to.length()/Math.max(f.from.length(),.00001),s);camera.position.copy(f.from).multiplyScalar(ratio).lerp(f.to,s);ctl.target.copy(f.target).multiplyScalar(ratio*(1-s)).addScaledVector(f.look,s)}
+   if(f.stage==='descent'){const ratio=Math.pow(f.to.length()/Math.max(f.from.length(),.00001),s);camera.position.copy(f.from).multiplyScalar(ratio).lerp(f.to,s);ctl.target.copy(f.target).multiplyScalar(ratio*(1-s)).addScaledVector(f.look,s)}
    else{const a=f.from.clone().sub(surface.center),b=f.to.clone().sub(surface.center);const q=new T.Quaternion().setFromUnitVectors(a.clone().normalize(),b.clone().normalize());const turn=new T.Quaternion().slerp(q,s);const distance=T.MathUtils.lerp(a.length(),b.length(),s);camera.position.copy(a.normalize().applyQuaternion(turn)).multiplyScalar(f.stage==='align'?Math.max(430,distance):distance).add(surface.center);ctl.target.lerpVectors(f.target,f.look,s)}
-   ctl.update();if(f.t===1){flight.current=f.stage==='align'?{from:camera.position.clone(),target:ctl.target.clone(),to:new T.Vector3(22,9,32).normalize().multiplyScalar(Math.max(4,dimensions[m.model].span*3)*UNIT),look:new T.Vector3(0,dimensions[m.model].span*.22*UNIT,0),t:0,stage:'descent'}:null}
-  }else if(mode!=='overview'){let distance=camera.position.distanceTo(surface.center);if(!guided.current&&distance<R+5){camera.position.sub(surface.center).normalize().multiplyScalar(R+5).add(surface.center);distance=R+5;ctl.update()}if(distance>500)descentArmed.current=true;if(!guided.current&&descentArmed.current&&distance<430&&distance<previousDistance.current-.00001){guided.current=true;flight.current={from:camera.position.clone(),target:ctl.target.clone(),to:new T.Vector3(0,150,250),look:surface.center.clone(),t:0,stage:'align'}}previousDistance.current=distance}
+   ctl.update();if(f.t===1){flight.current=f.stage==='align'?{from:camera.position.clone(),target:ctl.target.clone(),to:new T.Vector3(22,9,32).normalize().multiplyScalar(surfaceDistance*UNIT),look:new T.Vector3(0,1.7*UNIT,0),t:0,stage:'descent'}:null}
+  }else{let distance=camera.position.distanceTo(surface.center);if(!guided.current&&distance<R+5){camera.position.sub(surface.center).normalize().multiplyScalar(R+5).add(surface.center);distance=R+5;ctl.update()}if(distance>500)descentArmed.current=true;if(!guided.current&&descentArmed.current&&distance<430&&distance<previousDistance.current-.00001){guided.current=true;flight.current={from:camera.position.clone(),target:ctl.target.clone(),to:new T.Vector3(0,150,250),look:surface.center.clone(),t:0,stage:'align'}}previousDistance.current=distance}
   // Return to globe-centred orbit before surface orbit can swing through the planet.
   if(guided.current&&!flight.current&&camera.position.length()>R*.35){
    guided.current=false;descentArmed.current=false;ctl.target.copy(surface.center);
@@ -222,7 +197,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   if(nearSite!==close)setClose(nearSite);
   const daylight=T.MathUtils.smoothstep(localSun.y,-.15,.25);
   scene.userData.skyVisibility=1;
-  if(moon||mode==='overview'){
+  if(moon){
    scene.fog=null;
    if(scene.background instanceof T.Color)scene.background.copy(sky);
   }else{
@@ -242,31 +217,18 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   }
   if(close&&!flight.current){const limit=250*UNIT;ctl.target.x=T.MathUtils.clamp(ctl.target.x,-limit,limit);ctl.target.z=T.MathUtils.clamp(ctl.target.z,-limit,limit);ctl.target.y=Math.max(ctl.target.y,surface.ground(ctl.target.x/UNIT,ctl.target.z/UNIT)+.25*UNIT);}
   const tuning=cameraTuning(altitude,R,guided.current);
-  ctl.rotateSpeed=(mode==='overview'?.55:tuning.rotate)*(coarsePointer?1.35:1);ctl.zoomSpeed=(mode==='overview'?.8:tuning.zoom)*(coarsePointer?1.5:1);ctl.panSpeed=mode==='overview'?.5:tuning.pan;
-  ctl.enablePan=(mode==='overview'||nearSite)&&!flight.current;
-  if(!flight.current)ctl.minDistance=mode==='overview'?1:guided.current?Math.max(1.2,dimensions[m.model].span*.85)*UNIT:R+5;
+  ctl.rotateSpeed=tuning.rotate*(coarsePointer?1.35:1);ctl.zoomSpeed=tuning.zoom*(coarsePointer?1.5:1);ctl.panSpeed=tuning.pan;
+  ctl.enablePan=nearSite&&!flight.current;
+  if(!flight.current)ctl.minDistance=guided.current?1.2*UNIT:R+5;
   ctl.maxPolarAngle=nearSite&&flight.current?.stage!=='orbit'?Math.PI/2-.035:Math.PI-.02;
   const distance=camera.position.distanceTo(ctl.target),near=Math.max(.000005,Math.min(.1,distance/10000));if(camera.near!==near){camera.near=near;camera.updateProjectionMatrix()}
-  if(pin.current){const facing=new T.Vector3(0,1,0).dot(camera.position.clone().normalize())>0;pin.current.style.display=mode==='overview'||nearSite||!facing?'none':'block';}
  });
  return <>
-  {close && settings.inspection && night > .001 && (
-   <>
-    <pointLight
-     position={[inspectionSpan*.9,inspectionSpan*1.1,inspectionSpan*.8]}
-     color="#fff0d7"
-     intensity={6*inspectionSpan**2*night}
-     distance={inspectionSpan*4}
-    />
-    <pointLight
-     position={[-inspectionSpan*.85,inspectionSpan*.7,-inspectionSpan*.9]}
-     color="#c6ddff"
-     intensity={3*inspectionSpan**2*night}
-     distance={inspectionSpan*3.5}
-    />
-   </>
-  )}
-  <SurfaceNavigation active={close&&!flight.current&&mode!=='story'} body={m.body} unit={UNIT} ground={surface.ground} center={surface.center} equipmentRadius={dimensions[m.model].span*.6}/><OrbitControls ref={controls} makeDefault enabled={settings.navigation==='orbit'||!close||!!flight.current} enableDamping dampingFactor={.085} rotateSpeed={coarsePointer?.65:.4} enablePan={close} screenSpacePanning={false} panSpeed={.4} minPolarAngle={.04} maxPolarAngle={close?Math.PI/2-.035:Math.PI-.02} minDistance={Math.max(1.2,dimensions[m.model].span*.85)*UNIT} maxDistance={Math.max(1800,950*orbitFraming)} zoomSpeed={.6} onStart={()=>{if(flight.current){descentArmed.current=false;guided.current=flight.current.stage==='descent';}flight.current=null;}}/>{/* Uniform bounced light lifts the unlit terrain without introducing a second shadow direction. */}<ambientLight intensity={daylight*(moon?.26:.34)+night*(settings.inspection&&mode!=='overview'?.3:moon?.028:.045)} color={moon?'#c3d0e5':'#e6c6ae'}/><hemisphereLight args={[moon?'#c8d6ee':'#e9c6aa',moon?'#798295':'#9b7360',daylight*(moon?.14:.19)+night*.018]}/>{night>.001&&<directionalLight castShadow position={nightDirection.clone().multiplyScalar(350*UNIT)} color={moon?'#a8c5ee':'#b4c5dc'} intensity={night*(moon?.13:.095)} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-normalBias={.004*UNIT} shadow-bias={-.000015} shadow-radius={0}/>}<directionalLight castShadow position={localSun.clone().multiplyScalar(350*UNIT)} color={moon?'#fff8ee':'#fff0dc'} intensity={4.0*solarIrradiance(ephemeris[m.body])/1361} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-bias={-.000015} shadow-normalBias={.004*UNIT} shadow-radius={0}/><mesh geometry={surface.geometry} receiveShadow onClick={e=>{if(mode==='overview'&&e.delta<4){e.stopPropagation();onWorld(m.body)}}}><RegolithMaterial map={map} nasaPatch={nasaPatch} nasaPatchFade={nasaPatchFade} unit={UNIT} moon={moon} centerY={surface.center.y} rotation={surface.rotation} landingRadius={landingRadius}/></mesh>{globeOnly?null:moon?<ApolloRocks ground={surface.ground} unit={UNIT} clearance={Math.max(3,dimensions[m.model].span*.70)} count={preset.rocks}/>:<><MarsRocks ground={surface.ground} unit={UNIT} clearance={Math.max(3,dimensions[m.model].span*.7)} count={preset.rocks} lat={m.lat} lon={m.lon} landingRadius={landingRadius} site={m.id}/><MarsGroundMarks ground={surface.ground} unit={UNIT} model={m.model} lat={m.lat} lon={m.lon} site={m.id}/></>}{!moon&&<group position={surface.center}><Atmosphere r={R}/></group>}{mode!=='overview'&&<group scale={UNIT} rotation={[0,m.model==='rover'?Math.PI/2+marsRoverRoadYaw(m.id):0,0]}><Model name={m.model}/></group>}{mode==='overview'&&<Html position={[0,100,0]} center><button className="worldLabel" onClick={()=>onWorld(m.body)}>{language === "en" ? (moon ? "Moon" : "Mars") : (moon ? "القمر" : "المريخ")} ↗</button></Html>}<Html position={[0,.5,0]} center><div ref={pin}><button className="sitePin" onClick={()=>onMission(missions.findIndex(item=>item.id===m.id))}>{language === "en" ? `${m.en} · Zoom in` : `${m.name} · قرّب للوصول`}<small dir="ltr">{Math.abs(m.lat)}° {m.lat<0?'S':'N'} · {m.lon}° E</small></button></div></Html>{mode!=='overview'&&!close&&missions.map((item,i)=>item.body===m.body&&item.id!==m.id?<SitePin key={item.id} m={item} rotation={surface.rotation} selected={false} onClick={()=>onMission(i)}/>:null)}</>;
+  <SurfaceNavigation active={mode==='surface'&&close&&!flight.current} body={body} unit={UNIT} ground={surface.ground} center={surface.center}/><OrbitControls ref={controls} makeDefault enabled={mode==='planet'||settings.navigation==='orbit'||!close||!!flight.current} enableDamping dampingFactor={.085} rotateSpeed={coarsePointer?.65:.4} enablePan={close} screenSpacePanning={false} panSpeed={.4} minPolarAngle={.04} maxPolarAngle={close?Math.PI/2-.035:Math.PI-.02} minDistance={1.2*UNIT} maxDistance={Math.max(1800,950*orbitFraming)} zoomSpeed={.6} onStart={()=>{if(flight.current){descentArmed.current=false;guided.current=flight.current.stage==='descent';}flight.current=null;}}/>{/* Uniform bounced light lifts the unlit terrain without introducing a second shadow direction. */}<ambientLight intensity={daylight*(moon?.26:.34)+night*(moon?.028:.045)} color={moon?'#c3d0e5':'#e6c6ae'}/><hemisphereLight args={[moon?'#c8d6ee':'#e9c6aa',moon?'#798295':'#9b7360',daylight*(moon?.14:.19)+night*.018]}/>{night>.001&&<directionalLight castShadow position={nightDirection.clone().multiplyScalar(350*UNIT)} color={moon?'#a8c5ee':'#b4c5dc'} intensity={night*(moon?.13:.095)} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-normalBias={.004*UNIT} shadow-bias={-.000015} shadow-radius={0}/>}<directionalLight castShadow position={localSun.clone().multiplyScalar(350*UNIT)} color={moon?'#fff8ee':'#fff0dc'} intensity={4.0*solarIrradiance(ephemeris[body])/1361} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-bias={-.000015} shadow-normalBias={.004*UNIT} shadow-radius={0}/><mesh geometry={surface.geometry} receiveShadow><RegolithMaterial map={map} nasaPatch={nasaPatch} nasaPatchFade={nasaPatchFade} unit={UNIT} moon={moon} centerY={surface.center.y} rotation={surface.rotation} landingRadius={landingRadius}/></mesh>{globeOnly ? null : moon
+    ? <LunarRocks ground={surface.ground} unit={UNIT} clearance={3} count={preset.rocks}/>
+    : <MarsRocks ground={surface.ground} unit={UNIT} clearance={3} count={preset.rocks} lat={lat} lon={lon} landingRadius={landingRadius}/>}
+   {!moon && <group position={surface.center}><Atmosphere r={R}/></group>}
+ </>;
 }
 
 function RegolithMaterial({map,nasaPatch,nasaPatchFade,unit,moon,centerY,rotation,landingRadius}:{map:T.Texture;nasaPatch:TrekPatch|null;nasaPatchFade:{value:number};unit:number;moon:boolean;centerY:number;rotation:T.Quaternion;landingRadius:number}){
@@ -305,7 +267,7 @@ float dust=soilNoise(metres*5.)-.5;
 // Never replace planetary imagery with an unrelated flat grey/red surface.
 // Preserve large-scale lunar mare / Martian albedo across the full approach.
 diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,footprint))+dust*${moon?'.28':'.17'}*(1.-smoothstep(.2,2.,footprint))+strata*${moon?'.15':'.09'}*(1.-smoothstep(1.,8.,footprint)));
- ${moon?`// Apollo 11: grey, powdery lunar regolith and sparse dark mare basalt.
+ ${moon?`// Lunar terrain: grey, powdery lunar regolith and sparse dark mare basalt.
  // All the new detail is derived from metres near the landing site and
  // antialiased by the screen-space footprint; the orbital map stays intact.
  float mareBasalt=smoothstep(.62,.9,soilNoise(metres*.26+vec2(9.,7.)));
@@ -355,16 +317,6 @@ diffuseColor.rgb*=1.+localFade*(grain*${moon?'.42':'.23'}*(1.-smoothstep(.01,.1,
  float scatteredRubble=smoothstep(.48,.83,soilNoise(metres*.75+vec2(-8.,3.)));
  vec3 pebbleColor=mix(vec3(.24,.19,.17),vec3(.54,.35,.25),soilNoise(metres*2.6));
  diffuseColor.rgb*=1.-speckles*(.08+.14*scatteredRubble)*localFade*(1.-smoothstep(.06,.6,footprint));
- // Dusty path to mission equipment follows the same corridor as rock exclusion.
- float trailAlong=(metres.x+metres.y)*.70710678;
- float trailBend=2.*sin(trailAlong*.045)*smoothstep(12.,65.,trailAlong);
- float trailAcross=abs((metres.x-metres.y)*.70710678-trailBend);
- float trailStart=smoothstep(${(landingRadius*.6).toFixed(2)},${(landingRadius+4).toFixed(2)},trailAlong);
- float dirtTrail=trailStart*(1.-smoothstep(112.,142.,trailAlong))*(1.-smoothstep(4.4,8.5,trailAcross));
- float dustyGrain=soilNoise(metres*3.4+vec2(9.,22.))-.5;
- vec3 packedDust=vec3(.395,.244,.167)*(1.+dustyGrain*.09);
- diffuseColor.rgb*=1.-dirtTrail*.105*localFade;
- 
  `}
  }
  `).replace('#include <normal_fragment_maps>',`#include <normal_fragment_maps>

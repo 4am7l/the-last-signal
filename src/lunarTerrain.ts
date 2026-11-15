@@ -6,9 +6,9 @@ export const MARS_RADIUS_METRES = 3389500;
 export const MOON_RENDER_RADIUS = 300;
 export const METRES_TO_SCENE = MOON_RENDER_RADIUS / MOON_RADIUS_METRES;
 const smooth = (a:number,b:number,x:number) => {const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
-// Low mare basalt plains around Apollo 11, with small softened impact
+// Low lunar mare basalt plains, with small softened impact
 // craters and distant rolling regolith. This is illustrative microterrain,
-// not a metre-accurate Apollo site survey.
+// not a metre-accurate terrain survey.
 export const craters=Array.from({length:28},(_,i)=>{
  const angle=i*2.399963229728653+.25*Math.sin(i*1.7);
  const distance=i<7?145+i*101:36+Math.pow((i-6)/22,1.18)*1010;

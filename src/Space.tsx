@@ -1,103 +1,56 @@
-import type { Language } from "./explorer-language";
-import {RenderSettings} from './RenderSettings';
-import {Suspense,useEffect,useMemo,useRef} from 'react';
-import {Canvas,useFrame,useLoader,useThree} from '@react-three/fiber';
-import {OrbitControls,Html,useGLTF,Line} from '@react-three/drei';
-import type {OrbitControls as Controls} from 'three-stdlib';
-import * as T from 'three';
-import {missions,type Mission} from './data';
-import {dimensions,type Shot} from './journey';
-export type Mode='overview'|'planet'|'story'|'model'|'location';
-import {Planet,SitePin,Terrain,terrainHeight,point} from './Planet';
-import {SurfaceWorld} from './SurfaceWorld';
-import {SystemOverview} from './SystemOverview';
-import {BodyStudy} from './BodyStudy';
-import {FixedStars} from './FixedStars';
+import { Suspense, useRef } from "react";
+import { Canvas, useFrame, useLoader } from "@react-three/fiber";
+import * as T from "three";
+import { BodyStudy } from "./BodyStudy";
+import { CameraCommands, type CameraCommand } from "./CameraCommands";
+import { FixedStars } from "./FixedStars";
+import { RenderSettings } from "./RenderSettings";
+import { SurfaceWorld } from "./SurfaceWorld";
+import type { Destination, View } from "./navigation";
 
-import {SUN_DIRECTION} from './solar';
-import {CameraCommands,type CameraCommand} from './CameraCommands';
-export {point} from './Planet';
-const smooth=(x:number)=>{const t=T.MathUtils.clamp(x,0,1);return t*t*(3-2*t)};
-function ModelAsset({name,rotor=0}:{name:string;rotor?:number}){const {scene}=useGLTF(`/models/${name}.glb`);const obj=useMemo(()=>{const o=scene.clone(true);const b=new T.Box3().setFromObject(o),size=b.getSize(new T.Vector3()),c=b.getCenter(new T.Vector3());const scale=dimensions[name].span/Math.max(size.x,size.z);o.position.set(-c.x*scale,-b.min.y*scale,-c.z*scale);o.scale.setScalar(scale);o.traverse(n=>{if(n instanceof T.Mesh){n.castShadow=true;n.receiveShadow=true}});return o},[scene,name]);useEffect(()=>{if(name!=='ingenuity')return;const a=obj.getObjectByName('rotors_01'),b=obj.getObjectByName('rotors_02');if(a)a.rotation.y=rotor*Math.PI*100;if(b)b.rotation.y=-rotor*Math.PI*100},[obj,name,rotor]);return <primitive object={obj}/>}
-export function Model({name,rotor=0}:{name:string;rotor?:number}){return <Suspense fallback={<mesh position={[0,.2,0]}><boxGeometry args={[.4,.4,.4]}/><meshStandardMaterial wireframe color="#97a28a"/></mesh>}><ModelAsset name={name} rotor={rotor}/></Suspense>}
-function CameraRig({position,target,id,controls,manual}:{position:T.Vector3;target:T.Vector3;id:string;controls:React.RefObject<Controls|null>;manual:React.RefObject<boolean>}){const {camera}=useThree();const from=useRef(new T.Vector3()),look=useRef(new T.Vector3()),elapsed=useRef(0),active=useRef(false);useEffect(()=>{from.current.copy(camera.position);look.current.copy(controls.current?.target??new T.Vector3());elapsed.current=0;active.current=true;manual.current=false},[id]);useFrame((_,dt)=>{if(!active.current||manual.current||!controls.current)return;elapsed.current+=Math.min(dt,.05);const t=window.matchMedia('(prefers-reduced-motion: reduce)').matches?1:smooth(elapsed.current/3.2);camera.position.lerpVectors(from.current,position,t);controls.current.target.lerpVectors(look.current,target,t);controls.current.update();if(t===1)active.current=false});return null}
-function Exhaust({length=8}:{length?:number}){return <mesh position={[0,-length/2,0]} rotation={[Math.PI,0,0]}><coneGeometry args={[1.1,length,16]}/><meshBasicMaterial color="#ffc46d" transparent opacity={.65} depthWrite={false}/></mesh>}
-function Rocket({moon,p,boosters}:{moon:boolean;p:number;boosters:number}){const h=moon?111:40,r=moon?5:1.5;return <group position={[0,smooth(p)*120,0]}><mesh position={[0,h*.27,0]} castShadow><cylinderGeometry args={[r,r,h*.54,24]}/><meshStandardMaterial color="#e2dfd5"/></mesh><group position={[0,-smooth(Math.max(0,(p-.6)/.4))*25,0]}><mesh position={[0,3,0]}><cylinderGeometry args={[r*.9,r,6,24]}/><meshStandardMaterial color="#343b3e"/></mesh></group><mesh position={[0,h*.7,0]}><cylinderGeometry args={[r*.7,r,h*.3,24]}/><meshStandardMaterial color="#d5d4c9"/></mesh><mesh position={[0,h*.91,0]}><coneGeometry args={[r*.7,h*.12,24]}/><meshStandardMaterial color="#f1eee6"/></mesh><Exhaust length={moon?28:12}/>{Array.from({length:boosters},(_,i)=>{const angle=i*Math.PI*2/boosters;return <mesh key={i} position={[Math.cos(angle)*r*1.5,h*.2,Math.sin(angle)*r*1.5]}><cylinderGeometry args={[r*.25,r*.35,h*.35,16]}/><meshStandardMaterial color="#dddcd2"/></mesh>})}</group>}
-function Capsule({cruise=false,moon=false}:{cruise?:boolean;moon?:boolean}){if(moon&&cruise)return <group><mesh position={[0,1.2,0]}><coneGeometry args={[1.9,2.8,32]}/><meshStandardMaterial color="#bfc4c5" metalness={.6} roughness={.4}/></mesh><mesh position={[0,-2,0]}><cylinderGeometry args={[1.9,1.9,4,32]}/><meshStandardMaterial color="#d5d7d1" metalness={.3} roughness={.6}/></mesh><mesh position={[0,-4.6,0]}><coneGeometry args={[1,1.3,20]}/><meshStandardMaterial color="#43484c"/></mesh><group position={[0,3,0]} scale={.4}><mesh><boxGeometry args={[3,3,3]}/><meshStandardMaterial color="#b69b5a"/></mesh></group></group>;return <group><mesh><coneGeometry args={[moon?2:1.5,1.3,32]}/><meshStandardMaterial color="#d1c6ad" metalness={.25} roughness={.6}/></mesh><mesh position={[0,-.7,0]}><cylinderGeometry args={[moon?2:1.5,moon?2:1.5,.15,32]}/><meshStandardMaterial color="#40332d"/></mesh>{cruise&&<><mesh position={[0,1,0]}><cylinderGeometry args={[.8,.8,1.3,24]}/><meshStandardMaterial color="#aeb1ac" metalness={.5} roughness={.4}/></mesh>{[-1,1].map(x=><mesh key={x} position={[x*2,1,0]}><boxGeometry args={[2.2,.06,1.5]}/><meshStandardMaterial color="#1a2b45" metalness={.5} roughness={.45}/></mesh>)}</>}</group>}
-function Chute(){return <group position={[0,9,0]}><mesh><sphereGeometry args={[4,24,12,0,Math.PI*2,0,Math.PI/2]}/><meshStandardMaterial color="#ded5ba" side={T.DoubleSide}/></mesh>{[0,1,2,3,4,5,6,7].map(i=>{const a=i*Math.PI/4;return <Line key={i} points={[[Math.cos(a)*4,0,Math.sin(a)*4],[0,-9,0]]} color="#c4bca9" lineWidth={1}/>})}</group>}
-function Carrier(){return <group><mesh position={[0,1.1,0]}><boxGeometry args={[2.7,.65,2.3]}/><meshStandardMaterial color="#a99a77"/></mesh>{[-1,1].flatMap(x=>[-1,0,1].map(z=><mesh key={`${x}${z}`} position={[x*1.5,.4,z]} rotation={[0,0,Math.PI/2]}><cylinderGeometry args={[.4,.4,.3,16]}/><meshStandardMaterial color="#303335"/></mesh>))}<mesh position={[0,2,0]}><boxGeometry args={[.12,1.6,.12]}/><meshStandardMaterial color="#b2a58d"/></mesh><mesh position={[0,2.7,0]}><boxGeometry args={[.5,.25,.25]}/><meshStandardMaterial color="#9b987e"/></mesh></group>}
-function Airbags({p}:{p:number}){const inflate=1-smooth((p-.65)/.35);return <group scale={Math.max(.02,inflate)}>{[-1,1].flatMap(x=>[-1,1].map(z=><mesh key={`${x}${z}`} position={[x*.9,1,z*.9]}><sphereGeometry args={[1.3,16,12]}/><meshStandardMaterial color="#b89b79" roughness={1}/></mesh>))}</group>}
-function Ground({moon=false,launch=false}:{moon?:boolean;launch?:boolean}){
- const rocks=useMemo(()=>Array.from({length:110},(_,i)=>{const a=i*2.3999,r=10+((i*37)%130);return{x:Math.sin(a)*r,z:Math.cos(a)*r,s:.12+(i%9)*.09}}),[]);
- const first=useRef<T.InstancedMesh>(null),second=useRef<T.InstancedMesh>(null);
- useEffect(()=>{
-  const dummy=new T.Object3D();
-  rocks.forEach((r,i)=>{
-   const mesh=i%2===0?first.current:second.current;
-   if(!mesh)return;
-   dummy.position.set(r.x,terrainHeight(r.x,r.z,moon)+r.s*.25,r.z);
-   dummy.rotation.set(i,.3*i,0);
-   dummy.scale.set(r.s*1.5,r.s*.7,r.s);
-   dummy.updateMatrix();
-   mesh.setMatrixAt(Math.floor(i/2),dummy.matrix);
-  });
-  for(const mesh of [first.current,second.current]){
-   if(mesh){mesh.instanceMatrix.needsUpdate=true;mesh.computeBoundingSphere();}
-  }
- },[rocks,moon,launch]);
- return <group><Terrain moon={moon} launch={launch}/>{!launch&&<>
-  <instancedMesh ref={first} args={[undefined,undefined,55]} castShadow receiveShadow>
-   <icosahedronGeometry args={[1,0]}/><meshStandardMaterial color={moon?'#555553':'#705846'} roughness={1}/>
-  </instancedMesh>
-  <instancedMesh ref={second} args={[undefined,undefined,55]} castShadow receiveShadow>
-   <icosahedronGeometry args={[1,0]}/><meshStandardMaterial color={moon?'#555553':'#614f40'} roughness={1}/>
-  </instancedMesh>
- </>}{launch&&<mesh position={[0,.15,0]} receiveShadow><boxGeometry args={[20,.3,20]}/><meshStandardMaterial color="#686866"/></mesh>}</group>;
+export type Mode = View;
+type SceneProps = {
+  mode: Mode;
+  body: Destination;
+  reset: number;
+  sceneKey: string;
+  onSceneReady: (key: string) => void;
+};
+
+export function Space({ cameraCommand, ...props }: SceneProps & { cameraCommand: CameraCommand }) {
+  return (
+    <Canvas shadows gl={{ logarithmicDepthBuffer: true, antialias: true, toneMapping: T.ACESFilmicToneMapping, toneMappingExposure: 1.05 }}
+      camera={{ position: [0, 100, 950], fov: 44, near: .1, far: 10000 }} dpr={[1, 2]}>
+      {props.mode !== "overview" && <color attach="background" args={["#05070d"]} />}
+      <RenderSettings />
+      <Suspense fallback={null}>
+        <SceneAssetsGate {...props} />
+      </Suspense>
+      <CameraCommands command={cameraCommand} />
+    </Canvas>
+  );
 }
-function Landing({m,phase,p}:{m:Mission;phase:string;p:number}){if(phase==='entry')return <group position={[15*(1-p),m.body==='moon'?35-25*p:35-7*p,0]} rotation={[0,0,-.3]}>{m.body==='moon'?<Model name="apollo"/>:<><Capsule/><mesh position={[0,-1,0]}><sphereGeometry args={[2.1,24,16]}/><meshBasicMaterial color="#e78a35" transparent opacity={.18} depthWrite={false}/></mesh></>}</group>;if(phase==='parachute')return <group position={[0,28-18*smooth(p),0]}><Capsule/><Chute/></group>;if(m.model==='rover')return <group position={[p<.65?3*(1-p):0,p<.3?10*(1-smooth(p/.3)):p<.65?Math.abs(Math.sin((p-.3)/.35*Math.PI*3))*2*(1-p):0,0]}><Airbags p={p}/>{p>.7&&<Model name="rover"/>}</group>;if(m.id==='ingenuity')return <><group position={[0,10*(1-smooth(p)),0]}><Carrier/>{p<.9&&<><mesh position={[0,7,0]}><boxGeometry args={[3,.5,2.5]}/><meshStandardMaterial color="#9c997e"/></mesh>{[-1,1].map(x=><Line key={x} points={[[x,1.5,0],[x,7,0]]} color="#b6b9a9" lineWidth={1}/>)}</>}</group></>;return <group position={[0,10*(1-smooth(p)),0]}><Model name={m.model}/>{p<.95&&<group position={[0,.2,0]}><Exhaust length={2*(1-p)}/></group>}</group>}
-function Deploy({m,p}:{m:Mission;p:number}){return <>{m.id==='ingenuity'?<><group position={[smooth(p)*8,0,0]}><Carrier/></group><group position={[0,.2*(1-p),0]}><Model name="ingenuity"/></group></>:<group position={[m.model==='rover'?smooth(p)*3:0,0,0]}><Model name={m.model}/></group>}</>}
-export function LunarBase(){return <group><mesh position={[0,1,0]} castShadow><boxGeometry args={[4,2,4]}/><meshStandardMaterial color="#ae8844" metalness={.35} roughness={.65}/></mesh>{[0,1,2,3].map(i=>{const a=i*Math.PI/2,x=Math.cos(a),z=Math.sin(a);return <group key={i}><Line points={[[x*1.6,1.8,z*1.6],[x*4.7,.15,z*4.7]]} color="#a5a49b" lineWidth={3}/><mesh position={[x*4.7,.06,z*4.7]}><cylinderGeometry args={[.45,.45,.12,20]}/><meshStandardMaterial color="#9c9685"/></mesh></group>})}</group>}
-function Operations({m,p,active,travel}:{m:Mission;p:number;active:boolean;travel:number}){const moving=active&&m.model==='rover',flying=active&&m.id==='ingenuity';return <group position={[moving?travel*6:flying?Math.sin(p*Math.PI)*2:0,flying?Math.sin(p*Math.PI)*3:0,0]} rotation={[0,moving?.1*p:0,0]}><Model name={m.model} rotor={flying?p:0}/></group>}
-export function Space(props:{mode:Mode;m:Mission;day:number;shot:Shot;progress:number;journeyProgress:number;onWorld:(b:'mars'|'moon')=>void;onMission:(i:number)=>void;reset:number;physicalDistances?:boolean;focusPair?:boolean;overviewBody?:'moon'|'mars';language?:Language;sceneKey?:string;onSceneReady?:(key:string)=>void;cameraCommand?:CameraCommand}){return <Canvas shadows gl={{logarithmicDepthBuffer:true,antialias:true,toneMapping:T.ACESFilmicToneMapping,toneMappingExposure:1.05}} camera={{position:[1000,1600,6500],fov:44,near:.1,far:30000}} dpr={[1,2]}>{props.mode!=='overview'&&<color attach="background" args={['#eef3fc']}/>}<ambientLight intensity={props.mode==='story'?.4:0}/><directionalLight castShadow shadow-mapSize={[2048,2048]} shadow-camera-left={-60} shadow-camera-right={60} shadow-camera-top={60} shadow-camera-bottom={-60} shadow-camera-far={500} position={SUN_DIRECTION.clone().multiplyScalar(600)} intensity={props.mode==='story'?2.4:0}/><RenderSettings/><Suspense fallback={null}><SceneAssetsGate {...props}/></Suspense><CameraCommands command={props.cameraCommand}/></Canvas>}
 
-/**
- * Do not remove the loading screen on a timer. Suspend for the actual base maps,
- * lunar height data and mission model, then confirm two WebGL render frames.
- * Optional progressive 8K imagery/DEM tiles continue loading in the background.
- */
-function SceneAssetsGate(props: Parameters<typeof Space>[0]) {
-  const body = props.mode === "overview" ? (props.overviewBody ?? "moon") : props.m.body;
+function SceneAssetsGate({ body, mode, reset, sceneKey, onSceneReady }: SceneProps) {
   useLoader(T.TextureLoader, body === "mars" ? "/mars-nasa-viking.jpg" : "/moon.jpg");
   useLoader(T.TextureLoader, "/moon-height.jpg");
-  return props.mode === "overview" ? <ReadyWorld {...props}/> : <MissionAssetsGate {...props}/>;
+  return (
+    <>
+      {mode === "overview" ? <BodyStudy body={body} reset={reset} /> : (
+        <>
+          <SurfaceWorld body={body} mode={mode} reset={reset} />
+          <FixedStars marsSurface={body === "mars"} />
+        </>
+      )}
+      <FirstSceneFrame key={sceneKey} sceneKey={sceneKey} onReady={onSceneReady} />
+    </>
+  );
 }
 
-function MissionAssetsGate(props: Parameters<typeof Space>[0]) {
-  useGLTF(`/models/${props.m.model}.glb`);
-  return <ReadyWorld {...props}/>;
-}
-
-function ReadyWorld(props: Parameters<typeof Space>[0]) {
-  return <>
-    <World {...props}/>
-    {props.mode !== "overview" && <FixedStars marsSurface={props.m.body === "mars"}/>}
-    <FirstSceneFrame key={props.sceneKey} sceneKey={props.sceneKey ?? ""} onReady={props.onSceneReady}/>
-  </>;
-}
-
-function FirstSceneFrame({sceneKey,onReady}:{sceneKey:string;onReady?:(key:string)=>void}) {
+function FirstSceneFrame({ sceneKey, onReady }: { sceneKey: string; onReady: (key: string) => void }) {
   const frames = useRef(0);
-  const signaled = useRef(false);
-  useFrame(()=>{
-    if(signaled.current) return;
-    frames.current++;
-    if(frames.current >= 2) {
-      signaled.current = true;
-      onReady?.(sceneKey);
-    }
+  useFrame(() => {
+    if (++frames.current === 2) onReady(sceneKey);
   });
   return null;
 }
-
-function World(props:Parameters<typeof Space>[0]){return props.mode==='overview'?<BodyStudy body={props.overviewBody??'moon'} reset={props.reset}/>:props.mode!=='story'?<SurfaceWorld {...props}/>:<LegacyWorld {...props}/>;}
-function LegacyWorld({mode,m,shot,progress:p,journeyProgress,onWorld,onMission,reset}:Parameters<typeof Space>[0]){const controls=useRef<Controls|null>(null),manual=useRef(false);const phase=mode==='story'?shot.phase:'surface';const isLaunch=phase==='launch'||phase==='separation',isCruise=phase==='cruise',isDescent=['entry','parachute','touchdown'].includes(phase);const orbital=mode==='overview'||mode==='planet'||mode==='location';const q=useMemo(()=>new T.Quaternion().setFromUnitVectors(point(m.lat,m.lon,1),new T.Vector3(0,1,0)),[m.id]);const cameraKey=`${mode}:${m.id}:${phase}:${reset}`;const config=useMemo(()=>{if(mode==='overview')return{position:new T.Vector3(900,1400,6500),target:new T.Vector3(-600,-300,-700)};if(mode==='planet')return{position:new T.Vector3(160,170,680),target:new T.Vector3(0,-300,0)};if(mode==='location')return{position:new T.Vector3(0,180,290),target:new T.Vector3()};if(isLaunch)return{position:new T.Vector3(120,80,200),target:new T.Vector3(0,65,0)};if(isCruise)return{position:new T.Vector3(50,20,90),target:new T.Vector3()};if(isDescent)return{position:new T.Vector3(28,15,45),target:new T.Vector3(0,9,0)};return{position:new T.Vector3(22,9,32),target:new T.Vector3(0,1,0)}},[cameraKey]);return <><CameraRig {...config} id={cameraKey} controls={controls} manual={manual}/><OrbitControls ref={controls} makeDefault enableDamping dampingFactor={.085} rotateSpeed={.6} zoomSpeed={.7} panSpeed={.5} onStart={()=>{manual.current=true}} enablePan={!orbital} minDistance={orbital?330:4} maxDistance={orbital?14000:2200} maxPolarAngle={orbital?Math.PI:Math.PI/2-.02}/>{orbital?<><Planet body={m.body} rotation={q} click={mode==='overview'?()=>onWorld(m.body):undefined}/>{mode==='overview'?<><Planet body={m.body==='mars'?'moon':'mars'} r={m.body==='mars'?154:300} pos={[1700,-300,-1400]} click={()=>onWorld(m.body==='mars'?'moon':'mars')}/><Html position={[0,40,0]} center><button className="worldLabel" onClick={()=>onWorld(m.body)}>{m.body==='mars'?'المريخ':'القمر'} ↗</button></Html><Html position={[1700,-50,-1400]} center><button className="worldLabel" onClick={()=>onWorld(m.body==='mars'?'moon':'mars')}>{m.body==='mars'?'القمر':'المريخ'} ↗</button></Html></>:missions.map((item,i)=>{if(item.body!==m.body)return null;return <SitePin key={item.id} m={item} rotation={q} selected={mode==='location'&&item.id===m.id} onClick={()=>onMission(i)}/>})}</>:isCruise?<><Planet body={m.body} r={9} pos={[65,-10,-20]}/><Line points={Array.from({length:51},(_,i)=>[-45+90*i/50,Math.sin(i/50*Math.PI)*10,0] as [number,number,number])} color="#52665d" lineWidth={1}/><group position={[-45+90*smooth(p),Math.sin(p*Math.PI)*10,0]} rotation={[0,0,-Math.PI/2]}><Capsule cruise moon={m.body==='moon'}/></group></>:<>{!isLaunch&&m.body==='mars'&&<fog attach="fog" args={['#614a3d',350,8500]}/>}<Ground moon={m.body==='moon'} launch={isLaunch}/>{isLaunch?<Rocket moon={m.body==='moon'} boosters={m.body==='moon'||m.id==='insight'?0:m.model==='rover'?9:4} p={phase==='separation'?.6+.4*p:p*.6}/>:isDescent?<Landing m={m} phase={phase} p={p}/>:phase==='deploy'?<Deploy m={m} p={p}/>:phase==='ascent'?<><LunarBase/><group position={[0,2+smooth(p)*25,0]}><Capsule moon/></group></>:phase==='return'?<group position={[0,15*(1-p),0]}><Capsule moon/>{[-1,0,1].map(x=><group key={x} position={[x*5,0,0]} scale={.7}><Chute/></group>)}</group>:phase==='end'&&m.body==='moon'?<LunarBase/>:<Operations m={m} p={p} travel={journeyProgress} active={mode==='story'&&phase==='surface'}/>}</>}</>}

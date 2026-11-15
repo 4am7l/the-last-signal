@@ -290,3 +290,12 @@
   .fullscreen-toolbar .body-picker a { font-size: 12px; padding-inline: 8px; }
   .fullscreen-toolbar .action { font-size: 12px; padding-inline: 8px; gap: 4px; }
 }
+
+.explorer-entry {
+  display: flex;
+  gap: 8px;
+}
+
+.fullscreen-explorer .universe.surface {
+  background: #05070d;
+}

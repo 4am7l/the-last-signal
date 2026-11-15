@@ -2,7 +2,7 @@ import {useEffect,useMemo} from 'react';
 import * as T from 'three';
 import {noise3} from './sceneMath';
 
-// Seeded illustrative Apollo 11 debris: fractured, partly buried basalt and
+// Seeded illustrative lunar regolith: fractured, partly buried basalt and
 // regolith pebbles. No towering monoliths or floating polygonal formations.
 type Shape='boulder'|'slab'|'gravel';
 const palette=['#777672','#898783','#aba69c','#5f605e','#77736b','#99958e','#62615e'];
@@ -52,7 +52,7 @@ function rotatedBottom(geometry:T.BufferGeometry,matrix:T.Matrix4){
  }
  return bottom;
 }
-export function ApolloRocks({ground,unit,count,clearance}:{
+export function LunarRocks({ground,unit,count,clearance}:{
  ground:(x:number,z:number)=>number;unit:number;count:number;clearance:number
 }){
  const population=useMemo(()=>{
@@ -77,7 +77,7 @@ export function ApolloRocks({ground,unit,count,clearance}:{
      Math.abs(bounds.min.x),Math.abs(bounds.max.x),
      Math.abs(bounds.min.z),Math.abs(bounds.max.z));
     for(let i=0;i<n;i++){
-     // Apollo 11 is a low-relief basalt mare: nearby stones remain smaller
+     // The lunar plain has low relief: nearby stones remain smaller
      // than the lander, with only occasional metre-scale distant fragments.
      const size=shape==='boulder'?.12+Math.pow(random(),2.3)*1.05:
       shape==='slab'?.07+Math.pow(random(),2.25)*.65:

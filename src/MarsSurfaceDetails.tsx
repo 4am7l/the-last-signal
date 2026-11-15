@@ -1,6 +1,6 @@
 import {useEffect,useMemo} from 'react';
 import * as T from 'three';
-import {marsApproachMask,marsCraterField,marsSiteSeed,marsRoverRoadPoint,marsRoverRoadYaw,marsRoverRoadClearance} from './marsGeology';
+import {marsCraterField,marsSiteSeed} from './marsGeology';
 import {noise3} from './sceneMath';
 
 // Distinct, high-detail eroded rock shapes rather than a few low-poly icosahedrons.
@@ -97,8 +97,8 @@ function lowestVertexAfterTransform(geometry:T.BufferGeometry,matrix:T.Matrix4){
  }
  return low;
 }
-export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,site}:{
- ground:(x:number,z:number)=>number;unit:number;clearance:number;count:number;lat:number;lon:number;landingRadius:number;site:string
+export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius}:{
+ ground:(x:number,z:number)=>number;unit:number;clearance:number;count:number;lat:number;lon:number;landingRadius:number
 }){
  const population=useMemo(()=>{
   const rand=randomFromSeed(marsSiteSeed(lat,lon)^0x7159b);
@@ -174,21 +174,10 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
       }
       const radius=Math.hypot(x,z);
       if(radius<minDistance)continue;
-      // No boulder taller than the rover beside the mission exhibit. Larger
+      // Limit boulder height near the descent point. Larger
       // rocks belong to background outcrops rather than the walking area.
       if(shape==='boulder'&&radius<landingRadius+110&&size>1.05)continue;
       if(shape==='slab'&&radius<landingRadius+32&&size>.65)continue;
-      // InSight sits on an open plain, Spirit beside a rockier shoulder,
-      // Opportunity in Eagle crater, Ingenuity on a broken Jezero plain.
-      if(site==='insight'&&shape==='boulder'&&radius<landingRadius+85&&rand()<.58)continue;
-      if(site==='opportunity'&&shape==='boulder'&&radius<landingRadius+70&&rand()<.4)continue;
-      if(site==='ingenuity'&&shape==='slab'&&radius>landingRadius+130&&rand()<.3)continue;
-      // A navigable dirt strip has no boulder-sized obstacles.
-      const path=marsApproachMask(x,z,landingRadius);
-      if(!small&&path>.025)continue;
-      // Keep both wheel tracks free of boulders and slabs. The same site
-      // route also determines the displayed rover's heading.
-      if(!small&&marsRoverRoadClearance(x,z,site,footprint+.55))continue;
       if(!small){
        const margin=giant?1.17:shape==='boulder'?1.12:1.04;
        if(occupied.some(p=>Math.hypot(x-p.x,z-p.z)<margin*(footprint+p.radius)))continue;
@@ -240,60 +229,9 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
    }
   }
   return meshes;
- },[ground,unit,clearance,count,lat,lon,landingRadius,site]);
+ },[ground,unit,clearance,count,lat,lon,landingRadius]);
  useEffect(()=>()=>{for(const mesh of population){
   mesh.geometry.dispose();(mesh.material as T.Material).dispose();mesh.dispose();
  }},[population]);
  return <group>{population.map((mesh,i)=><primitive key={i} object={mesh}/>)}</group>;
-}
-function trackGeometry(ground:(x:number,z:number)=>number,unit:number,side:number,site:string){
- const vertices:number[]=[],indices:number[]=[],steps=120;
- // The tracks originate beneath the rear wheel lane, then bend naturally as
- // one consistent pair. Their local heading is shared with the rover model.
- const yaw=marsRoverRoadYaw(site),lateralX=Math.sin(yaw),lateralZ=Math.cos(yaw);
- for(let i=0;i<=steps;i++){
-  const t=i/steps,p=marsRoverRoadPoint(t,side,site);
-  for(const edge of [-1,1]){
-   const xx=p.x+edge*.11*lateralX,zz=p.z+edge*.11*lateralZ;
-   vertices.push(xx*unit,ground(xx,zz)+.009*unit,zz*unit);
-  }
-  if(i<steps){const k=i*2;indices.push(k,k+1,k+2,k+1,k+3,k+2)}
- }
- const geometry=new T.BufferGeometry();
- geometry.setAttribute('position',new T.Float32BufferAttribute(vertices,3));
- geometry.setIndex(indices);geometry.computeVertexNormals();return geometry;
-}
-function dustScuffGeometry(ground:(x:number,z:number)=>number,unit:number,radius:number,seed:number){
- const rand=randomFromSeed(seed),segments=96,rings=4,vertices:number[]=[],indices:number[]=[];
- const perimeter=Array.from({length:segments+1},(_,i)=>.78+rand()*.3);
- perimeter[segments]=perimeter[0];
- for(let j=0;j<=rings;j++){
-  const fraction=j/rings;
-  for(let i=0;i<=segments;i++){
-   const angle=i/segments*Math.PI*2,r=radius*fraction*perimeter[i];
-   const x=Math.cos(angle)*r,z=Math.sin(angle)*r;
-   vertices.push(x*unit,ground(x,z)+.009*unit,z*unit);
-   if(j<rings&&i<segments){
-    const k=j*(segments+1)+i;indices.push(k,k+1,k+segments+1,k+1,k+segments+2,k+segments+1);
-   }
-  }
- }
- const geometry=new T.BufferGeometry();geometry.setAttribute('position',new T.Float32BufferAttribute(vertices,3));
- geometry.setIndex(indices);geometry.computeVertexNormals();return geometry;
-}
-// Tracks are illustrative only: mission coordinates do not document wheel tracks.
-export function MarsGroundMarks({ground,unit,model,lat,lon,site}:{
- ground:(x:number,z:number)=>number;unit:number;model:string;lat:number;lon:number;site:string
-}){
- const marks=useMemo(()=>{
-  const tracks=model==='rover'?[trackGeometry(ground,unit,-1,site),trackGeometry(ground,unit,1,site)]:[];
-  const scuff=model==='insight'?dustScuffGeometry(ground,unit,4.4,marsSiteSeed(lat,lon)):
-   model==='ingenuity'?dustScuffGeometry(ground,unit,2.5,marsSiteSeed(lat,lon)):null;
-  return {tracks,scuff};
- },[ground,unit,model,lat,lon,site]);
- useEffect(()=>()=>{for(const geometry of marks.tracks)geometry.dispose();marks.scuff?.dispose()},[marks]);
- return <group>
-  {marks.tracks.map((geometry,i)=><mesh key={i} geometry={geometry}><meshBasicMaterial color="#3e2921" transparent opacity={.34} depthWrite={false} side={T.DoubleSide} polygonOffset polygonOffsetFactor={-2}/></mesh>)}
-  {marks.scuff&&<mesh geometry={marks.scuff}><meshBasicMaterial color="#654b3c" transparent opacity={.095} depthWrite={false} side={T.DoubleSide} polygonOffset polygonOffsetFactor={-2}/></mesh>}
- </group>;
 }

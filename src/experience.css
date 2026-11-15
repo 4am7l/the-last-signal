@@ -1688,3 +1688,7 @@ body {
     font-size: 44px;
   }
 }
+
+.signal-hero:has(> .hero-copy:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+}

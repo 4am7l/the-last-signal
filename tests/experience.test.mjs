@@ -11,44 +11,33 @@ const load = async (file) =>
         ),
       ).toString("base64")
   );
-const { parseRoute, exploreHref, matchesMission } = await load(
-  "../src/navigation.ts",
-);
-const { missions } = await load("../src/data.ts");
-const ids = missions.map((m) => m.id);
-test("every mission deep link round trips all simulation modes", () => {
-  for (const mission of ids)
-    for (const mode of ["overview", "planet", "location", "model", "story"])
-      assert.deepEqual(parseRoute(exploreHref(mission, mode), ids), {
-        page: "explore",
-        mission,
-        mode,
-      });
+const { parseRoute, exploreHref, destinations } = await load("../src/navigation.ts");
+
+test("both destinations support every explorer view", () => {
+  for (const body of destinations) {
+    for (const mode of ["overview", "planet", "surface"]) {
+      assert.deepEqual(parseRoute(exploreHref(body, mode)), { page: "explore", body, mode });
+    }
+  }
 });
-test("the fullscreen explorer defaults to the Moon and keeps a linked body on reload", () => {
-  assert.equal(parseRoute("#/explore", ids).mission, "apollo");
-  assert.deepEqual(parseRoute(exploreHref("opportunity", "overview"), ids), {
-    page: "explore",
-    mission: "opportunity",
-    mode: "overview",
+
+test("the fullscreen explorer defaults to the Moon", () => {
+  assert.deepEqual(parseRoute("#/explore"), { page: "explore", body: "moon", mode: "overview" });
+});
+
+test("legacy mission links open planetary scenes and archive routes still load", () => {
+  assert.deepEqual(parseRoute("#/explore?mission=apollo&view=location"), {
+    page: "explore", body: "moon", mode: "surface",
   });
-});
-test("invalid paths and external query values fall back to safe local defaults", () => {
-  assert.deepEqual(parseRoute("#/unknown?mission=missing&view=invalid", ids), {
-    page: "home",
-    mission: ids[0],
-    mode: "overview",
+  assert.deepEqual(parseRoute("#/explore?mission=opportunity&view=planet"), {
+    page: "explore", body: "mars", mode: "planet",
   });
-  assert.equal(parseRoute("#/archive?mission=apollo", ids).mission, "apollo");
-  assert.equal(parseRoute("#/guide", ids).page, "guide");
+  assert.equal(parseRoute("#/archive?mission=apollo").page, "archive");
+  assert.equal(parseRoute("#/guide").page, "guide");
 });
-test("archive search supports Arabic variants, English case, location and combined body filters", () => {
-  const opportunity = missions[0],
-    apollo = missions[4];
-  assert.ok(matchesMission(opportunity, "اوبورتيونيتي", "mars"));
-  assert.ok(matchesMission(opportunity, " OPPORTUNITY ", "all"));
-  assert.ok(matchesMission(apollo, "بحر السكون", "moon"));
-  assert.ok(!matchesMission(apollo, "Apollo", "mars"));
-  assert.ok(!matchesMission(apollo, "unknown", "all"));
-  assert.equal(missions.filter((m) => matchesMission(m, "", "mars")).length, 4);
+
+test("unknown routes and destination values fall back to local defaults", () => {
+  assert.deepEqual(parseRoute("#/unknown?body=earth&view=invalid"), {
+    page: "home", body: "moon", mode: "overview",
+  });
 });

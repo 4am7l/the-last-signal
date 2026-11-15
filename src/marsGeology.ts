@@ -1,7 +1,7 @@
 import {noise3} from './sceneMath';
 
 // Seeded cinematic Martian relief. These are illustrative mountains, valleys and
-// eroded cliffs, not surveyed mission-site MOLA/HiRISE elevations.
+// eroded cliffs, at local scales.
 const smooth=(a:number,b:number,x:number)=>{
  const t=Math.max(0,Math.min(1,(x-a)/(b-a)));
  return t*t*(3-2*t);
@@ -16,74 +16,20 @@ function seededRandom(seed:number){
 export function marsSiteSeed(lat:number,lon:number){
  return (Math.imul(Math.round((lat+90)*10000),73856093)^Math.imul(Math.round((lon+360)*10000),19349663))>>>0;
 }
-// Only the actual footprint needs a safe landing zone, not an entire kilometre
-// of flat landscape. Preserve distinct surrounding scenery at every site.
-export function marsLandingRadius(site:string,span:number){
- return Math.max(site==='opportunity'?18:site==='insight'?11:site==='ingenuity'?8:9,span*(site==='opportunity'?1.4:.95));
-}
-// Broader, gradual blend at Opportunity prevents a synthetic mound under its rover.
-export function marsLandingTransition(site:string){return site==='opportunity'?78:site==='insight'?45:28;}
-
-/**
- * A narrow, gently meandering *illustrative* dirt approach from the current
- * surface-navigation spawn (positive X/Z) to the equipment. This is a walkable
- * area, not a historical NASA rover route. The same mask is used for rocks,
- * footsteps/navigation and ground shading to avoid invisible obstacles.
- */
-export function marsApproachMask(x:number,z:number,equipmentRadius:number){
- const along=(x+z)*Math.SQRT1_2;
- const bend=2*Math.sin(along*.045)*smooth(12,65,along);
- const across=Math.abs((x-z)*Math.SQRT1_2-bend);
- return smooth(Math.max(0,equipmentRadius*.6),equipmentRadius+4,along)
-  *(1-smooth(112,142,along))
-  *(1-smooth(4.4,8.5,across));
-}
-
-/**
- * Illustrative, mission-specific MER rover wheel paths. The rover and both
- * parallel tyre marks use this exact reference frame, so their contact lanes
- * follow the same heading instead of diverging into a separate road.
- * They are visitor visualizations, not historical NASA traverse coordinates.
- */
-export function marsRoverRoadYaw(site:string){
- return site==='spirit'?-0.36:site==='opportunity'?.26:0;
-}
-function roverRoadBend(t:number,site:string){
- const u=Math.max(0,Math.min(1,t));
- const direction=site==='spirit'?1:-1;
- return direction*(.68*u*u*(3-2*u)+.26*Math.sin(Math.PI*u)**2);
-}
-export function marsRoverRoadPoint(t:number,side:number,site:string){
- const u=Math.max(0,Math.min(1,t));
- const localX=-.95-33*u;
- const localZ=side*.72+roverRoadBend(u,site);
- const yaw=marsRoverRoadYaw(site),c=Math.cos(yaw),s=Math.sin(yaw);
- return {x:localX*c+localZ*s,z:-localX*s+localZ*c};
-}
-export function marsRoverRoadClearance(x:number,z:number,site:string,margin:number){
- if(site!=='spirit'&&site!=='opportunity')return false;
- const yaw=marsRoverRoadYaw(site),c=Math.cos(yaw),s=Math.sin(yaw);
- const localX=x*c-z*s,localZ=x*s+z*c;
- const travel=-localX;
- if(travel<.6-margin||travel>34.0+margin)return false;
- const bend=roverRoadBend((travel-.95)/33,site);
- return Math.abs(localZ-bend)<1.0+margin;
-}
-
 export type MarsCrater={x:number;z:number;radius:number};
 export function marsCraterField(lat:number,lon:number,landingRadius:number):MarsCrater[]{
  const random=seededRandom(marsSiteSeed(lat,lon)^0x426ac17);
  return Array.from({length:62},()=>{
   const radius=5+Math.pow(random(),1.65)*125;
   const angle=random()*Math.PI*2;
-  // Keep impact bowls away from equipment and the nearby walking landscape.
+  // Keep impact bowls away from the descent point.
   const distance=landingRadius+470+radius*1.7+Math.pow(random(),1.15)*3200;
   return {x:Math.cos(angle)*distance,z:Math.sin(angle)*distance,radius};
  });
 }
 type Mesa={x:number;z:number;rx:number;rz:number;height:number;angle:number};
 type Valley={x:number;z:number;angle:number;width:number;length:number;depth:number;phase:number};
-export function createMarsRelief(lat:number,lon:number,landingRadius:number,site=''){
+export function createMarsRelief(lat:number,lon:number,landingRadius:number){
  const random=seededRandom(marsSiteSeed(lat,lon));
  const wind=random()*Math.PI*2,acrossX=-Math.sin(wind),acrossZ=Math.cos(wind);
  const offsetX=(random()-.5)*2800,offsetZ=(random()-.5)*2800;
@@ -103,33 +49,20 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
    width:45+random()*125,length:500+random()*1700,depth:45+random()*170,phase:random()*6};
  });
  const centerNoise=noise3(offsetX*.001,11,offsetZ*.001)*42+noise3(offsetX*.003,17,offsetZ*.003)*11;
- // Low, continuous undulations around the equipment. Seeded offset keeps the
- // horizon different at each site. Subtract the centre noise so every lander
- // remains seated exactly on its terrain (no isolated pedestal or crater).
+ // Centre the generated relief on the local terrain origin.
  const localSlowCenter=noise3(offsetX*.012,73,offsetZ*.012);
  const localFineCenter=noise3(offsetX*.035,91,offsetZ*.035);
  const regionalCenter=noise3(offsetX*.007,25,offsetZ*.007);
  const smallStonesCenter=noise3(offsetX*.071,117,offsetZ*.071);
  const soilRipplesCenter=noise3(offsetX*.21,133,offsetZ*.21);
- // Four story-site landforms. Illustrative metre-scale detail, NOT a claim that
- // MOLA resolves these slopes; the referenced mission coordinates remain real.
- // The origin remains at height zero so equipment never floats or gets buried.
- const ingenuityHillAtOrigin=8.2*Math.exp(
-  -(125*125/(2*92*92)+45*45/(2*115*115)));
- const spiritShoulderAtOrigin=3.4*Math.exp(
-  -(115*115/(2*105*105)+90*90/(2*95*95)));
  return (x:number,z:number)=>{
   const distance=Math.hypot(x,z);
   if(distance>13500)return 0;
-  const landing=smooth(landingRadius,landingRadius+marsLandingTransition(site),distance);
+  const landing=smooth(landingRadius,landingRadius+28,distance);
   const falloff=1-smooth(7900,12800,distance);
   if(falloff<=0)return 0;
   const x0=x+offsetX,z0=z+offsetZ;
-  // Differentiated, naturally uneven landscapes instead of one flattened pad
-  // for every mission. Keep a short low-gradient footprint under the equipment
-  // and reveal slope, terrain height and rock fields within walking distance.
-  // Keep only the actual landing-gear contact patch level. The old radial
-  // mask flattened a huge halo around every site, making all scenes look alike.
+  // Keep the slope gentle around the descent point.
   const supportRadius=Math.max(3.2,Math.min(6,landingRadius*.28));
   const safeFootprint=smooth(supportRadius,supportRadius+8,distance);
   const vicinity=1-smooth(430,860,distance);
@@ -139,37 +72,7 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
    (noise3(x0*.071,117,z0*.071)-smallStonesCenter)*.52+
    (noise3(x0*.21,133,z0*.21)-soilRipplesCenter)*.075+
    regional;
-  let feature=0;
-  if(site==='opportunity'){
-   // Opportunity actually landed in Eagle crater. Show a broad, gently
-   // irregular crater floor, shoulder and broken rim, not a hard circular pit.
-   const d=Math.hypot(x*.93+z*.085,z*1.08-x*.055);
-   const unevenRim=83+9*noise3(x*.018,57,z*.018);
-   const floorClimb=2.9*smooth(landingRadius*.75,69,d)*(1-smooth(180,330,d));
-   const brokenRim=1.4*Math.exp(-Math.pow((d-unevenRim)/34,2));
-   feature=floorClimb+brokenRim;
-  }else if(site==='spirit'){
-   // Gusev: modest traversable slope with an off-centre rocky shoulder.
-   const rise=(x*.78+z*.63)*.045*(1-smooth(260,560,distance));
-   const dx=x+115,dz=z-90;
-   const hill=3.4*Math.exp(-(dx*dx/(2*105*105)+dz*dz/(2*95*95)));
-   feature=rise+(hill-spiritShoulderAtOrigin)*(1-smooth(330,700,distance));
-  }else if(site==='insight'){
-   // InSight's Homestead Hollow is a low-relief, shallow depression,
-   // surrounded by rolling sandy ground; no conspicuous artificial mound.
-   const d=Math.hypot(x*1.1+z*.07,z*.94-x*.05);
-   feature=2.2*smooth(9,155,d)*(1-smooth(265,515,d));
-  }else if(site==='ingenuity'){
-   // Jezero: a broad shoulder of rocky high ground to one side, with nearby
-   // low swales. Zero-centre correction preserves contact with the helicopter.
-   const dx=x-125,dz=z+45;
-   const hill=8.2*Math.exp(-(dx*dx/(2*92*92)+dz*dz/(2*115*115)));
-   const shallowSwale=1.6*Math.exp(-((x+105)**2+(z-75)**2)/(2*110*110));
-   feature=(hill-ingenuityHillAtOrigin)-shallowSwale*(1-smooth(340,700,distance));
-  }else{
-   // Future landing sites: distinct rolling terrain without forced craters.
-   feature=(x*.32-z*.22)*.015*(1-smooth(220,490,distance));
-  }
+  const feature=(x*.32-z*.22)*.015*(1-smooth(220,490,distance));
   const nearGround=(rolling+feature)*safeFootprint*vicinity;
   // Bring large rocky mountains in from the middle distance, smoothly.
   const ruggedness=smooth(85,360,distance);

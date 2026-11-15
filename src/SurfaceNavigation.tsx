@@ -3,7 +3,7 @@ import {useFrame,useThree} from '@react-three/fiber';
 import * as T from 'three';
 import {useSimulation} from './simulation';
 import {BODIES,type Body} from './science';
-export function SurfaceNavigation({active,body,unit,ground,center,equipmentRadius}:{active:boolean;body:Body;unit:number;ground:(x:number,z:number)=>number;center:T.Vector3;equipmentRadius:number}){
+export function SurfaceNavigation({active,body,unit,ground,center}:{active:boolean;body:Body;unit:number;ground:(x:number,z:number)=>number;center:T.Vector3}){
  const settings=useSimulation(),{camera,gl,controls}=useThree();
  const enabled=active&&settings.navigation!=='orbit';
  const keys=useRef(new Set<string>()),angles=useRef({yaw:0,pitch:0}),vertical=useRef(0),velocity=useRef(new T.Vector3()),grounded=useRef(false);
@@ -12,7 +12,7 @@ export function SurfaceNavigation({active,body,unit,ground,center,equipmentRadiu
   const direction=camera.getWorldDirection(new T.Vector3());
   angles.current={yaw:Math.atan2(-direction.x,-direction.z),pitch:Math.asin(T.MathUtils.clamp(direction.y,-1,1))};
   let x=camera.position.x/unit,z=camera.position.z/unit;
-  if(Math.hypot(x,z)>190||Math.hypot(x,z)<equipmentRadius+.5){x=equipmentRadius+4;z=equipmentRadius+4;}
+  if(Math.hypot(x,z)>190){x=4;z=4;}
   camera.position.set(x*unit,ground(x,z)+1.7*unit,z*unit);vertical.current=0;velocity.current.set(0,0,0);
   const down=(e:KeyboardEvent)=>{if(document.pointerLockElement!==gl.domElement)return;keys.current.add(e.code);if(['Space','KeyW','KeyA','KeyS','KeyD'].includes(e.code))e.preventDefault()};
   const up=(e:KeyboardEvent)=>keys.current.delete(e.code);
@@ -42,7 +42,7 @@ export function SurfaceNavigation({active,body,unit,ground,center,equipmentRadiu
    const ctl=controls as unknown as {target?:T.Vector3;update?:()=>void};
    ctl?.target?.copy(camera.position).add(camera.getWorldDirection(new T.Vector3()).multiplyScalar(5*unit));ctl?.update?.();
   };
- },[enabled,body,unit,ground,gl,camera,controls,equipmentRadius]);
+ },[enabled,body,unit,ground,gl,camera,controls]);
  useFrame((_,elapsed)=>{
   if(!enabled)return;
   const dt=Math.min(elapsed,.04),key=keys.current,walk=settings.navigation==='walk';
@@ -54,12 +54,7 @@ export function SurfaceNavigation({active,body,unit,ground,center,equipmentRadiu
   velocity.current.lerp(motion,1-Math.exp(-dt*10));
   const before=camera.position.clone(),candidate=before.clone().addScaledVector(velocity.current,dt*unit);
   const mx=candidate.x/unit,mz=candidate.z/unit;
-  // The old synthetic collider field did not match the rendered Mars rocks.
-  // Let the clear approach work without invisible blockers; retain lunar collision checks.
-  // Preserve actual equipment clearance and exploration radius. The old
-  // synthetic rock colliders did not match rendered Apollo stones and caused
-  // invisible walls across otherwise clear lunar walking routes.
-  const blocked=Math.hypot(mx,mz)>200||Math.hypot(mx,mz)<equipmentRadius+.35;
+  const blocked=Math.hypot(mx,mz)>200;
   const oldFloor=ground(before.x/unit,before.z/unit),floor=ground(mx,mz);
   const horizontal=Math.hypot(candidate.x-before.x,candidate.z-before.z);
   if(!blocked&&(!walk||floor-oldFloor<Math.max(.25*unit,horizontal*.7))){camera.position.x=candidate.x;camera.position.z=candidate.z;}
