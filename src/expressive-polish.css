@@ -49,10 +49,10 @@ button, .action, .primary, .play, .source-link,
   font-family: var(--tls-font-ar) !important;
   font-weight: 600;
 }
-.kicker, .hero-bottom > span, .destination__overline, .destination__count,
+.kicker, .destination__count,
 .record-year, .feature-copy > small, .record-copy > small,
-.mission-timeline time, .footer-credit > span, .site-header .brand small,
-.scene-arrival small, .missionList small, .coordinates, .card > span,
+.mission-timeline time, .site-header .brand small,
+.missionList small, .coordinates, .card > span,
 .chapters small, .yearTicks button, .nasa-photo-card__caption p {
   font-family: var(--tls-font-ui) !important;
   font-weight: 600;
@@ -89,7 +89,7 @@ button, .action, .primary, .play, .source-link,
 .site-header, .site-footer, .explore-toolbar,
 .archive-controls, .nasa-gallery, .nasa-lightbox__content,
 .exploration-page .archive, .exploration-page .timebar,
-.exploration-page .universe, .mission-strip,
+.exploration-page .universe,
 .guide-notes, .guide-start, .closing-section,
 .empty-state, .dossier {
   border-radius: var(--tls-shape-card) !important;
@@ -141,55 +141,49 @@ input[type="search"], input[type="date"], select, textarea,
 .exploration-page .welcome, .exploration-page .information {
   backdrop-filter: blur(16px);
 }
-/* Don't let additional decorative content obscure the scientific 3D canvas. */
-.sceneTools > span, .hero-note { display: none; }
-.explore-toolbar > div > small { display: none; }
+.sceneTools > span { display: none; }
 .missionMessage { box-shadow: none; }
 
-/* Google expressive destinations — editorial section heading with big curved cards. */
+.signal-hero {
+  min-height: 0;
+  padding: clamp(24px, 4vw, 64px);
+  gap: clamp(24px, 5vw, 76px);
+  border: 0;
+  background: transparent;
+}
+.hero-copy h1 {
+  margin: 0 0 16px;
+  max-width: 14ch;
+  text-wrap: balance;
+}
+.hero-copy p { max-width: 48ch; }
+.hero-figure { width: 100%; margin: 0; }
+.hero-figure .hero-photo {
+  display: block;
+  height: auto;
+  aspect-ratio: 5 / 4;
+  object-position: 50% 37%;
+  border-radius: var(--tls-shape-media);
+}
+.hero-figure .hero-caption {
+  position: static;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 6px 16px;
+  margin: 8px 0 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+.hero-caption a { color: var(--accent); }
+
 .destinations-section {
-  padding-top: clamp(38px, 5vw, 72px);
-  padding-bottom: clamp(50px, 6vw, 85px);
+  padding-top: clamp(22px, 3vw, 44px);
+  padding-bottom: clamp(40px, 5vw, 72px);
 }
 .destinations-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 30px;
-  background: var(--md-sys-color-surface-container);
-  border: 1px solid var(--md-sys-color-outline-variant);
-  border-radius: 38px !important;
-  padding: clamp(24px, 3.7vw, 42px);
   margin-bottom: clamp(18px, 2.4vw, 28px);
-}
-.destinations-heading h2 {
-  font-size: clamp(31px, 3.4vw, 48px);
-  font-weight: 700 !important;
-  margin-top: 16px;
-  color: var(--md-sys-color-on-surface);
-}
-.destinations-heading > p {
-  color: var(--md-sys-color-on-surface-variant);
-  font-size: clamp(13px, 1.1vw, 15px);
-  max-width: 400px;
-  line-height: 2;
-}
-.destinations-kicker {
-  width: fit-content;
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  min-height: 40px;
-  padding: 7px 17px;
-  border-radius: 999px;
-  background: var(--md-sys-color-secondary-container);
-  color: var(--md-sys-color-on-surface);
-  font-family: var(--tls-font-ar) !important;
-  font-weight: 600;
-}
-.destinations-kicker > .material-symbols-rounded {
-  font-size: 20px;
-  color: var(--md-sys-color-primary);
 }
 .destinations {
   gap: clamp(12px, 2.5vw, 26px);
@@ -199,7 +193,6 @@ input[type="search"], input[type="date"], select, textarea,
   display: flex;
   flex-direction: column;
   height: auto;
-  min-height: 450px;
   padding: 11px;
   gap: 0;
   position: relative;
@@ -241,20 +234,6 @@ input[type="search"], input[type="date"], select, textarea,
 .destination--expressive:hover .destination__media img {
   transform: scale(1.035);
 }
-.destination__media-icon {
-  position: absolute;
-  top: 16px;
-  inset-inline-end: 16px;
-  display: grid;
-  place-items: center;
-  width: 47px;
-  height: 47px;
-  border-radius: 50%;
-  background: var(--md-sys-color-surface-container-low);
-  color: var(--md-sys-color-primary);
-  box-shadow: 0 4px 14px #121f421a;
-  font-size: 26px;
-}
 .destination--expressive > .destination__content {
   position: relative;
   inset: auto;
@@ -265,12 +244,6 @@ input[type="search"], input[type="date"], select, textarea,
   padding: clamp(18px, 2vw, 28px) clamp(13px, 2vw, 26px) 18px;
   color: var(--md-sys-color-on-surface);
 }
-.destination--expressive .destination__overline {
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  color: var(--md-sys-color-on-surface-variant);
-}
 .destination__title-row {
   width: 100%;
   display: flex;
@@ -278,7 +251,7 @@ input[type="search"], input[type="date"], select, textarea,
   align-items: center;
   gap: 8px 18px;
   justify-content: space-between;
-  margin: 8px 0 2px;
+  margin: 0 0 2px;
 }
 .destination--expressive h3 {
   font-size: clamp(30px, 3vw, 43px);
@@ -290,17 +263,9 @@ input[type="search"], input[type="date"], select, textarea,
 .destination--expressive .destination__count {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 7px 13px;
-  min-height: 34px;
-  border-radius: 999px;
   font-family: var(--tls-font-ar) !important;
-  letter-spacing: 0;
-  font-size: 12px;
-  font-weight: 600;
-  background: var(--md-sys-color-surface-container-high);
-  color: var(--md-sys-color-on-surface-variant);
-  border: 1px solid var(--md-sys-color-outline-variant);
+  font-size: 13px;
+  color: var(--muted);
 }
 .destination--expressive p {
   max-width: 55ch;
@@ -339,16 +304,24 @@ input[type="search"], input[type="date"], select, textarea,
   transform: translateX(-3px);
 }
 
-/* Preserve heavy headings and roundness even in the secondary editorial sections. */
-.science-reading article,
-.guide-steps article {
-  background: var(--md-sys-color-surface-container-low);
+/* Use ruled sections for reading and reserve filled surfaces for controls. */
+.science-reading article, .guide-steps article, .reading-note,
+.reading-conclusion, .closing-section {
+  background: transparent;
+  border: 0 !important;
+  border-block-start: 1px solid var(--line) !important;
+  border-radius: 0 !important;
+  padding-inline: 0;
 }
+.reading-note, .reading-conclusion { box-shadow: none; }
+.science-reading { gap: clamp(22px, 4vw, 60px); }
+.guide-steps { grid-template-columns: minmax(0, 760px); gap: 0; }
+.guide-steps p { max-width: 64ch; }
+.guide-start { background: transparent; }
 .feature-grid, .record-grid { gap: clamp(12px, 2vw, 22px); }
 .feature-card, .mission-record { overflow: hidden; }
 .feature-image { border-radius: 28px; }
 .feature-copy h3, .record-copy h2 { font-weight: 700 !important; }
-.guide-start, .closing-section { border-radius: 40px !important; }
 .nasa-gallery__heading h2 { font-weight: 700 !important; }
 .nasa-gallery .nasa-photo-card__open { border-radius: 24px !important; }
 .nasa-gallery .nasa-photo-card { border-radius: 30px !important; }
@@ -357,17 +330,13 @@ input[type="search"], input[type="date"], select, textarea,
 .photo img { border-radius: 22px !important; }
 
 @media (max-width: 950px) {
-  .destinations-heading { flex-direction: column; align-items: stretch; }
-  .destinations-heading > p { max-width: none; }
   .destination--expressive > .destination__media { height: clamp(215px, 27vw, 270px); }
 }
 @media (max-width: 760px) {
   :root { --tls-shape-card: 28px; --tls-shape-sheet: 25px; --tls-shape-media: 22px; }
   .destinations-section { padding-inline: 12px; }
-  .destinations-heading { border-radius: 28px !important; padding: 23px; margin-bottom: 14px; }
-  .destinations-heading h2 { font-size: clamp(28px, 8vw, 37px); margin-top: 13px; }
   .destinations { grid-template-columns: 1fr; gap: 14px; }
-  .destination.destination--expressive { border-radius: 30px !important; padding: 8px; min-height: 0; }
+  .destination.destination--expressive { border-radius: 30px !important; padding: 8px; }
   .destination--expressive > .destination__media {
     border-radius: 24px 24px 18px 24px;
     height: clamp(210px, 52vw, 340px);
@@ -375,7 +344,6 @@ input[type="search"], input[type="date"], select, textarea,
   .destination--expressive.mars > .destination__media { border-radius: 24px 24px 24px 18px; }
   .destination--expressive > .destination__content { padding: 16px 13px 14px; }
   .destination--expressive h3 { font-size: 32px; }
-  .destination__media-icon { width: 40px; height: 40px; font-size: 23px; }
   .destination--expressive .destination__cta { width: 100%; }
   .hero-copy h1 { font-size: clamp(34px, 8vw, 46px); }
   .page-intro h1 { font-size: clamp(33px, 8vw, 48px); }

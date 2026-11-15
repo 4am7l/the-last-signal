@@ -148,12 +148,7 @@ export function NasaGallery({
     >
       <div className="nasa-gallery__heading">
         <div>
-          <span className="kicker">NASA IMAGE & VIDEO LIBRARY</span>
-          <h2 id={heading}>الصور الأصلية: {names[mission] ?? "المهمات"}</h2>
-          <p>
-            أرشيف مصوّر من ناسا. الصور وسيلة توثيق مستقلة عن المحاكاة الثلاثية
-            الأبعاد، وبيانات كل صورة محفوظة في مصدرها.
-          </p>
+          <h2 id={heading}>صور {names[mission] ?? "المهمات"} من ناسا</h2>
         </div>
         <a
           className="action action-line"
@@ -211,7 +206,7 @@ export function NasaGallery({
           <img src={"/photos/" + mission + ".jpg"} alt={"صورة أرشيفية من مهمة " + (names[mission] ?? mission)} loading="lazy" />
           <div>
             <strong>الصور الإضافية غير متوفرة حاليًا.</strong>
-            <p>يمكنك فتح مكتبة ناسا الأصلية من الرابط أعلاه. المعرض لا يعرض صورًا غير موثّقة عند تعذّر الاتصال.</p>
+            <p>يمكنك تصفّح بقية الصور في مكتبة ناسا.</p>
           </div>
         </div>
       )}

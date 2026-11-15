@@ -246,8 +246,7 @@ function App() {
         <div className="exploration-page">
           <div className="explore-toolbar">
             <div>
-              <span className="pulse-dot" /> غرفة الاستكشاف{" "}
-              <small>INTERACTIVE OBSERVATORY</small>
+              المحاكاة
             </div>
             <nav aria-label="وجهة المحاكاة">
               <a
@@ -279,27 +278,6 @@ function App() {
             tabIndex={-1}
             className={`universe ${mode}${mobilePanelOpen ? " has-panel" : ""}`}
           >
-            <div
-              key={`${mode}-${m.id}`}
-              className="scene-arrival"
-              aria-hidden="true"
-            >
-              <span className="arrival-line" />
-              <small>
-                THE LAST SIGNAL /{" "}
-                {mode === "overview" ? "OBSERVATORY" : m.en.toUpperCase()}
-              </small>
-              <strong>
-                {mode === "overview"
-                  ? "استكشف جرمًا واحدًا"
-                  : mode === "planet"
-                    ? m.body === "moon"
-                      ? "في مدار القمر"
-                      : "في مدار المريخ"
-                    : m.name}
-              </strong>
-              <span className="arrival-line" />
-            </div>
             <div className="canvas" aria-busy={sceneLoading}>
               <Boundary key={sceneKey} onError={() => setFailedSceneKey(sceneKey)}>
                 <Suspense fallback={null}>
@@ -326,13 +304,10 @@ function App() {
             )}
             {mode === "overview" ? (
               <section className="welcome body-study-panel">
-                <div className="eyebrow">
-                  مختبر القمر والمريخ · نموذج ثلاثي الأبعاد
-                </div>
                 <h1>
                   {overviewBody === "moon" ? "القمر" : "المريخ"}
                 </h1>
-                <p>جرم واحد، بتفاصيله. اسحب لتدوير النموذج وقرّب لفحص السطح.</p>
+                <p>اسحب لتدوير النموذج وقرّب لفحص السطح.</p>
                 <div
                   className="body-picker"
                   role="group"
@@ -360,8 +335,7 @@ function App() {
                   استكشف السطح والمعدات ↗
                 </button>
                 <p className="hint">
-                  حجم العرض موحّد لتسهيل الفحص؛ ليس مقارنة بين الأحجام الحقيقية.
-                  يمكنك استكشاف القمر والمريخ فقط، من المدار حتى مواقع المعدات.
+                  يُعرض النموذجان بحجم موحّد لتسهيل فحص السطح.
                 </p>
               </section>
             ) : (
@@ -377,7 +351,6 @@ function App() {
                 </div>
                 {mode === "planet" ? (
                   <section className="welcome">
-                    <div className="eyebrow">أطلس المعدات البشرية</div>
                     <h1>{m.body === "mars" ? "المريخ" : "القمر"}</h1>
                     <p>
                       اسحب للدوران، وقرّب بإصبعين أو بعجلة الفأرة. اختر موقع مهمة
@@ -427,7 +400,7 @@ function App() {
                         {mobilePanelOpen ? "⌄" : "⌃"}
                       </span>
                     </button>
-                    <div className="eyebrow">{m.en} / أرشيف المهمة</div>
+                    <div className="eyebrow">{m.en}</div>
                     <h2>{m.name}</h2>
                     <p>{m.intro}</p>
                     <div className="tabs">
@@ -726,8 +699,7 @@ function App() {
           )}
           <section className="archive">
             <div className="archiveTop">
-              <span>معدات بعيدة. قصص باقية.</span>
-              <small>اختر مهمة لاستكشاف مجسّمها ورحلتها</small>
+              <span>المهمات</span>
             </div>
             <div className="cards">
               {missions.map((x, i) => (
@@ -740,7 +712,7 @@ function App() {
                   onClick={() => select(i)}
                 >
                   <small>
-                    {x.body === "mars" ? "المريخ" : "القمر"} / 0{i + 1}
+                    {x.body === "mars" ? "المريخ" : "القمر"}
                   </small>
                   <h3>{x.name}</h3>
                   <span>{x.en}</span>
@@ -785,11 +757,7 @@ function App() {
             <button className="close" onClick={() => setSources(false)}>
               إغلاق ×
             </button>
-            <h2>
-              مصادر حقيقية.
-              <br />
-              ودقة موضّحة.
-            </h2>
+            <h2>المصادر وحدود المحاكاة</h2>
             <p>
               مجسّمات المركبات وصور المهمات من ناسا وJPL. ارتفاعات القمر الأساسية
               من NASA LRO، وتُحمّل خرائط ألوان 8K من Solar System Scope تدريجيًا

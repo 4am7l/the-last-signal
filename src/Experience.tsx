@@ -74,122 +74,55 @@ export function Home() {
   return (
     <main id="main-content" className="editorial-page" tabIndex={-1}>
       <section className="signal-hero">
-        <img
-          className="hero-photo"
-          src="/photos/apollo.jpg"
-          alt="باز ألدرين على سطح القمر — تصوير نيل أرمسترونغ، ناسا"
-          fetchPriority="high"
-        />
-        <div className="hero-shade" />
-        <div className="hero-grid" aria-hidden="true" />
         <div className="hero-copy">
-          <div className="kicker">
-            <span /> دليل علمي لمعدات استكشاف الفضاء <b>NASA MISSIONS</b>
-          </div>
-          <h1>
-            ماذا تركنا على
-            <br />
-            <em>القمر والمريخ؟</em>
-          </h1>
+          <h1>ماذا تركنا على القمر والمريخ؟</h1>
           <p>
-            أرسلت هذه المهمات معدات لدراسة الصخور، وقياس الزلازل، واختبار
-            الطيران بعيدًا عن الأرض. انتهت رحلاتها، لكن نتائجها ما زالت جزءًا من
-            معرفتنا بالكواكب.
-            <br />
-            تعرّف إلى هدف كل مهمة وأدواتها ونتائجها، ثم استكشف موقعها ومجسّمها.
+            من مرحلة الهبوط التي بقيت في بحر السكون إلى مروحية إنجينيويتي على
+            المريخ. تصفّح خمس مهمات لناسا وتعرّف إلى معداتها ومواقعها.
           </p>
           <div className="hero-actions">
-            <a className="action action-solid" href="#/archive">
-              اقرأ المهمات ونتائجها <Arrow />
-            </a>
-            <a className="action action-line" href="#/explore">
+            <a className="action action-solid" href="#/explore">
               افتح المحاكاة <span aria-hidden="true">←</span>
             </a>
+            <a className="text-link" href="#/archive">
+              أرشيف المهمات
+            </a>
           </div>
-          <div className="hero-note">
-            <span className="pulse-dot" /> من المدار إلى السطح · تجربة تفاعلية
-            ثلاثية الأبعاد
-          </div>
         </div>
-        <a className="hero-coordinate" href={exploreHref("apollo", "location")}>
-          <span>نقطة البداية / 1969</span>
-          <strong>قاعدة السكون</strong>
-          <span dir="ltr">0.67416° N / 23.47314° E</span>
-          <b>
-            استكشف موقع أبولو 11 <Arrow />
-          </b>
-        </a>
-        <div className="hero-caption">NASA · صورة أرشيفية / أبولو 11</div>
-        <div className="hero-bottom">
-          <span>MISSION • INSTRUMENT • EVIDENCE</span>
-          <a href="#/archive">سجلات المهمات ومصادرها ←</a>
-        </div>
+        <figure className="hero-figure">
+          <img
+            className="hero-photo"
+            src="/photos/apollo.jpg"
+            alt="باز ألدرين على سطح القمر"
+            fetchPriority="high"
+          />
+          <figcaption className="hero-caption">
+            <span>باز ألدرين أثناء مهمة أبولو 11، 1969 · ناسا</span>
+            <a href={exploreHref("apollo", "location")}>موقع الهبوط ←</a>
+          </figcaption>
+        </figure>
       </section>
-      <section className="mission-strip" aria-label="عن الأرشيف">
-        <div>
-          <strong>05</strong>
-          <span>
-            مهمات موثّقة
-            <br />
-            <small>لكل منها قصة ومجسّم</small>
-          </span>
-        </div>
-        <div>
-          <strong>02</strong>
-          <span>
-            عالمان للاستكشاف
-            <br />
-            <small>القمر والمريخ</small>
-          </span>
-        </div>
-        <div>
-          <strong>1969—2024</strong>
-          <span>
-            الفترة التي يغطيها الأرشيف
-            <br />
-            <small>من أبولو إلى إنجينيويتي</small>
-          </span>
-        </div>
-        <a href="#/guide">
-          كيف تبدأ رحلتك؟ <Arrow />
-        </a>
-      </section>
-      <ScienceIntroduction />
       <section className="page-section destinations-section" aria-labelledby="destinations-title">
         <div className="section-heading destinations-heading">
-          <div>
-            <div className="kicker destinations-kicker">
-              <span className="material-symbols-rounded" aria-hidden="true">travel_explore</span>
-              02 / أطلس المواقع العلمية
-            </div>
-            <h2 id="destinations-title">أين توجد هذه المعدات؟</h2>
-          </div>
-          <p>
-            لكل معدّة مكان وقصة. اختَر القمر أو المريخ، ثم انتقل من المدار إلى
-            موقع المهمة داخل المحاكاة.
-          </p>
+          <h2 id="destinations-title">أين توجد هذه المعدات؟</h2>
         </div>
         <div className="destinations">
           {[
             {
               body: "moon",
               title: "القمر",
-              en: "THE MOON",
               id: "apollo",
               text: "تعرّف إلى موقع أبولو 11 والمعدات التي بقيت على سطح القمر.",
               img: "apollo",
               count: "مهمة واحدة",
-              icon: "brightness_2",
             },
             {
               body: "mars",
               title: "المريخ",
-              en: "MARS",
               id: "opportunity",
               text: "استكشف مواقع العربات والمسبار الثابت والمروحية على المريخ.",
               img: "opportunity",
               count: "أربع مهمات",
-              icon: "travel_explore",
             },
           ].map((d) => (
             <a
@@ -200,16 +133,12 @@ export function Home() {
               <div className="destination__media">
                 <img
                   src={`/photos/${d.img}.jpg`}
-                  alt={`مادة بصرية مرتبطة بمهمة على ${d.title} — NASA`}
+                  alt=""
                   loading="lazy"
                   decoding="async"
                 />
-                <span className="destination__media-icon material-symbols-rounded" aria-hidden="true">
-                  {d.icon}
-                </span>
               </div>
               <div className="destination__content">
-                <span className="destination__overline">{d.en} / NASA MISSIONS</span>
                 <div className="destination__title-row">
                   <h3>{d.title}</h3>
                   <span className="destination__count">{d.count}</span>
@@ -227,8 +156,7 @@ export function Home() {
       <section className="page-section featured-section">
         <div className="section-heading">
           <div>
-            <div className="kicker">03 / اقرأ المهمة</div>
-            <h2>المعدات في سياقها العلمي.</h2>
+            <h2>من أرشيف المهمات</h2>
           </div>
           <a className="text-link" href="#/archive">
             الأرشيف الكامل <Arrow />
@@ -263,16 +191,14 @@ export function Home() {
           ))}
         </div>
       </section>
+      <ScienceIntroduction />
       <NasaGallery mission="apollo" />
       <NasaGallery mission="ingenuity" />
       <section className="closing-section">
-        <div className="kicker">كيف تقرأ هذا الأرشيف؟</div>
-        <h2>الصورة وثيقة. والمجسّم وسيلة للفهم.</h2>
+        <h2>دقة المحاكاة</h2>
         <p>
-          اقرأ سجل المهمة أولًا، ثم استخدم المحاكاة لفهم شكل المعدات وتسلسل
-          الرحلة. الحركة والتضاريس المحلية إعادة بناء تعليمية، وليست تسجيلًا
-          حقيقيًا أو مسحًا دقيقًا للموقع. مصدر كل مهمة وحدود دقة إحداثياتها مذكوران
-          في سجلها.
+          التضاريس المحلية وحركة المعدات تقريبية. تجد مصادر الصور والإحداثيات
+          وحدود دقتها في سجل كل مهمة.
         </p>
         <a className="action action-line" href="#/guide">
           دليل الاستكشاف وحدود المحاكاة <Arrow />
@@ -319,15 +245,9 @@ export function Archive({ initialMission }: { initialMission?: string }) {
       tabIndex={-1}
     >
       <section className="page-intro">
-        <div className="kicker">سجلات الاستكشاف / MISSION ARCHIVE</div>
-        <h1>
-          معدات الاستكشاف،
-          <br />
-          <em>مهمةً بعد مهمة.</em>
-        </h1>
+        <h1>أرشيف المهمات</h1>
         <p>
-          ابحث عن مهمة، اقرأ ما تركته خلفها، أو افتح موقعها داخل المحاكاة.
-          التواريخ والمواقع مرتبطة بمصادرها الأصلية.
+          سجلات خمس مهمات لناسا على القمر والمريخ، مع صور المعدات ومواقع الهبوط.
         </p>
       </section>
       <section className="archive-browser" aria-label="أرشيف المهمات">
@@ -411,7 +331,7 @@ export function Archive({ initialMission }: { initialMission?: string }) {
               </button>
               <div className="record-actions">
                 <a href={exploreHref(m.id, "location")}>موقع الهبوط ↗</a>
-                <a href={exploreHref(m.id, "story")}>الرحلة السينمائية ↗</a>
+                <a href={exploreHref(m.id, "story")}>مراحل الرحلة ↗</a>
               </div>
             </article>
           ))}
@@ -440,7 +360,7 @@ export function Archive({ initialMission }: { initialMission?: string }) {
           >
             <div className="dossier-heading">
               <div>
-                <div className="kicker">ملف المهمة / {chosen.en}</div>
+                <div className="kicker">{chosen.en}</div>
                 <h2>{chosen.name}</h2>
               </div>
               <button
@@ -496,7 +416,7 @@ export function Archive({ initialMission }: { initialMission?: string }) {
                     className="action action-line"
                     href={exploreHref(chosen.id, "story")}
                   >
-                    عِش الرحلة <Arrow />
+                    شاهد مراحل الرحلة <Arrow />
                   </a>
                 </div>
               </div>
@@ -531,37 +451,28 @@ export function Guide() {
   return (
     <main id="main-content" className="editorial-page guide-page" tabIndex={-1}>
       <section className="page-intro">
-        <div className="kicker">قبل أن تبدأ / FIELD GUIDE</div>
-        <h1>
-          كيف تستخدم
-          <br />
-          <em>المحاكاة العلمية؟</em>
-        </h1>
-        <p>
-          أنت تتحكم في المسافة والزمن. ابدأ بنظرة على العالم، ثم اقترب من
-          الحكاية التي تريدها.
-        </p>
+        <h1>طريقة استخدام المحاكاة</h1>
       </section>
       <section className="guide-steps">
         {[
           [
             "01",
-            "اختر عالمًا",
+            "اختيار القمر أو المريخ",
             "افتح الاستكشاف واختر القمر أو المريخ. اسحب لتدوير المشهد، أو استخدم أزرار اتجاه الكاميرا.",
           ],
           [
             "02",
-            "اقترب من الأثر",
+            "الاقتراب من موقع الهبوط",
             "اختر علامة المهمة، ثم قرّب بعجلة الفأرة أو بإصبعين على الهاتف. ينتقل المشهد تدريجيًا من المدار إلى المعدات على السطح.",
           ],
           [
             "03",
-            "استكشف المكان",
+            "فحص المعدات والتنقل على السطح",
             "افتح المجسّم للتفاصيل، أو بدّل الملاحة إلى المشي والطيران من إعدادات المحاكاة. على الهاتف تظهر أزرار الحركة المناسبة.",
           ],
           [
             "04",
-            "أعد تشغيل الرحلة",
+            "عرض مراحل المهمة",
             "تبويب الرحلة يعرض الانطلاق والعبور والهبوط والعمل. شغّل التسلسل أو اختر محطة؛ يمكنك إيقافه وتغيير سرعته وتحريك المرحلة يدويًا.",
           ],
         ].map(([n, t, p]) => (
@@ -584,7 +495,7 @@ export function Guide() {
           </p>
         </div>
         <div>
-          <h2>اعرف ما تراه</h2>
+          <h2>دقة التضاريس والحركة</h2>
           <p>
             الصور والمجسّمات من مصادر المهمة. التضاريس المحلية والحركة السينمائية
             توضيحية؛ ليست تسجيلًا فعليًا للرحلة أو مسحًا دقيقًا لكل موقع. يبقى مصدر
@@ -618,9 +529,7 @@ export function SiteFooter({ onSources }: { onSources: () => void }) {
         <button onClick={onSources}>المصادر وحدود المحاكاة ↗</button>
       </div>
       <div className="footer-credit">
-        <span>THE LAST SIGNAL / HUMAN EXPLORATION</span>
         <small>صور المهمات: NASA / JPL · نسب كل صورة داخل سجلها</small>
-        <small>عرض مستقل للأرض والقمر والمريخ</small>
       </div>
     </footer>
   );
@@ -691,19 +600,11 @@ function ScienceIntroduction() {
   return (
     <section className="science-introduction page-section">
       <div className="section-heading">
-        <div>
-          <div className="kicker">01 / من السؤال إلى النتيجة</div>
-          <h2>كيف تتحول المعدات إلى معرفة؟</h2>
-        </div>
-        <p>
-          نبدأ بالسؤال الذي أُرسلت المهمة للإجابة عنه، ثم ننظر إلى الأداة والدليل
-          الذي جمعته.
-        </p>
+        <h2>ماذا وجدت المهمات؟</h2>
       </div>
       <div className="science-reading">
         <article>
-          <span className="reading-number">أ</span>
-          <h3>الصخور تحفظ تاريخ الماء</h3>
+          <h3>آثار الماء في صخور المريخ</h3>
           <p>
             لم تذهب أوبورتيونيتي لرؤية منظر المريخ فقط. درست الصخور بحثًا عن آثار
             الماء القديم. حملت كاميرات وأدوات لفحص الصخور على ذراعها، وساعدت
@@ -721,8 +622,7 @@ function ScienceIntroduction() {
           </a>
         </article>
         <article>
-          <span className="reading-number">ب</span>
-          <h3>يمكن دراسة الأعماق من السطح</h3>
+          <h3>قياس الزلازل على المريخ</h3>
           <p>
             بقي إنسايت في مكانه، لكنه حمل مقياس زلازل لقياس اهتزازات المريخ.
             تساعد هذه القياسات على دراسة باطن الكوكب؛ فالمسبار الثابت يستطيع
