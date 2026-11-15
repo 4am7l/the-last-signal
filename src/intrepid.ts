@@ -24,7 +24,7 @@ export const intrepidEnglish = {
   site: "Oceanus Procellarum · near Surveyor Crater",
   frame: "Coordinates of the descent stage from LRO imagery in the DE421 lunar reference frame.",
   intro: "Intrepid (LM-6) carried Pete Conrad and Alan Bean to Apollo 12’s precision landing near Surveyor 3.",
-  detail: "The surface scene shows the descent stage that remains at the site. It is reconstructed from NASA’s general Apollo Lunar Module model. The mission story also shows the complete vehicle as it appeared at landing.",
+  detail: "The landing-site scene shows Intrepid at touchdown with its ascent and descent stages assembled. It uses NASA’s general Apollo Lunar Module model.",
   final: "The descent stage and ALSEP remain in the Ocean of Storms. The ascent stage was deliberately sent to a separate impact site at 3.94° S, 21.20° W.",
   photoCaption: "Pete Conrad beside Intrepid on the Moon · NASA/JSC · AS12-47-6988",
 };
@@ -35,7 +35,7 @@ export const intrepid: Mission = {
   site: "محيط العواصف · قرب فوهة سيرفيور",
   frame: "موضع مرحلة الهبوط من صور LRO وفق الإطار القمري DE421.",
   intro: "حملت إنتريبيد (LM‑6) بيت كونراد وآلان بين إلى موقع الهبوط الدقيق لأبولو 12 قرب سيرفيور 3.",
-  detail: "يعرض مشهد السطح مرحلة الهبوط الباقية، بتمثيل مبني على مجسّم ناسا العام لوحدة أبولو. تعرض قصة المهمة أيضًا المركبة كاملة بهيئة الهبوط.",
+  detail: "يعرض مشهد موقع الهبوط إنتريبيد لحظة ملامسة السطح، بمرحلتي الصعود والهبوط متصلتين، باستخدام مجسّم ناسا العام لوحدة أبولو القمرية.",
   final: "بقيت مرحلة الهبوط وحزمة ALSEP في محيط العواصف. اصطدمت مرحلة الصعود عمدًا في موقع منفصل عند 3.94° جنوبًا، 21.20° غربًا.",
   photoCaption: "بيت كونراد بجانب إنتريبيد على القمر · NASA/JSC · AS12-47-6988",
   source: intrepidCatalog, finalSource: intrepidCoordinates, locationSource: intrepidCoordinates, modelSource: intrepidModel,

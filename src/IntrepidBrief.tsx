@@ -21,8 +21,8 @@ export function IntrepidBrief() {
         "The crew collected 34.35 kg of rock and soil and recovered roughly 10 kg of Surveyor 3 parts. ALSEP measured seismic activity, magnetic fields, solar wind, ions, pressure and dust. Its SNAP‑27 generator initially supplied about 70 W. The station operated from November 19, 1969, to September 30, 1977.",
       )}</p>
       <p>{t(
-        "بقيت القاعدة السفلية في موقع الهبوط. مشهد السطح يعرض إعادة بناء تقريبية لها باستخدام هندسة مجسّم ناسا العام لعائلة أبولو.",
-        "The descent stage remained at the landing site. The surface scene reconstructs it approximately using geometry from NASA’s general Apollo Lunar Module model.",
+        "يعرض مشهد السطح المركبة كاملة بهيئتها وقت الهبوط باستخدام مجسّم ناسا العام لوحدة أبولو القمرية. بعد إقلاع المقصورة، بقيت القاعدة السفلية في الموقع.",
+        "The surface scene shows the complete lunar module as it appeared at landing, using NASA’s general Apollo model. The descent stage stayed at the site after the crew cabin lifted off.",
       )}</p>
       <div className="equipment-actions">
         <a className="action action-line" href={intrepidCatalog} target="_blank" rel="noreferrer">NASA NSSDCA · 1969‑099C</a>
