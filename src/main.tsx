@@ -158,6 +158,7 @@ function App() {
     setPlaying(false);
   }
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [approaching, setApproaching] = useState(false);
   const [compactDrawer, setCompactDrawer] = useState(() => window.matchMedia("(max-width: 900px)").matches);
   useEffect(() => {
     const media = window.matchMedia("(max-width: 900px)");
@@ -174,6 +175,7 @@ function App() {
     setReset((value) => value + 1);
   };
   const focusEquipment = () => {
+    if (approaching) return;
     configure({ navigation: "orbit" });
     change("model");
   };
@@ -196,6 +198,7 @@ function App() {
   const isFalcon = m.id === "apollo15";
 
   function select(i: number, next: Mode = "model") {
+    if (approaching && i === index && (next === "model" || next === "location")) return;
     window.location.hash = exploreHref(missions[i].id, next);
     setIndex(i);
     setFilm(0);
@@ -204,6 +207,7 @@ function App() {
     setReset((v) => v + 1);
   }
   function change(next: Mode) {
+    if (approaching && (next === "model" || next === "location")) return;
     window.location.hash = exploreHref(missions[index].id, next);
     setMode(next);
     setPlaying(false);
@@ -506,6 +510,7 @@ function App() {
                     cameraCommand={cameraCommand}
                     sceneKey={sceneKey}
                     onSceneReady={setReadySceneKey}
+                    onApproachChange={setApproaching}
                   />
                 </Suspense>
               </Boundary>
@@ -513,6 +518,9 @@ function App() {
             {sceneLoading && (
               <PlanetLoadingIndicator key={sceneKey} body={m.body} mission={bodyView ? undefined : missionName} />
             )}
+            {!sceneLoading && approaching && <div className="approach-status" role="status" aria-live="polite">
+              {t("جارٍ الاقتراب من المركبة…", "Approaching the equipment…")}
+            </div>}
             <MobileControls
               mode={mode}
               onCamera={cameraMove}
@@ -520,6 +528,7 @@ function App() {
               onFocus={focusEquipment}
             />
             <CameraDock
+              busy={approaching}
               onCamera={cameraMove}
               onReset={resetCamera}
               onFocus={mode === "model" || mode === "location" ? focusEquipment : undefined}

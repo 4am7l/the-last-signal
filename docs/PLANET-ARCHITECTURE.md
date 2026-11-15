@@ -139,3 +139,22 @@ The local terrain is 24 km across with planetary curvature, deterministic illust
   environment so metallic equipment remains readable at night. The existing
   inspection toggle restores natural lighting and the prior scene environment.
   Orbital fill is weaker; daytime fill only supplies a restrained material bounce.
+
+
+## Interaction and landscape distance refinement (2026-11-15)
+
+- Hover feedback uses a Material-style state tint, small elevation changes and
+  icon movement. Animation is limited to fine mouse pointers and respects the
+  reduced-motion preference. Keyboard focus retains a visible state layer.
+- Surface approach is keyed to navigation intent rather than terrain rebuilds.
+  Async DEM arrivals no longer restart it. Controls are disabled during the
+  approach, repeated focus requests are ignored, and a live status confirms the
+  first click. The two automatic stages now take about three seconds normally.
+- Both rock populations include low, partly buried distant outcrops. Their
+  silhouettes scale with distance and retain the body's own material palette.
+  Ground contacts now sample the actual rendered triangles with barycentric
+  interpolation, avoiding a mismatch with unresolved analytic noise at distance.
+- The visible solar disc, terrain directional light and atmospheric scattering
+  share SCENE_SUN_DIRECTION from the dated ephemeris and body orientation.
+  Angular disc size follows solar distance. The old shadow-casting night fill
+  was removed; inspection lamps do not cast a competing shadow direction.

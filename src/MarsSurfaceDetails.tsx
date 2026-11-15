@@ -11,8 +11,8 @@ function randomFromSeed(seed:number){
  return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return (s>>>0)/4294967296};
 }
 const rockColours=['#987761','#816b5d','#a18770','#544d49','#b08d72','#6b5e55','#90735f','#655c52'];
-type RockShape='boulder'|'slab'|'gravel'|'monolith';
-const variants:Record<RockShape,number>={boulder:5,slab:3,gravel:3,monolith:6};
+type RockShape='boulder'|'slab'|'gravel'|'outcrop';
+const variants:Record<RockShape,number>={boulder:5,slab:3,gravel:3,outcrop:6};
 const aspects:[number,number,number][]=[
  [1.2,.8,1.05],[.88,1.3,1.18],[1.32,.67,.86],
  [.94,1.10,1.08],[1.08,.92,1.36],[1.48,.87,.92]
@@ -24,7 +24,7 @@ function rockGeometry(shape:RockShape,variant:number){
  const detail=shape==='gravel'?1:shape==='slab'?3:shape==='boulder'?6:7;
  const geo=new T.IcosahedronGeometry(1,detail);
  const pos=geo.getAttribute('position') as T.BufferAttribute,colors:number[]=[];
- const seed=variant*37+(shape==='monolith'?197:shape==='slab'?113:shape==='gravel'?29:61);
+ const seed=variant*37+(shape==='outcrop'?197:shape==='slab'?113:shape==='gravel'?29:61);
  const [sx,sy,sz]=aspects[variant%aspects.length];
  const a1=new T.Vector3(Math.sin(seed*.18),Math.cos(seed*.13),Math.cos(seed*.27)).normalize();
  const a2=new T.Vector3(Math.cos(seed*.23),-.23,Math.sin(seed*.18)).normalize();
@@ -46,7 +46,7 @@ function rockGeometry(shape:RockShape,variant:number){
   const cracks=(Math.exp(-Math.pow((p1-.13)/.045,2))*.075+
     Math.exp(-Math.pow((p2+.23)/.035,2))*.055)*(shape==='gravel'?.28:1);
   const radius=Math.max(.47,1+coarse*.31+medium*.175+fine*.035-cleaved-cracks);
-  const flatten=shape==='slab'?.46:shape==='gravel'?.76:shape==='boulder'?.81:.78;
+  const flatten=shape==='slab'?.46:shape==='gravel'?.76:shape==='boulder'?.81:.42;
   pos.setXYZ(i,(x*radius+medium*.035)*sx,
     (y*radius+coarse*.045)*sy*flatten,
     (z*radius+medium*.025)*sz);
@@ -96,9 +96,9 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
    return {x:Math.cos(a)*r,z:Math.sin(a)*r};
   });
   const totals:Record<RockShape,number>={
-   // The huge isolated monoliths looked like floating fantasy rocks. Terrain
-   // itself carries the cliffs; a limited set of larger boulders anchors outcrops.
-   monolith:0,
+   // Broad, partly buried outcrops carry detail into the visible hills.
+   // Their low profiles and terrain footprint checks avoid unsupported spires.
+   outcrop:Math.max(30,Math.round(count*.04)),
    boulder:Math.max(155,Math.round(count*.32)),
    slab:Math.max(250,Math.round(count*.56)),
    gravel:Math.max(3600,Math.round(count*5.5))
@@ -106,10 +106,10 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
   const occupied:PlacedRock[]=[];
   const meshes:T.InstancedMesh[]=[];
   const dummy=new T.Object3D(),tint=new T.Color();
-  const types:RockShape[]=['boulder','slab','gravel'];
+  const types:RockShape[]=['boulder','slab','gravel','outcrop'];
   for(const shape of types){
    const kinds=variants[shape],whole=totals[shape];
-   const giant=shape==='monolith',small=shape==='gravel';
+   const giant=shape==='outcrop',small=shape==='gravel';
    for(let variant=0;variant<kinds;variant++){
     const total=Math.floor(whole/kinds)+(variant<whole%kinds?1:0);
     const geometry=rockGeometry(shape,variant);
@@ -122,7 +122,7 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
     const mesh=new T.InstancedMesh(geometry,material,total);
     for(let i=0;i<total;i++){
      const hero=shape==='boulder'&&i<3;
-     const size=hero?2.4+rand()*3.3:giant?5+Math.pow(rand(),1.5)*24:
+     const size=hero?2.4+rand()*3.3:giant?8+Math.pow(rand(),1.25)*20:
       shape==='boulder'?.18+Math.pow(rand(),2.25)*2.3:
       shape==='slab'?.08+Math.pow(rand(),2.2)*.96:
       .023+Math.pow(rand(),2.25)*.24;
@@ -138,7 +138,7 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
       const a=rand()*Math.PI*2,choice=rand();
       if(giant){
        // Large formations in the middle/far landscape, not on the rover.
-       const r=minDistance+(rand()<.6?45+rand()*330:430+rand()*1500);
+       const r=minDistance+(rand()<.55?150+rand()*650:900+rand()*2400);
        x=Math.cos(a)*r;z=Math.sin(a)*r;
       }else if(small){
        const reach=rand()<.64?38:rand()<.82?110:250;
@@ -186,7 +186,7 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
       // Flat/slightly sloping ground is plausible; isolated steep ridges are not.
       if(giant||size>.85){
        const sample=surveyFootprint(ground,x,z,Math.max(.35,footprint*.62));
-       const allowed=size*unit*(giant?.22:shape==='boulder'?.28:.32);
+       const allowed=size*unit*(giant?.40:shape==='boulder'?.28:.32);
        if(sample.spread>allowed)continue;
        fit=sample;
       }
@@ -209,11 +209,11 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
      dummy.updateMatrix();
      const lowest=lowestVertexAfterTransform(geometry,dummy.matrix);
      const support=fit??{mean:ground(x,z),spread:0};
-     // Embed the bottom 10â€“18% of the rock into local terrain, also accounting
+     // Embed the bottom 10–18% of the rock into local terrain, also accounting
      // for the mild slope across the entire footprint.
      // Sink an irregular lower band into the regolith, not just one pointed
      // vertex touching the surface. This avoids apparently hovering stones.
-     const burial=(giant?.17:small?.16:shape==='boulder'?.30:.24)*ysize*unit+support.spread*.32;
+     const burial=(giant?.38:small?.16:shape==='boulder'?.30:.24)*ysize*unit+support.spread*.32;
      dummy.position.set(x*unit,support.mean-lowest-burial,z*unit);
      dummy.updateMatrix();
      mesh.setMatrixAt(i,dummy.matrix);

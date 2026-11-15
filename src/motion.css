@@ -9,6 +9,90 @@
   pointer-events: none;
 }
 
+/* Material-style feedback: state tint and elevation, without changing layout. */
+:is(.action, .primary, .play, .source-link, .theme-toggle, .language-toggle,
+ .site-header nav a, .filter-group button, .record-actions a, .body-picker a,
+ .camera-dock button, .destination-missions li > button, .equipment-details-toggle,
+ .explorer-panels summary) {
+  position: relative;
+  isolation: isolate;
+}
+:is(.action, .primary, .play, .source-link, .theme-toggle, .language-toggle,
+ .filter-group button, .record-actions a, .body-picker a, .camera-dock button,
+ .equipment-details-toggle, .explorer-panels summary)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+}
+:is(.action, .primary, .play, .source-link, .theme-toggle, .language-toggle,
+ .filter-group button, .record-actions a, .body-picker a, .camera-dock button,
+ .equipment-details-toggle, .explorer-panels summary):focus-visible::before { opacity: .10; }
+
+.approach-status {
+  position: absolute;
+  inset-block-start: 118px;
+  inset-inline: 16px;
+  width: fit-content;
+  max-width: calc(100% - 32px);
+  margin-inline: auto;
+  padding: 10px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--tls-shape-chip);
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--ink);
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 8;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :is(.action, .primary, .play, .source-link, .theme-toggle, .language-toggle,
+   .site-header nav a, .filter-group button, .record-actions a, .body-picker a,
+   .camera-dock button, .destination-missions li > button, .equipment-details-toggle,
+   .explorer-panels summary) {
+    transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease,
+      box-shadow 240ms ease, translate 240ms cubic-bezier(.2,.8,.2,1), scale 180ms ease;
+  }
+  :is(.action, .primary, .play, .source-link, .theme-toggle, .language-toggle,
+   .filter-group button, .record-actions a, .body-picker a, .camera-dock button,
+   .equipment-details-toggle, .explorer-panels summary)::before { transition: opacity 180ms ease; }
+  :is(.action, .camera-dock button, .source-link, .text-link) :is(.arrow-icon, .material-symbols-rounded) {
+    transition: translate 220ms ease, scale 220ms ease;
+  }
+  :is(.feature-card, .mission-record, .destination--expressive, .nasa-photo-card) {
+    transition: transform 280ms ease, box-shadow 280ms ease, border-color 220ms ease;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  :is(.action, .primary, .play, .source-link, .theme-toggle, .language-toggle,
+   .filter-group button, .record-actions a, .body-picker a, .camera-dock button,
+   .equipment-details-toggle, .explorer-panels summary):not(:disabled):hover::before { opacity: .08; }
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  :is(.action, .primary, .play, .source-link, .theme-toggle, .language-toggle,
+   .site-header nav a, .record-actions a):not(:disabled):hover {
+    translate: 0 -2px;
+    box-shadow: 0 5px 16px color-mix(in srgb, var(--md-sys-color-scrim) 18%, transparent);
+  }
+  .camera-dock button:not(:disabled):hover { scale: 1.045; }
+  .camera-dock button:not(:disabled):hover .material-symbols-rounded { scale: 1.1; }
+  :is(.action, .text-link):hover .arrow-icon { translate: 2px -2px; }
+  :is(.feature-card, .mission-record, .destination--expressive, .nasa-photo-card):hover {
+    transform: translateY(-4px);
+    border-color: var(--accent) !important;
+    box-shadow: 0 12px 28px color-mix(in srgb, var(--md-sys-color-scrim) 20%, transparent);
+  }
+  :is(.action, .primary, .play, .camera-dock button):not(:disabled):active {
+    translate: 0 0;
+    scale: .97;
+    box-shadow: none;
+  }
+}
+
 @media (prefers-reduced-motion: no-preference) {
   .editorial-page { animation: none; }
   .signal-hero .hero-copy > * {

@@ -5,19 +5,19 @@ import {stoneMaterial} from './stoneMaterial';
 
 // Seeded illustrative Apollo 11 debris: fractured, partly buried basalt and
 // regolith pebbles. No towering monoliths or floating polygonal formations.
-type Shape='boulder'|'slab'|'gravel';
+type Shape='boulder'|'slab'|'gravel'|'outcrop';
 const palette=['#777672','#898783','#aba69c','#5f605e','#77736b','#99958e','#62615e'];
-const VARIANTS:Record<Shape,number>={boulder:4,slab:3,gravel:3};
+const VARIANTS:Record<Shape,number>={boulder:4,slab:3,gravel:3,outcrop:4};
 function rng(seed:number){
  let s=seed>>>0||1;
  return ()=>{s^=s<<13;s^=s>>>17;s^=s<<5;return (s>>>0)/4294967296};
 }
 function fracturedRock(shape:Shape,variant:number){
- const geo=new T.IcosahedronGeometry(1,shape==='boulder'?5:shape==='slab'?3:1);
+ const geo=new T.IcosahedronGeometry(1,shape==='boulder'||shape==='outcrop'?5:shape==='slab'?3:1);
  const pos=geo.getAttribute('position') as T.BufferAttribute;
  const color:number[]=[];
  const seed=variant*71+(shape==='boulder'?17:shape==='slab'?47:101);
- const sy=shape==='slab'?.43:shape==='gravel'?.67:.72;
+ const sy=shape==='outcrop'?.42:shape==='slab'?.43:shape==='gravel'?.67:.72;
  for(let i=0;i<pos.count;i++){
   const x=pos.getX(i),y=pos.getY(i),z=pos.getZ(i);
   const n1=noise3(x*2.1+seed*.07,y*2.3,z*2.15-seed*.04);
@@ -59,6 +59,7 @@ export function ApolloRocks({ground,unit,count,clearance}:{
  const population=useMemo(()=>{
   const random=rng(0xa11011);
   const totals:Record<Shape,number>={
+   outcrop:Math.max(24,Math.round(count*.035)),
    boulder:Math.max(115,Math.round(count*.28)),
    slab:Math.max(185,Math.round(count*.43)),
    gravel:Math.max(2400,Math.round(count*3.35))
@@ -66,8 +67,8 @@ export function ApolloRocks({ground,unit,count,clearance}:{
   const occupied:{x:number;z:number;r:number}[]=[];
   const meshes:T.InstancedMesh[]=[];
   const dummy=new T.Object3D(),tint=new T.Color();
-  for(const shape of ['boulder','slab','gravel'] as Shape[]){
-   const small=shape==='gravel',kinds=VARIANTS[shape];
+  for(const shape of ['boulder','slab','gravel','outcrop'] as Shape[]){
+   const small=shape==='gravel',distant=shape==='outcrop',kinds=VARIANTS[shape];
    for(let variant=0;variant<kinds;variant++){
     const n=Math.floor(totals[shape]/kinds)+(variant<totals[shape]%kinds?1:0);
     const geometry=fracturedRock(shape,variant);
@@ -80,17 +81,17 @@ export function ApolloRocks({ground,unit,count,clearance}:{
      // Apollo 11 is a low-relief basalt mare: nearby stones remain smaller
      // than the lander, with only occasional metre-scale distant fragments.
      const hero=shape==='boulder'&&i<3;
-     const size=hero?1.5+random()*2.1:shape==='boulder'?.16+Math.pow(random(),2.3)*1.5:
+     const size=distant?7+random()*15:hero?1.5+random()*2.1:shape==='boulder'?.16+Math.pow(random(),2.3)*1.5:
       shape==='slab'?.08+Math.pow(random(),2.25)*.85:
       .012+Math.pow(random(),2.2)*.13;
      const sx=size*(.75+random()*.43),sy=size*(.76+random()*.35),sz=size*(.72+random()*.48);
      const radius=extent*Math.max(sx,sz)*1.12;
-     const minRadius=Math.max(clearance+radius+1.5,hero?38+radius:small?clearance+1:clearance+4);
+     const minRadius=Math.max(clearance+radius+1.5,distant?260+radius:hero?38+radius:small?clearance+1:clearance+4);
      let x=0,z=0,found=false,support:{height:number;spread:number}|null=null;
      for(let attempts=0;attempts<32;attempts++){
       const a=random()*Math.PI*2;
       const far=random()<.20;
-      const reach=small?(far?240:70):far?620:170;
+      const reach=distant?2300:small?(far?300:70):far?900:220;
       const r=minRadius+Math.pow(random(),small?.69:.93)*reach;
       x=Math.cos(a)*r;z=Math.sin(a)*r;
       // Leave a narrow unobstructed visitor approach from the camera side.
@@ -99,7 +100,7 @@ export function ApolloRocks({ground,unit,count,clearance}:{
       if(!small&&occupied.some(p=>Math.hypot(x-p.x,z-p.z)<(radius+p.r)*1.15))continue;
       if(!small){
        const sample=footprintSupport(ground,x,z,Math.max(.25,radius*.65));
-       if(sample.spread>size*unit*(shape==='boulder'?.38:.30))continue;
+       if(sample.spread>size*unit*(distant?.46:shape==='boulder'?.38:.30))continue;
        support=sample;
       }
       found=true;break;
@@ -118,7 +119,7 @@ export function ApolloRocks({ground,unit,count,clearance}:{
      const level=support??{height:ground(x,z),spread:0};
      // Real contact uses the transformed silhouette, with regolith burying
      // some of the lower facets so fragments do not levitate or balance.
-     const burial=sy*unit*(small?.18:shape==='boulder'?.28:.24)+level.spread*.27;
+     const burial=sy*unit*(distant?.38:small?.18:shape==='boulder'?.28:.24)+level.spread*.27;
      dummy.position.set(x*unit,level.height-base-burial,z*unit);
      dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);
      tint.set(palette[Math.floor(random()*palette.length)]);

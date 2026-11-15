@@ -2,11 +2,12 @@ import { useExplorerText } from "./explorer-language";
 import type { CameraCommand } from "./CameraCommands";
 
 export function CameraDock({
-  onCamera, onReset, onFocus,
+  onCamera, onReset, onFocus, busy = false,
 }: {
   onCamera: (kind: CameraCommand["kind"]) => void;
   onReset: () => void;
   onFocus?: () => void;
+  busy?: boolean;
 }) {
   const t = useExplorerText();
   return (
@@ -21,7 +22,7 @@ export function CameraDock({
       </div>
       <div className="camera-dock__actions">
         {onFocus && (
-          <button type="button" className="camera-dock__focus" onClick={onFocus}>
+          <button type="button" className="camera-dock__focus" onClick={onFocus} disabled={busy}>
             <span className="material-symbols-rounded" aria-hidden="true">center_focus_strong</span>
             {t("تركيز المعدّة", "Focus on equipment")}
           </button>
