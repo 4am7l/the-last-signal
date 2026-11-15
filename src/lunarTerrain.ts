@@ -52,6 +52,24 @@ export function localRelief(x:number,z:number){
  }
  return (broad+ridge+highlands+shoulder+smallRubble+impacts)*pad*edge;
 }
+// Regional relief has the same broad shoulders and depth hierarchy as Mars,
+// while the lunar material and impact field retain their own identity.
+export function lunarRegionalRelief(x:number,z:number){
+ const d=Math.hypot(x,z);
+ if(d<=180||d>=11000)return 0;
+ let h=0;
+ for(let i=0;i<9;i++){
+  const angle=i*2.399963+.45,distance=850+(i*613%3700);
+  const dx=x-Math.cos(angle)*distance,dz=z-Math.sin(angle)*distance;
+  const ca=Math.cos(angle+.65),sa=Math.sin(angle+.65);
+  const u=(dx*ca+dz*sa)/(380+i*43),v=(-dx*sa+dz*ca)/(620+i*65);
+  const crown=Math.exp(-(u*u+v*v)*1.35);
+  const shoulder=Math.exp(-(u*u+v*v)*.43)*.24;
+  h+=(95+i*17)*(crown+shoulder);
+ }
+ const eroded=noise3(x*.0021,83,z*.0021)*7+noise3(x*.006,97,z*.006)*2;
+ return (h+eroded)*smooth(180,650,d)*(1-smooth(6500,11000,d));
+}
 // Preserve fine rings at the equipment AND adequate coverage on the far hemisphere.
 export function ringAngle(index:number,nearRings=160,farRings=320,radiusMetres=MOON_RADIUS_METRES){
  if(index===0)return 0;

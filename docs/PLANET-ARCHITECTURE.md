@@ -116,3 +116,26 @@ The local terrain is 24 km across with planetary curvature, deterministic illust
 - Validation: TypeScript/Vite production build, existing geometry tests, and
   solar ray/penumbra/shader-integration checks. GPU appearance remains unverified
   because the preview browser has no WebGL context.
+
+
+## Surface readability and sky (2026-11-15)
+
+- Lunar local crater detail now blends into broad regional mountain shoulders,
+  about 180 m–11 km from the equipment. This uses the lunar grey material and
+  keeps the landing footprint level. The scenery remains illustrative.
+- Mars atmosphere uses a bounded single-scattering approximation with exponential
+  density, view and sunlight optical depth, dust phase and planet shadow. It is
+  an illustrative rendering model, not measured weather or a full spectral solver.
+  Reference: https://science.nasa.gov/mars/facts/ . No atmosphere is added to the Moon.
+- Day/night haze colours now interpolate in the correct order. Mars daylight
+  suppresses the stellar sky; night and orbital views retain visible stars.
+- The 6,000 brightest HYG v4.1 records are bundled locally under CC BY-SA 4.0.
+  Default draw count is 4,500; quality caps are 1,800 / 2,800 / 4,200 / 5,500.
+  A local worker retains J2000 directions, magnitude ordering and colour index.
+  See public/stars-hyg-bright.LICENSE.txt for attribution and modifications.
+- Point stars use small, brighter cores; optional photographic Milky Way is
+  subdued. There are no procedural luminous cloud substitutes when it is offline.
+- Inspection lighting adds invisible overhead fill and a generated reflection
+  environment so metallic equipment remains readable at night. The existing
+  inspection toggle restores natural lighting and the prior scene environment.
+  Orbital fill is weaker; daytime fill only supplies a restrained material bounce.

@@ -2,13 +2,13 @@ import { useExplorerText } from "./explorer-language";
 import {useEffect,useState,useMemo,useSyncExternalStore} from 'react';
 import {approximateEphemeris,validEphemeris,type Ephemeris} from './science';
 export const PRESETS={
- low:{dpr:1,stars:10000,shadows:512,rings:240,sectors:128,rocks:250},
- medium:{dpr:1.25,stars:30000,shadows:1024,rings:320,sectors:192,rocks:600},
- high:{dpr:1.5,stars:80000,shadows:2048,rings:400,sectors:256,rocks:1000},
- ultra:{dpr:2,stars:100000,shadows:4096,rings:480,sectors:320,rocks:1200}
+ low:{dpr:1,stars:1800,shadows:512,rings:240,sectors:128,rocks:250},
+ medium:{dpr:1.25,stars:2800,shadows:1024,rings:320,sectors:192,rocks:600},
+ high:{dpr:1.5,stars:4200,shadows:2048,rings:400,sectors:256,rocks:1000},
+ ultra:{dpr:2,stars:18000,shadows:4096,rings:480,sectors:320,rocks:1200}
 } as const;
 export type Settings={date:string;quality:keyof typeof PRESETS;inspection:boolean;exposure:number;navigation:'orbit'|'walk'|'drone';speed:number;starCount:number};
-let state:Settings={date:new Date().toISOString().slice(0,10),quality:'ultra',inspection:true,exposure:1.05,navigation:'orbit',speed:1.5,starCount:100000};
+let state:Settings={date:new Date().toISOString().slice(0,10),quality:'ultra',inspection:true,exposure:1.05,navigation:'orbit',speed:1.5,starCount:4500};
 const listeners=new Set<()=>void>();
 export function configure(patch:Partial<Settings>){state={...state,...patch};listeners.forEach(f=>f());}
 export function useSimulation(){return useSyncExternalStore(f=>{listeners.add(f);return()=>listeners.delete(f)},()=>state);}

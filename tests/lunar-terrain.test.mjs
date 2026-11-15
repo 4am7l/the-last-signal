@@ -4,7 +4,7 @@ import {stripTypeScriptTypes} from 'node:module';
 const math=stripTypeScriptTypes(readFileSync(new URL('../src/sceneMath.ts',import.meta.url),'utf8'));
 const mathUrl='data:text/javascript;base64,'+Buffer.from(math).toString('base64');
 const code=stripTypeScriptTypes(readFileSync(new URL('../src/lunarTerrain.ts',import.meta.url),'utf8')).replace("from './sceneMath'",`from '${mathUrl}'`);
-const {MOON_RADIUS_METRES,EARTH_RADIUS_METRES,METRES_TO_SCENE,MOON_RENDER_RADIUS,ringAngle,localRelief,craterHeight,craters}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
+const {MOON_RADIUS_METRES,EARTH_RADIUS_METRES,METRES_TO_SCENE,MOON_RENDER_RADIUS,ringAngle,localRelief,lunarRegionalRelief,craterHeight,craters}=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
 assert.equal(MOON_RADIUS_METRES*METRES_TO_SCENE,MOON_RENDER_RADIUS);
 assert.ok(Math.abs(EARTH_RADIUS_METRES/MOON_RADIUS_METRES-3.667)<.001);
 assert.ok(Math.abs(9.4*METRES_TO_SCENE/MOON_RENDER_RADIUS-9.4/MOON_RADIUS_METRES)<1e-15);
@@ -26,3 +26,14 @@ for(let i=0;i<1000;i++){
  assert.ok(Math.abs(localRelief(x+.05,z)-localRelief(x-.05,z))<.15,'highland slopes stay gradual');
 }
 console.log('Passed: physical scale, equipment ratio, complete globe rings, crater bowls/rims, clear landing pad, and bounded local relief.');
+assert.equal(lunarRegionalRelief(0,0),0);
+assert.equal(lunarRegionalRelief(180,0),0);
+assert.equal(lunarRegionalRelief(11000,0),0);
+let regionalPeak=0;
+for(let i=0;i<1800;i++){
+ const x=Math.sin(i*1.7)*10000,z=Math.cos(i*.31)*10000,h=lunarRegionalRelief(x,z);
+ assert.ok(Number.isFinite(h)&&Math.abs(h)<500);
+ regionalPeak=Math.max(regionalPeak,h);
+ assert.ok(Math.abs(lunarRegionalRelief(x+.05,z)-lunarRegionalRelief(x-.05,z))<.2,'regional slopes remain continuous');
+}
+assert.ok(regionalPeak>150,'mountain shoulders are visible beyond the landing plain');
