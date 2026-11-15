@@ -403,6 +403,37 @@ input[type="search"], input[type="date"], select, textarea,
 .feature-card, .mission-record { overflow: hidden; }
 .feature-image { border-radius: 28px; }
 .feature-copy h3, .record-copy h2 { font-weight: 700 !important; }
+.feature-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  gap: 0;
+}
+.feature-card .feature-image { flex: none; width: 100%; }
+.feature-copy {
+  min-width: 0;
+  padding: clamp(20px, 2.4vw, 28px);
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+.feature-copy > small { display: block; line-height: 1.6; }
+.feature-copy h3 {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 16px;
+  margin: 0 0 14px;
+  line-height: 1.4;
+}
+.feature-copy > small + h3 { margin-block-start: 8px; }
+.feature-copy h3 .feature-title {
+  min-width: 0;
+  font: inherit;
+  color: inherit;
+}
+.feature-copy h3 .arrow-icon { margin-block-start: .2em; }
+.feature-copy p { margin: 0; font-size: 14px; line-height: 1.85; }
 .nasa-gallery__heading h2 { font-weight: 700 !important; }
 .nasa-gallery .nasa-photo-card__open { border-radius: var(--tls-shape-media) !important; }
 .nasa-gallery .nasa-photo-card { border-radius: var(--tls-shape-card) !important; }

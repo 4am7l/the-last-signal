@@ -155,7 +155,7 @@ export function Home() {
               <div className="feature-copy">
                 {!english && <small>{m.en}</small>}
                 <h3>
-                  {missionName(m)}
+                  <span className="feature-title">{missionName(m)}</span>
                   <Arrow />
                 </h3>
                 <p>{copy(m).intro}</p>
