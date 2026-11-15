@@ -150,7 +150,7 @@ function App() {
     setPlaying(false);
   }
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const bodyView = mode === "overview" || mode === "planet";
+  const bodyView = mode === "planet";
   const detailsRef = useRef<HTMLElement>(null);
   useEffect(() => {
     if (detailsRef.current) detailsRef.current.scrollTop = 0;
@@ -258,9 +258,7 @@ function App() {
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
   }, []);
-  const sceneKey = mode === "overview"
-    ? `overview:${m.body}`
-    : `${mode === "story" ? "story" : "surface"}:${m.body}:${m.id}`;
+  const sceneKey = `${mode === "story" ? "story" : "surface"}:${m.body}:${m.id}`;
   const sceneLoading = readySceneKey !== sceneKey && failedSceneKey !== sceneKey;
   const years = Object.keys(annualStories(m)).map(Number);
   return (
@@ -304,7 +302,7 @@ function App() {
               ] as const).map(([body, mission, label]) => (
                 <a
                   key={body}
-                  href={exploreHref(mission, "overview")}
+                  href={exploreHref(mission, "planet")}
                   aria-current={m.body === body ? "true" : undefined}
                 >
                   {label}
@@ -317,26 +315,19 @@ function App() {
             </div>
           </header>
           <div className="explorer-navigation">
-            {mode === "overview" ? (
-              <div className="explorer-entry">
-                <h1 className="explorer-visually-hidden">{bodyName}</h1>
-                <a className="action action-solid" href={exploreHref(m.id, "planet")}>
-                  {t("مواقع المهمات", "Mission sites")} <span aria-hidden="true">{english ? "→" : "←"}</span>
-                </a>
-              </div>
-            ) : (
-              <div className="explorer-entry explorer-route-actions">
-                <button type="button" className="action action-line" onClick={() => change(mode === "planet" ? "overview" : "planet")}>
+            <div className="explorer-entry explorer-route-actions">
+              {!bodyView && (
+                <button type="button" className="action action-line" onClick={() => change("planet")}>
                   <span aria-hidden="true">{english ? "←" : "→"}</span>
-                  {mode === "planet" ? t("المعاينة", "Preview") : t("الرجوع للمواقع", "Back to sites")}
+                  {t("الرجوع للمواقع", "Back to sites")}
                 </button>
-                {m.body === "moon" && mode === "planet" && (
-                  <button type="button" className="action action-solid" onClick={() => change("location")}>
-                    {t(`اهبط عند ${missionName}`, `Land at ${missionName}`)} <span aria-hidden="true">↓</span>
-                  </button>
-                )}
-              </div>
-            )}
+              )}
+              {m.body === "moon" && bodyView && (
+                <button type="button" className="action action-solid" onClick={() => change("location")}>
+                  {t(`اهبط عند ${missionName}`, `Land at ${missionName}`)} <span aria-hidden="true">↓</span>
+                </button>
+              )}
+            </div>
           </div>
           <main
             id="main-content"
@@ -353,10 +344,8 @@ function App() {
                     shot={shot}
                     progress={progress}
                     journeyProgress={film / frames.length}
-                    onWorld={(b) => select(b === m.body ? index : missions.findIndex((mission) => mission.body === b), "planet")}
                     onMission={(i) => select(i, "location")}
                     reset={reset}
-                    overviewBody={m.body}
                     language={language}
                     cameraCommand={cameraCommand}
                     sceneKey={sceneKey}
@@ -366,7 +355,7 @@ function App() {
               </Boundary>
             </div>
             {sceneLoading && (
-              <PlanetLoadingIndicator key={sceneKey} body={m.body} mission={mode === "overview" ? undefined : missionName} />
+              <PlanetLoadingIndicator key={sceneKey} body={m.body} mission={bodyView ? undefined : missionName} />
             )}
             <MobileControls
               mode={mode}

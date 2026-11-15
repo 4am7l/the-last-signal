@@ -6,16 +6,13 @@ const file = path => readFileSync(new URL("../" + path, import.meta.url), "utf8"
 
 test("only Moon and Mars can be selected or rendered", () => {
   const main = file("src/main.tsx");
-  const body = file("src/BodyStudy.tsx");
   const planet = file("src/Planet.tsx");
   const overview = file("src/SystemOverview.tsx");
   const space = file("src/Space.tsx");
   const surface = file("src/SurfaceWorld.tsx");
 
-  assert.match(main, /overviewBody=\{m\.body\}/);
+  assert.match(main, /href=\{exploreHref\(mission, "planet"\)\}/);
   assert.doesNotMatch(main, /\["earth", "الأرض"\]/);
-  assert.doesNotMatch(main, /overviewBody === "earth"/);
-  assert.match(body, /body: "moon" \| "mars"/);
   assert.match(planet, /body:'moon'\|'mars'/);
   assert.doesNotMatch(planet, /EarthSurface|earth-clouds|body==='earth'/);
   assert.doesNotMatch(overview, /'earth'|body="earth"/);

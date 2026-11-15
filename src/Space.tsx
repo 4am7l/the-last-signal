@@ -2,16 +2,15 @@ import type { Language } from "./explorer-language";
 import {RenderSettings} from './RenderSettings';
 import {Suspense,useEffect,useMemo,useRef} from 'react';
 import {Canvas,useFrame,useLoader,useThree} from '@react-three/fiber';
-import {OrbitControls,Html,useGLTF,Line} from '@react-three/drei';
+import {OrbitControls,useGLTF,Line} from '@react-three/drei';
 import type {OrbitControls as Controls} from 'three-stdlib';
 import * as T from 'three';
-import {missions,type Mission} from './data';
+import type {Mission} from './data';
 import {dimensions,type Shot} from './journey';
-export type Mode='overview'|'planet'|'story'|'model'|'location';
-import {Planet,SitePin,Terrain,terrainHeight,point} from './Planet';
+export type {View as Mode} from './navigation';
+import type {View as Mode} from './navigation';
+import {Planet,Terrain,terrainHeight} from './Planet';
 import {SurfaceWorld} from './SurfaceWorld';
-import {SystemOverview} from './SystemOverview';
-import {BodyStudy} from './BodyStudy';
 import {FixedStars} from './FixedStars';
 
 import {SUN_DIRECTION} from './solar';
@@ -58,7 +57,7 @@ function Landing({m,phase,p}:{m:Mission;phase:string;p:number}){if(phase==='entr
 function Deploy({m,p}:{m:Mission;p:number}){return <>{m.id==='ingenuity'?<><group position={[smooth(p)*8,0,0]}><Carrier/></group><group position={[0,.2*(1-p),0]}><Model name="ingenuity"/></group></>:<group position={[m.model==='rover'?smooth(p)*3:0,0,0]}><Model name={m.model}/></group>}</>}
 export function LunarBase(){return <group><mesh position={[0,1,0]} castShadow><boxGeometry args={[4,2,4]}/><meshStandardMaterial color="#ae8844" metalness={.35} roughness={.65}/></mesh>{[0,1,2,3].map(i=>{const a=i*Math.PI/2,x=Math.cos(a),z=Math.sin(a);return <group key={i}><Line points={[[x*1.6,1.8,z*1.6],[x*4.7,.15,z*4.7]]} color="#a5a49b" lineWidth={3}/><mesh position={[x*4.7,.06,z*4.7]}><cylinderGeometry args={[.45,.45,.12,20]}/><meshStandardMaterial color="#9c9685"/></mesh></group>})}</group>}
 function Operations({m,p,active,travel}:{m:Mission;p:number;active:boolean;travel:number}){const moving=active&&m.model==='rover',flying=active&&m.id==='ingenuity';return <group position={[moving?travel*6:flying?Math.sin(p*Math.PI)*2:0,flying?Math.sin(p*Math.PI)*3:0,0]} rotation={[0,moving?.1*p:0,0]}><Model name={m.model} rotor={flying?p:0}/></group>}
-export function Space(props:{mode:Mode;m:Mission;day:number;shot:Shot;progress:number;journeyProgress:number;onWorld:(b:'mars'|'moon')=>void;onMission:(i:number)=>void;reset:number;physicalDistances?:boolean;focusPair?:boolean;overviewBody?:'moon'|'mars';language?:Language;sceneKey?:string;onSceneReady?:(key:string)=>void;cameraCommand?:CameraCommand}){return <Canvas shadows gl={{logarithmicDepthBuffer:true,antialias:true,toneMapping:T.ACESFilmicToneMapping,toneMappingExposure:1.05}} camera={{position:[1000,1600,6500],fov:44,near:.1,far:30000}} dpr={[1,2]}>{props.mode!=='overview'&&<color attach="background" args={['#eef3fc']}/>}<ambientLight intensity={props.mode==='story'?.4:0}/><directionalLight castShadow shadow-mapSize={[2048,2048]} shadow-camera-left={-60} shadow-camera-right={60} shadow-camera-top={60} shadow-camera-bottom={-60} shadow-camera-far={500} position={SUN_DIRECTION.clone().multiplyScalar(600)} intensity={props.mode==='story'?2.4:0}/><RenderSettings/><Suspense fallback={null}><SceneAssetsGate {...props}/></Suspense><CameraCommands command={props.cameraCommand}/></Canvas>}
+export function Space(props:{mode:Mode;m:Mission;day:number;shot:Shot;progress:number;journeyProgress:number;onMission:(i:number)=>void;reset:number;language?:Language;sceneKey?:string;onSceneReady?:(key:string)=>void;cameraCommand?:CameraCommand}){return <Canvas shadows gl={{logarithmicDepthBuffer:true,antialias:true,toneMapping:T.ACESFilmicToneMapping,toneMappingExposure:1.05}} camera={{position:[1000,1600,6500],fov:44,near:.1,far:30000}} dpr={[1,2]}><color attach="background" args={['#eef3fc']}/><ambientLight intensity={props.mode==='story'?.4:0}/><directionalLight castShadow shadow-mapSize={[2048,2048]} shadow-camera-left={-60} shadow-camera-right={60} shadow-camera-top={60} shadow-camera-bottom={-60} shadow-camera-far={500} position={SUN_DIRECTION.clone().multiplyScalar(600)} intensity={props.mode==='story'?2.4:0}/><RenderSettings/><Suspense fallback={null}><SceneAssetsGate {...props}/></Suspense><CameraCommands command={props.cameraCommand}/></Canvas>}
 
 /**
  * Do not remove the loading screen on a timer. Suspend for the actual base maps,
@@ -66,13 +65,9 @@ export function Space(props:{mode:Mode;m:Mission;day:number;shot:Shot;progress:n
  * Optional progressive 8K imagery/DEM tiles continue loading in the background.
  */
 function SceneAssetsGate(props: Parameters<typeof Space>[0]) {
-  const body = props.mode === "overview" ? (props.overviewBody ?? "moon") : props.m.body;
+  const body = props.m.body;
   useLoader(T.TextureLoader, body === "mars" ? "/mars-nasa-viking.jpg" : "/moon.jpg");
   useLoader(T.TextureLoader, "/moon-height.jpg");
-  return props.mode === "overview" ? <ReadyWorld {...props}/> : <MissionAssetsGate {...props}/>;
-}
-
-function MissionAssetsGate(props: Parameters<typeof Space>[0]) {
   useGLTF(`/models/${props.m.model}.glb`);
   return <ReadyWorld {...props}/>;
 }
@@ -80,7 +75,7 @@ function MissionAssetsGate(props: Parameters<typeof Space>[0]) {
 function ReadyWorld(props: Parameters<typeof Space>[0]) {
   return <>
     <World {...props}/>
-    {props.mode !== "overview" && <FixedStars marsSurface={props.m.body === "mars"}/>}
+    <FixedStars marsSurface={props.m.body === "mars"}/>
     <FirstSceneFrame key={props.sceneKey} sceneKey={props.sceneKey ?? ""} onReady={props.onSceneReady}/>
   </>;
 }
@@ -99,5 +94,5 @@ function FirstSceneFrame({sceneKey,onReady}:{sceneKey:string;onReady?:(key:strin
   return null;
 }
 
-function World(props:Parameters<typeof Space>[0]){return props.mode==='overview'?<BodyStudy body={props.overviewBody??'moon'} reset={props.reset}/>:props.mode!=='story'?<SurfaceWorld {...props}/>:<LegacyWorld {...props}/>;}
-function LegacyWorld({mode,m,shot,progress:p,journeyProgress,onWorld,onMission,reset}:Parameters<typeof Space>[0]){const controls=useRef<Controls|null>(null),manual=useRef(false);const phase=mode==='story'?shot.phase:'surface';const isLaunch=phase==='launch'||phase==='separation',isCruise=phase==='cruise',isDescent=['entry','parachute','touchdown'].includes(phase);const orbital=mode==='overview'||mode==='planet'||mode==='location';const q=useMemo(()=>new T.Quaternion().setFromUnitVectors(point(m.lat,m.lon,1),new T.Vector3(0,1,0)),[m.id]);const cameraKey=`${mode}:${m.id}:${phase}:${reset}`;const config=useMemo(()=>{if(mode==='overview')return{position:new T.Vector3(900,1400,6500),target:new T.Vector3(-600,-300,-700)};if(mode==='planet')return{position:new T.Vector3(160,170,680),target:new T.Vector3(0,-300,0)};if(mode==='location')return{position:new T.Vector3(0,180,290),target:new T.Vector3()};if(isLaunch)return{position:new T.Vector3(120,80,200),target:new T.Vector3(0,65,0)};if(isCruise)return{position:new T.Vector3(50,20,90),target:new T.Vector3()};if(isDescent)return{position:new T.Vector3(28,15,45),target:new T.Vector3(0,9,0)};return{position:new T.Vector3(22,9,32),target:new T.Vector3(0,1,0)}},[cameraKey]);return <><CameraRig {...config} id={cameraKey} controls={controls} manual={manual}/><OrbitControls ref={controls} makeDefault enableDamping dampingFactor={.085} rotateSpeed={.6} zoomSpeed={.7} panSpeed={.5} onStart={()=>{manual.current=true}} enablePan={!orbital} minDistance={orbital?330:4} maxDistance={orbital?14000:2200} maxPolarAngle={orbital?Math.PI:Math.PI/2-.02}/>{orbital?<><Planet body={m.body} rotation={q} click={mode==='overview'?()=>onWorld(m.body):undefined}/>{mode==='overview'?<><Planet body={m.body==='mars'?'moon':'mars'} r={m.body==='mars'?154:300} pos={[1700,-300,-1400]} click={()=>onWorld(m.body==='mars'?'moon':'mars')}/><Html position={[0,40,0]} center><button className="worldLabel" onClick={()=>onWorld(m.body)}>{m.body==='mars'?'المريخ':'القمر'} ↗</button></Html><Html position={[1700,-50,-1400]} center><button className="worldLabel" onClick={()=>onWorld(m.body==='mars'?'moon':'mars')}>{m.body==='mars'?'القمر':'المريخ'} ↗</button></Html></>:missions.map((item,i)=>{if(item.body!==m.body)return null;return <SitePin key={item.id} m={item} rotation={q} selected={mode==='location'&&item.id===m.id} onClick={()=>onMission(i)}/>})}</>:isCruise?<><Planet body={m.body} r={9} pos={[65,-10,-20]}/><Line points={Array.from({length:51},(_,i)=>[-45+90*i/50,Math.sin(i/50*Math.PI)*10,0] as [number,number,number])} color="#52665d" lineWidth={1}/><group position={[-45+90*smooth(p),Math.sin(p*Math.PI)*10,0]} rotation={[0,0,-Math.PI/2]}><Capsule cruise moon={m.body==='moon'}/></group></>:<>{!isLaunch&&m.body==='mars'&&<fog attach="fog" args={['#614a3d',350,8500]}/>}<Ground moon={m.body==='moon'} launch={isLaunch}/>{isLaunch?<Rocket moon={m.body==='moon'} boosters={m.body==='moon'||m.id==='insight'?0:m.model==='rover'?9:4} p={phase==='separation'?.6+.4*p:p*.6}/>:isDescent?<Landing m={m} phase={phase} p={p}/>:phase==='deploy'?<Deploy m={m} p={p}/>:phase==='ascent'?<><LunarBase/><group position={[0,2+smooth(p)*25,0]}><Capsule moon/></group></>:phase==='return'?<group position={[0,15*(1-p),0]}><Capsule moon/>{[-1,0,1].map(x=><group key={x} position={[x*5,0,0]} scale={.7}><Chute/></group>)}</group>:phase==='end'&&m.body==='moon'?<LunarBase/>:<Operations m={m} p={p} travel={journeyProgress} active={mode==='story'&&phase==='surface'}/>}</>}</>}
+function World(props:Parameters<typeof Space>[0]){return props.mode!=='story'?<SurfaceWorld {...props}/>:<LegacyWorld {...props}/>;}
+function LegacyWorld({m,shot,progress:p,journeyProgress,reset}:Parameters<typeof Space>[0]){const controls=useRef<Controls|null>(null),manual=useRef(false);const phase=shot.phase;const isLaunch=phase==='launch'||phase==='separation',isCruise=phase==='cruise',isDescent=['entry','parachute','touchdown'].includes(phase);const cameraKey=`${m.id}:${phase}:${reset}`;const config=useMemo(()=>{if(isLaunch)return{position:new T.Vector3(120,80,200),target:new T.Vector3(0,65,0)};if(isCruise)return{position:new T.Vector3(50,20,90),target:new T.Vector3()};if(isDescent)return{position:new T.Vector3(28,15,45),target:new T.Vector3(0,9,0)};return{position:new T.Vector3(22,9,32),target:new T.Vector3(0,1,0)}},[cameraKey]);return <><CameraRig {...config} id={cameraKey} controls={controls} manual={manual}/><OrbitControls ref={controls} makeDefault enableDamping dampingFactor={.085} rotateSpeed={.6} zoomSpeed={.7} panSpeed={.5} onStart={()=>{manual.current=true}} enablePan minDistance={4} maxDistance={2200} maxPolarAngle={Math.PI/2-.02}/>{isCruise?<><Planet body={m.body} r={9} pos={[65,-10,-20]}/><Line points={Array.from({length:51},(_,i)=>[-45+90*i/50,Math.sin(i/50*Math.PI)*10,0] as [number,number,number])} color="#52665d" lineWidth={1}/><group position={[-45+90*smooth(p),Math.sin(p*Math.PI)*10,0]} rotation={[0,0,-Math.PI/2]}><Capsule cruise moon={m.body==='moon'}/></group></>:<>{!isLaunch&&m.body==='mars'&&<fog attach="fog" args={['#614a3d',350,8500]}/>}<Ground moon={m.body==='moon'} launch={isLaunch}/>{isLaunch?<Rocket moon={m.body==='moon'} boosters={m.body==='moon'||m.id==='insight'?0:m.model==='rover'?9:4} p={phase==='separation'?.6+.4*p:p*.6}/>:isDescent?<Landing m={m} phase={phase} p={p}/>:phase==='deploy'?<Deploy m={m} p={p}/>:phase==='ascent'?<><LunarBase/><group position={[0,2+smooth(p)*25,0]}><Capsule moon/></group></>:phase==='return'?<group position={[0,15*(1-p),0]}><Capsule moon/>{[-1,0,1].map(x=><group key={x} position={[x*5,0,0]} scale={.7}><Chute/></group>)}</group>:phase==='end'&&m.body==='moon'?<LunarBase/>:<Operations m={m} p={p} travel={journeyProgress} active={phase==='surface'}/>}</>}</>}

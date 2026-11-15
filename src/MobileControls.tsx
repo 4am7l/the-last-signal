@@ -57,7 +57,7 @@ export function MobileControls({mode,onCamera,onReset,onFocus}:Props){
     <div className="mobileExtraActions">
      <button onClick={onReset}>⟳ <span>{t(t("إعادة", "Reset"), "Reset")}</span></button>
      {!moving&&<button onClick={()=>onCamera('stop')}>■ <span>{t(t("إيقاف", "Stop"), "Stop")}</span></button>}
-     {!moving&&mode!=='overview'&&mode!=='story'&&<button onClick={onFocus}>◎ <span>{t(t("المعدّة", "Equipment"), "Equipment")}</span></button>}
+     {!moving&&mode!=='story'&&<button onClick={onFocus}>◎ <span>{t(t("المعدّة", "Equipment"), "Equipment")}</span></button>}
     </div>
    </div>
   </div>

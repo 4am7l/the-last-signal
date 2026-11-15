@@ -22,7 +22,7 @@ const { missions } = await load("../src/data.ts", { "./apollo": apolloModule, ".
 const ids = missions.map((m) => m.id);
 test("every mission deep link round trips all simulation modes", () => {
   for (const mission of ids)
-    for (const mode of ["overview", "planet", "location", "model", "story"])
+    for (const mode of ["planet", "location", "model", "story"])
       assert.deepEqual(parseRoute(exploreHref(mission, mode), ids), {
         page: "explore",
         mission,
@@ -31,17 +31,18 @@ test("every mission deep link round trips all simulation modes", () => {
 });
 test("the fullscreen explorer defaults to the Moon and keeps a linked body on reload", () => {
   assert.equal(parseRoute("#/explore", ids).mission, "apollo");
-  assert.deepEqual(parseRoute(exploreHref("opportunity", "overview"), ids), {
+  assert.equal(parseRoute("#/explore", ids).mode, "planet");
+  assert.deepEqual(parseRoute("#/explore?mission=opportunity&view=overview", ids), {
     page: "explore",
     mission: "opportunity",
-    mode: "overview",
+    mode: "planet",
   });
 });
 test("invalid paths and external query values fall back to safe local defaults", () => {
   assert.deepEqual(parseRoute("#/unknown?mission=missing&view=invalid", ids), {
     page: "home",
     mission: ids[0],
-    mode: "overview",
+    mode: "planet",
   });
   assert.equal(parseRoute("#/archive?mission=apollo", ids).mission, "apollo");
   assert.equal(parseRoute("#/guide", ids).page, "guide");

@@ -1,7 +1,7 @@
 export type Page = "home" | "archive" | "guide" | "explore";
-export type View = "overview" | "planet" | "story" | "model" | "location";
+export type View = "planet" | "story" | "model" | "location";
 export type Route = { page: Page; mission: string; mode: View };
-const views: View[] = ["overview", "planet", "story", "model", "location"];
+const views: View[] = ["planet", "story", "model", "location"];
 export function parseRoute(hash: string, ids: readonly string[]): Route {
   const [path, query = ""] = hash.replace(/^#\/?/, "").split("?");
   const page: Page = ["archive", "guide", "explore"].includes(path)
@@ -11,8 +11,8 @@ export function parseRoute(hash: string, ids: readonly string[]): Route {
     requested = params.get("mission") || "";
   const mode = views.includes(params.get("view") as View)
     ? (params.get("view") as View)
-    : "overview";
-  const defaultMission = page === "explore" && mode === "overview" && ids.includes("apollo")
+    : "planet";
+  const defaultMission = page === "explore" && mode === "planet" && ids.includes("apollo")
     ? "apollo"
     : ids[0];
   return {
