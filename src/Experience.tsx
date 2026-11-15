@@ -1,3 +1,4 @@
+import { surveyor } from "./surveyor";
 import { IntrepidBrief } from "./IntrepidBrief";
 import { FalconBrief } from "./FalconBrief";
 import { ApolloBrief } from "./ApolloBrief";
@@ -638,6 +639,7 @@ const explanations: Record<
   string,
   { goal: string; finding: string; ending: string }
 > = {
+  surveyor3: { goal: surveyor.intro, finding: surveyor.detail, ending: surveyor.final },
   opportunity: {
     goal: "البحث في صخور المريخ عن أدلة على وجود الماء في الماضي.",
     finding:

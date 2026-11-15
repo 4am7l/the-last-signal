@@ -1,3 +1,4 @@
+import { surveyor } from "./surveyor";
 import { intrepid } from "./intrepid";
 import { falcon } from "./falcon";
 import { apolloCatalog, apolloPhoto } from "./apollo";
@@ -14,4 +15,5 @@ export const missions:Mission[]=[
 {id:'apollo',name:'أبولو 11',en:'Apollo 11',body:'moon',model:'apollo',site:'قاعدة السكون · بحر السكون',lat:.67416,lon:23.47314,frame:'إحداثيات ناسا المستخرجة من صور LRO، وفق الإطار القمري DE421.',locationSource:apolloCatalog,final:'بقيت مرحلة الهبوط من إيغل ومعدات السطح في قاعدة السكون. مرحلة الصعود غادرت السطح، لذلك المجسّم الكامل تاريخي ولا يمثل كامل المعدات الباقية اليوم.',finalSource:apolloCatalog,intro:'إيغل أول مركبة تحمل بشرًا للهبوط على القمر، وحملت معها حزمة التجارب السطحية EASEP.',detail:'إيغل وحدة من مرحلتين. بقيت منصة الهبوط وحزمة التجارب EASEP والعاكس الليزري في بحر السكون.',photoCaption:apolloPhoto.ar,source:apolloCatalog,modelSource:'https://science.nasa.gov/3d-resources/apollo-lunar-module/',events:[e('1969-07-16','الانطلاق','حمل ساتورن 5 رواد أبولو 11 نحو القمر.','launch'),e('1969-07-17','العبور إلى القمر','توجهت المركبة نحو القمر؛ خط السفر هنا توضيحي.','cruise'),e('1969-07-19','دخول المدار القمري','بدأ الطاقم الاستعداد لفصل إيغل.','cruise'),e('1969-07-20','إيغل تهبط','هبط أرمسترونغ وألدرين في بحر السكون عند 20:17:40 بالتوقيت العالمي.','landing'),e('1969-07-21','الخطوة الأولى ثم العودة للمدار','نشر الرواد التجارب وجمعوا العينات. غادرت مرحلة الصعود عند 17:54:01 بالتوقيت العالمي.','surface'),e('1969-07-24','العودة إلى الأرض','عاد الطاقم. بقيت مرحلة الهبوط والمعدات العلمية على القمر.','end')]},
 intrepid,
 falcon,
+surveyor,
 ];

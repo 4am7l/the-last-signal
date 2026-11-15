@@ -752,7 +752,7 @@ function App() {
                                 target="_blank"
                                 rel="noreferrer"
                               >
-                                {t("مجسّم ناسا الأصلي ومصدره ↗", "Original NASA model ↗")}
+                                {m.id === "surveyor3" ? t("افتح ملف المجسّم التقريبي GLB ↗", "Open the reconstruction GLB ↗") : t("مجسّم ناسا الأصلي ومصدره ↗", "Original NASA model ↗")}
                               </a>
                               <button
                                 className="primary"

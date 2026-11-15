@@ -280,7 +280,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onApproachChange,language="
    <SitePin key={mission.id} m={mission} rotation={surface.rotation} center={surface.center} radius={R+2}
     selected={mission.id===m.id} label={language==='en'?mission.en:mission.name}
     landingLabel={language==='en'?`Land at ${mission.en}`:`اهبط عند ${mission.name}`}
-    persistentSlot={slot} onClick={()=>onMission(index)}/>
+    persistentSlot={slot} labelOffset={mission.id==='surveyor3'?68:0} onClick={()=>onMission(index)}/>
   ))}
   {!moon&&!close&&missions.map((item,i)=>item.body===m.body&&(
    <SitePin key={item.id} m={item} rotation={surface.rotation} center={surface.center} radius={R+2}

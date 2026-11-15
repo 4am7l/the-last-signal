@@ -1,3 +1,4 @@
+import { surveyorEnglish, surveyorTimeline } from "./surveyor";
 import { intrepidEnglish, intrepidTimeline } from "./intrepid";
 import { falconEnglish, falconTimeline } from "./falcon";
 import { apolloPhoto } from "./apollo";
@@ -7,6 +8,7 @@ import type { Phase, Shot } from "./journey";
 type MissionCopy = Pick<Mission, "intro" | "site" | "frame" | "final" | "detail" | "photoCaption">;
 
 export const missionEnglish: Record<string, MissionCopy> = {
+  surveyor3: surveyorEnglish,
   apollo12: intrepidEnglish,
   apollo15: falconEnglish,
   apollo: {
@@ -52,6 +54,7 @@ export const missionEnglish: Record<string, MissionCopy> = {
 };
 
 export const englishDimensions: Record<string, string> = {
+  surveyor3: "Landing-gear span: 4.2 m",
   rover: "Rover width: 2.3 m",
   insight: "Solar panel span: 6 m",
   ingenuity: "Rotor diameter: 1.2 m",
@@ -115,7 +118,7 @@ const archiveEventCopy: Record<string, [string, string]> = {
 };
 
 export function englishEvent(event: Mission["events"][number]) {
-  const translated = [...intrepidTimeline, ...falconTimeline].find((item) => item.date === event.date && item.title === event.title);
+  const translated = [...intrepidTimeline, ...falconTimeline, ...surveyorTimeline].find((item) => item.date === event.date && item.title === event.title);
   if (translated) return [translated.enTitle, translated.enText];
   return archiveEventCopy[event.date]
     ?? eventCopy[`${event.date}:${event.stage}`]
@@ -124,6 +127,7 @@ export function englishEvent(event: Mission["events"][number]) {
 }
 
 export const englishExplanations: Record<string, { goal: string; finding: string; ending: string }> = {
+  surveyor3: { goal: surveyorEnglish.intro, finding: surveyorEnglish.detail, ending: surveyorEnglish.final },
   opportunity: {
     goal: "Look for evidence of ancient water in Martian rocks.",
     finding: "Rock measurements showed that water had affected the area in the past. The findings established that water was present there.",
@@ -152,6 +156,7 @@ export const englishExplanations: Record<string, { goal: string; finding: string
 };
 
 export const englishAnnualStories: Record<string, Record<number, [string, string]>> = {
+  surveyor3: { 1967: ["Landing and experiments", "The lander tested lunar soil in the Ocean of Storms."], 1969: ["Apollo 12 visits", "Astronauts recovered parts of the lander for study on Earth."] },
   apollo12: { 1969: ["Ocean of Storms", "Intrepid landed near Surveyor 3 and the crew deployed ALSEP."] },
   apollo15: { 1971: ["Hadley–Apennine", "Falcon landed and the crew explored the area using the lunar rover."] },
   opportunity: {
@@ -204,8 +209,8 @@ export const englishAnnualStories: Record<string, Record<number, [string, string
 };
 
 export function englishShot(shot: Shot, missionId: string) {
-  if (missionId === "apollo12" || missionId === "apollo15") {
-    const timeline = missionId === "apollo12" ? intrepidTimeline : falconTimeline;
+  if (missionId === "apollo12" || missionId === "apollo15" || missionId === "surveyor3") {
+    const timeline = missionId === "apollo12" ? intrepidTimeline : missionId === "apollo15" ? falconTimeline : surveyorTimeline;
     const event = timeline.find((item) => item.date === shot.date && item.phase === shot.phase);
     if (event) return { ...shot, title: event.enTitle, text: event.enText };
   }

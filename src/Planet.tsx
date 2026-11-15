@@ -47,7 +47,7 @@ export function lunarSiteDirection() {
 const keepPinVisible = () => {};
 
 export function SitePin({
- m, rotation, onClick, selected = false, center = terrainCenter, radius = 302, label = m.name, landingLabel, persistentSlot,
+ m, rotation, onClick, selected = false, center = terrainCenter, radius = 302, label = m.name, landingLabel, persistentSlot, labelOffset = 0,
 }: {
  m: Mission;
  rotation: T.Quaternion;
@@ -58,6 +58,7 @@ export function SitePin({
  label?: string;
  landingLabel?: string;
  persistentSlot?: number;
+ labelOffset?: number;
 }) {
  const group = useRef<T.Group>(null);
  const button = useRef<HTMLButtonElement>(null);
@@ -85,7 +86,7 @@ export function SitePin({
   const stage = gl.domElement.closest('.explorer-stage')?.getBoundingClientRect();
   const visibleLeft = stage ? Math.max(0, stage.left - canvas.left) : 0;
   const visibleRight = stage ? Math.min(size.width, stage.right - canvas.left) : size.width;
-  const placement = lunarPinPlacement(projected, facing, size.width, size.height, persistentSlot ?? 0, visibleLeft, visibleRight);
+  const placement = lunarPinPlacement(projected, facing, size.width, size.height, persistentSlot ?? 0, visibleLeft, visibleRight, labelOffset);
   lastPlacement.current = placement;
   button.current?.toggleAttribute('data-off-globe', !placement.onGlobe);
   return [placement.x, placement.y];

@@ -19,7 +19,8 @@ const { parseRoute, exploreHref, matchesMission } = await load(
 const apolloModule = asModule(stripTypeScriptTypes(readFileSync(new URL("../src/apollo.ts", import.meta.url), "utf8")));
 const falconModule = asModule(stripTypeScriptTypes(readFileSync(new URL("../src/falcon.ts", import.meta.url), "utf8")));
 const intrepidModule = asModule(stripTypeScriptTypes(readFileSync(new URL("../src/intrepid.ts", import.meta.url), "utf8")));
-const { missions } = await load("../src/data.ts", { "./apollo": apolloModule, "./falcon": falconModule, "./intrepid": intrepidModule });
+const surveyorModule = asModule(stripTypeScriptTypes(readFileSync(new URL("../src/surveyor.ts", import.meta.url), "utf8")));
+const { missions } = await load("../src/data.ts", { "./apollo": apolloModule, "./falcon": falconModule, "./intrepid": intrepidModule, "./surveyor": surveyorModule });
 const ids = missions.map((m) => m.id);
 test("every mission deep link round trips all simulation modes", () => {
   for (const mission of ids)
@@ -62,7 +63,7 @@ test("archive search supports Arabic variants, English case, location and combin
 
 test("Apollo 15 lands at the published Falcon site with its own timeline and locally available photos", async () => {
   const { falcon, falconGallery } = await import(falconModule);
-  const { shotsFor } = await load("../src/journey.ts", { "./falcon": falconModule, "./intrepid": intrepidModule });
+  const { shotsFor } = await load("../src/journey.ts", { "./falcon": falconModule, "./intrepid": intrepidModule, "./surveyor": surveyorModule });
   assert.deepEqual([falcon.body, falcon.lat, falcon.lon], ["moon", 26.13239, 3.63330]);
   const shots = shotsFor(falcon);
   assert.ok(shots.every((shot) => shot.date.startsWith("1971")));
@@ -74,7 +75,7 @@ test("Apollo 15 lands at the published Falcon site with its own timeline and loc
 
 test("Intrepid has the LRO landing coordinates, its 1969 timeline and local gallery", async () => {
   const { intrepid, intrepidGallery } = await import(intrepidModule);
-  const { shotsFor } = await load("../src/journey.ts", { "./falcon": falconModule, "./intrepid": intrepidModule });
+  const { shotsFor } = await load("../src/journey.ts", { "./falcon": falconModule, "./intrepid": intrepidModule, "./surveyor": surveyorModule });
   assert.ok(ids.includes(intrepid.id));
   assert.deepEqual([intrepid.body, intrepid.lat, intrepid.lon], ["moon", -3.0128, 336.5781]);
   const shots = shotsFor(intrepid);
@@ -107,7 +108,7 @@ test("Intrepid retains every primitive of its landing legs and braces", async ()
   assert.equal(module.children.length, parts.length);
 });
 
-test("Apollo markers face the camera when returning from each landing", () => {
+test("Lunar markers face the camera when returning from each landing", () => {
   const planet = readFileSync(new URL("../src/Planet.tsx", import.meta.url), "utf8");
   const pointSource = planet.match(/export function point\([^\n]+/)[0];
   const directionSource = planet.slice(planet.indexOf("export function lunarSiteDirection"), planet.indexOf("export function SitePin"));
