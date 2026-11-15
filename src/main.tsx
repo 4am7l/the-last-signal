@@ -330,14 +330,7 @@ function App() {
                 )}
               </div>
             )}
-            {isApollo ? (
-              <button type="button" className="action action-line apollo-details-toggle"
-                aria-expanded={apolloDetailsOpen} aria-controls={apolloDetailsOpen ? "apollo-explorer-details" : undefined}
-                onClick={() => setApolloDetailsOpen((open) => !open)}>
-                <span className="material-symbols-rounded" aria-hidden="true">{apolloDetailsOpen ? "close" : "info"}</span>
-                {apolloDetailsOpen ? t("إغلاق التفاصيل", "Close details") : t("تفاصيل أبولو 11", "Apollo 11 details")}
-              </button>
-            ) : (
+            {!isApollo && (
             <details className="explorer-resources">
               <summary>{t("أرشيف وصور", "Archive and photos")}</summary>
               <div className="explorer-resources__content">
@@ -572,22 +565,32 @@ function App() {
                 ))}
               </>
             )}
-            {isApollo && apolloDetailsOpen && (
-              <aside id="apollo-explorer-details" className="apollo-explorer-details" aria-labelledby="apollo-explorer-title">
-                <h2 id="apollo-explorer-title">{t("أبولو 11", "Apollo 11")}</h2>
-                <p>{missionCopy.site} · <bdi>{m.lat}° N, {m.lon}° E</bdi></p>
-                <div className="apollo-explorer-actions">
-                  <button type="button" className="action action-solid" onClick={() => change("location")}>{t("موقع الهبوط", "Landing site")}</button>
-                  <button type="button" className="action action-line" onClick={() => change("model")}>{t("المجسّم", "3D model")}</button>
-                  <button type="button" className="action action-line" onClick={() => change("story")}>{t("قصة الرحلة", "Mission story")}</button>
-                </div>
-                <details className="apollo-explorer-photos">
-                  <summary>{t("الصور والمصادر", "Photos and sources")}</summary>
-                  <NasaGallery mission={m.id} compact />
-                </details>
-                <ApolloBrief />
-                <a className="action action-line" href={`#/archive?mission=${m.id}`}>{t("سجل المهمة الكامل", "Full mission record")}</a>
-              </aside>
+            {isApollo && (
+              <div className="apollo-explorer-dock">
+                <button type="button" className="action action-line apollo-details-toggle"
+                  aria-expanded={apolloDetailsOpen} aria-controls="apollo-explorer-details"
+                  onClick={() => setApolloDetailsOpen((open) => !open)}>
+                  <span className="material-symbols-rounded" aria-hidden="true">{apolloDetailsOpen ? "close" : "info"}</span>
+                  {apolloDetailsOpen ? t("إغلاق التفاصيل", "Close details") : t("تفاصيل أبولو 11", "Apollo 11 details")}
+                </button>
+                {apolloDetailsOpen && (
+                  <aside id="apollo-explorer-details" className="apollo-explorer-details" aria-labelledby="apollo-explorer-title">
+                    <h2 id="apollo-explorer-title">{t("أبولو 11", "Apollo 11")}</h2>
+                    <p>{missionCopy.site} · <bdi>{m.lat}° N, {m.lon}° E</bdi></p>
+                    <div className="apollo-explorer-actions">
+                      <button type="button" className="action action-solid" onClick={() => change("location")}>{t("موقع الهبوط", "Landing site")}</button>
+                      <button type="button" className="action action-line" onClick={() => change("model")}>{t("المجسّم", "3D model")}</button>
+                      <button type="button" className="action action-line" onClick={() => change("story")}>{t("قصة الرحلة", "Mission story")}</button>
+                    </div>
+                    <details className="apollo-explorer-photos">
+                      <summary>{t("الصور والمصادر", "Photos and sources")}</summary>
+                      <NasaGallery mission={m.id} compact />
+                    </details>
+                    <ApolloBrief />
+                    <a className="action action-line" href={`#/archive?mission=${m.id}`}>{t("سجل المهمة الكامل", "Full mission record")}</a>
+                  </aside>
+                )}
+              </div>
             )}
             <MobileControls
               mode={mode}
