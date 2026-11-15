@@ -338,160 +338,160 @@ function App() {
       {route.page === "explore" && (
         <div className={`exploration-page fullscreen-explorer${detailsOpen ? " details-dock-open" : ""}`}>
           <div className="explorer-stage" data-panel-open={openPanel ?? undefined} inert={detailsOpen && compactDrawer}>
-          <header className="fullscreen-toolbar">
-            <a className="action action-line" href="#/">
-              <span aria-hidden="true">{english ? "←" : "→"}</span> {t("الرئيسية", "Home")}
-            </a>
-            <nav className="body-picker" aria-label={t("وجهة المحاكاة", "Simulation destination")}>
-              {([
-                ["moon", "apollo", t("القمر", "Moon")],
-                ["mars", "opportunity", t("المريخ", "Mars")],
-              ] as const).map(([body, mission, label]) => (
-                <a
-                  key={body}
-                  href={exploreHref(mission, "planet")}
-                  aria-current={m.body === body ? "page" : undefined}
-                >
-                  {label}
-                </a>
-              ))}
-            </nav>
-            <div className="fullscreen-toolbar__actions">
-              <LanguageToggle onToggle={toggleLanguage} />
-              <ThemeToggle />
-            </div>
-          </header>
-          <div className="explorer-navigation">
-            <div className="explorer-entry explorer-route-actions">
-              {!bodyView && (
-                <button type="button" className="action action-line" onClick={() => change("planet")}>
-                  <span aria-hidden="true">{english ? "←" : "→"}</span>
-                  {t("الرجوع للمواقع", "Back to sites")}
-                </button>
-              )}
-              {m.body === "moon" && bodyView && (
-                <button type="button" className="action action-solid" onClick={() => change("location")}>
-                  {t(`اهبط عند ${missionName}`, `Land at ${missionName}`)} <span aria-hidden="true">↓</span>
-                </button>
-              )}
-            </div>
-            <div className="explorer-panels">
-              <SimulationPanel open={openPanel === "settings"} onToggle={() => togglePanel("settings")} />
-              {mode === "story" && (
-                <details className="timebar explorer-timeline" open={openPanel === "timeline"}>
-                  <summary onClick={(event) => { event.preventDefault(); togglePanel("timeline"); }}>
-                    <span className="material-symbols-rounded" aria-hidden="true">timeline</span>
-                    {t("مراحل الرحلة", "Mission timeline")}
-                    <span className="material-symbols-rounded explorer-panel-chevron" aria-hidden="true">expand_more</span>
-                  </summary>
-                  <div className="explorer-panel-content">
-                    <div className="timeTop">
-                      <button
-                        className="play"
-                        onClick={() => {
-                          if (film >= frames.length - 0.002) setFilm(0);
-                          setPlaying((v) => !v);
-                        }}
-                      >
-                        {playing ? t("Ⅱ إيقاف", "Ⅱ Pause") : t("▶ تشغيل", "▶ Play")}
-                      </button>
-                      <strong>{date}</strong>
-                      <label>
-                        {t("سرعة العرض", "Playback speed")}{" "}
-                        <select
-                          value={speed}
-                          onChange={(e) => setSpeed(Number(e.target.value))}
+          <div className="explorer-top">
+            <header className="fullscreen-toolbar">
+              <a className="action action-line" href="#/">
+                <span aria-hidden="true">{english ? "←" : "→"}</span> {t("الرئيسية", "Home")}
+              </a>
+              <nav className="body-picker" aria-label={t("وجهة المحاكاة", "Simulation destination")}>
+                {([
+                  ["moon", "apollo", t("القمر", "Moon")],
+                  ["mars", "opportunity", t("المريخ", "Mars")],
+                ] as const).map(([body, mission, label]) => (
+                  <a
+                    key={body}
+                    href={exploreHref(mission, "planet")}
+                    aria-current={m.body === body ? "page" : undefined}
+                  >
+                    {label}
+                  </a>
+                ))}
+              </nav>
+              <div className="fullscreen-toolbar__actions">
+                <LanguageToggle onToggle={toggleLanguage} />
+                <ThemeToggle />
+              </div>
+            </header>
+            <div className="explorer-navigation">
+              <div className="explorer-entry explorer-route-actions">
+                {!bodyView && (
+                  <button type="button" className="action action-line" onClick={() => change("planet")}>
+                    <span aria-hidden="true">{english ? "←" : "→"}</span>
+                    {t("الرجوع للمواقع", "Back to sites")}
+                  </button>
+                )}
+                {m.body === "moon" && bodyView && (
+                  <button type="button" className="action action-solid" onClick={() => change("location")}>
+                    {t(`اهبط عند ${missionName}`, `Land at ${missionName}`)} <span aria-hidden="true">↓</span>
+                  </button>
+                )}
+              </div>
+              <div className="explorer-panels">
+                <SimulationPanel open={openPanel === "settings"} onToggle={() => togglePanel("settings")} />
+                {mode === "story" && (
+                  <details className="timebar explorer-timeline" open={openPanel === "timeline"}>
+                    <summary onClick={(event) => { event.preventDefault(); togglePanel("timeline"); }}>
+                      <span className="material-symbols-rounded" aria-hidden="true">timeline</span>
+                      {t("مراحل الرحلة", "Mission timeline")}
+                      <span className="material-symbols-rounded explorer-panel-chevron" aria-hidden="true">expand_more</span>
+                    </summary>
+                    <div className="explorer-panel-content">
+                      <div className="timeTop">
+                        <button
+                          className="play"
+                          onClick={() => {
+                            if (film >= frames.length - 0.002) setFilm(0);
+                            setPlaying((v) => !v);
+                          }}
                         >
-                          <option value={0.5}>0.5×</option>
-                          <option value={1}>1×</option>
-                          <option value={2}>2×</option>
-                          <option value={4}>4×</option>
-                        </select>
-                      </label>
-                      <button
-                        onClick={() => {
-                          setFilm(frames.length - 0.001);
-                          setPlaying(false);
-                        }}
-                      >
-                        {t("نهاية الرحلة ↗", "End of mission ↗")}
-                      </button>
-                    </div>
-                    <div className="filmControls">
-                      <span>{t("تفاصيل المرحلة:", "Phase:")} {displayedShot.title}</span>
+                          {playing ? t("Ⅱ إيقاف", "Ⅱ Pause") : t("▶ تشغيل", "▶ Play")}
+                        </button>
+                        <strong>{date}</strong>
+                        <label>
+                          {t("سرعة العرض", "Playback speed")}{" "}
+                          <select
+                            value={speed}
+                            onChange={(e) => setSpeed(Number(e.target.value))}
+                          >
+                            <option value={0.5}>0.5×</option>
+                            <option value={1}>1×</option>
+                            <option value={2}>2×</option>
+                            <option value={4}>4×</option>
+                          </select>
+                        </label>
+                        <button
+                          onClick={() => {
+                            setFilm(frames.length - 0.001);
+                            setPlaying(false);
+                          }}
+                        >
+                          {t("نهاية الرحلة ↗", "End of mission ↗")}
+                        </button>
+                      </div>
+                      <div className="filmControls">
+                        <span>{t("تفاصيل المرحلة:", "Phase:")} {displayedShot.title}</span>
+                        <input
+                          dir="ltr"
+                          type="range"
+                          aria-label={t("تقدم المشهد المتحرك", "Animation progress")}
+                          min={0}
+                          max={0.999}
+                          step={0.001}
+                          value={progress}
+                          onChange={(e) => {
+                            setPlaying(false);
+                            setFilm(frameIndex + Number(e.target.value));
+                          }}
+                        />
+                        <small>{t("اسحب لترى الإقلاع أو الفصل أو الهبوط خطوة بخطوة.", "Drag to step through launch, separation or landing.")}</small>
+                      </div>
                       <input
                         dir="ltr"
+                        aria-label={t("تاريخ الرحلة", "Mission date")}
                         type="range"
-                        aria-label={t("تقدم المشهد المتحرك", "Animation progress")}
-                        min={0}
-                        max={0.999}
-                        step={0.001}
-                        value={progress}
+                        min={start}
+                        max={end}
+                        step={86400000}
+                        value={day}
                         onChange={(e) => {
                           setPlaying(false);
-                          setFilm(frameIndex + Number(e.target.value));
+                          setDay(Number(e.target.value));
                         }}
                       />
-                      <small>{t("اسحب لترى الإقلاع أو الفصل أو الهبوط خطوة بخطوة.", "Drag to step through launch, separation or landing.")}</small>
-                    </div>
-                    <input
-                      dir="ltr"
-                      aria-label={t("تاريخ الرحلة", "Mission date")}
-                      type="range"
-                      min={start}
-                      max={end}
-                      step={86400000}
-                      value={day}
-                      onChange={(e) => {
-                        setPlaying(false);
-                        setDay(Number(e.target.value));
-                      }}
-                    />
-                    <div className="yearTicks" dir="ltr">
-                      {years.map((y) => (
-                        <button
-                          key={y}
-                          onClick={() => {
-                            setPlaying(false);
-                            setFilm(
-                              Math.max(
-                                0,
-                                frames.findIndex(
-                                  (f) => Number(f.date.slice(0, 4)) === y,
+                      <div className="yearTicks" dir="ltr">
+                        {years.map((y) => (
+                          <button
+                            key={y}
+                            onClick={() => {
+                              setPlaying(false);
+                              setFilm(
+                                Math.max(
+                                  0,
+                                  frames.findIndex(
+                                    (f) => Number(f.date.slice(0, 4)) === y,
+                                  ),
                                 ),
-                              ),
-                            );
-                          }}
-                        >
-                          {y}
-                        </button>
-                      ))}
+                              );
+                            }}
+                          >
+                            {y}
+                          </button>
+                        ))}
+                      </div>
+                      <div className="chapters">
+                        {frames.map((x, i) => (
+                          <button
+                            key={`${x.date}-${i}`}
+                            className={frameIndex === i ? "selected" : ""}
+                            aria-current={frameIndex === i ? "step" : undefined}
+                            onClick={() => {
+                              setPlaying(false);
+                              setFilm(i);
+                            }}
+                          >
+                            <small>{x.date}</small>
+                            {english ? englishShot(x, m.id).title : x.title}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <div className="chapters">
-                      {frames.map((x, i) => (
-                        <button
-                          key={`${x.date}-${i}`}
-                          className={frameIndex === i ? "selected" : ""}
-                          aria-current={frameIndex === i ? "step" : undefined}
-                          onClick={() => {
-                            setPlaying(false);
-                            setFilm(i);
-                          }}
-                        >
-                          <small>{x.date}</small>
-                          {english ? englishShot(x, m.id).title : x.title}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </details>
-              )}
+                  </details>
+                )}
+              </div>
             </div>
             {!sceneLoading && approaching && (
-              <div className="approach-status-row">
-                <div className="approach-status" role="status">
-                  {t("جارٍ الاقتراب من المركبة…", "Approaching the equipment…")}
-                </div>
+              <div className="approach-status" role="status">
+                {t("جارٍ الاقتراب من المركبة…", "Approaching the equipment…")}
               </div>
             )}
           </div>
@@ -542,14 +542,14 @@ function App() {
               {detailsOpen && compactDrawer && (
                 <div className="equipment-scrim" aria-hidden="true" onClick={closeDetails} />
               )}
+              <button ref={detailsToggleRef} type="button" className="equipment-details-toggle"
+                aria-label={detailsOpen ? t("إغلاق التفاصيل", "Close details") : t("فتح التفاصيل", "Open details")}
+                aria-expanded={detailsOpen} aria-controls="equipment-details"
+                onClick={() => detailsOpen ? closeDetails() : setDetailsOpen(true)}>
+                <span className="equipment-details-chevron" aria-hidden="true">‹</span>
+                <span className="equipment-details-label">{t("التفاصيل", "Details")}</span>
+              </button>
               <div className="equipment-dock">
-                <button ref={detailsToggleRef} type="button" className="equipment-details-toggle"
-                  aria-label={detailsOpen ? t("إغلاق التفاصيل", "Close details") : t("فتح التفاصيل", "Open details")}
-                  aria-expanded={detailsOpen} aria-controls="equipment-details"
-                  onClick={() => detailsOpen ? closeDetails() : setDetailsOpen(true)}>
-                  <span className="equipment-details-chevron" aria-hidden="true">‹</span>
-                  <span className="equipment-details-label">{t("التفاصيل", "Details")}</span>
-                </button>
                   <aside ref={detailsRef} id="equipment-details" className="equipment-details" aria-labelledby="equipment-title" inert={!detailsOpen}>
                     {bodyView ? (
                       <div className="drawer-content" key={m.body}>
