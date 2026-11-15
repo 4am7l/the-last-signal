@@ -10,6 +10,9 @@
   border-radius: inherit;
   isolation: isolate;
 }
+.planet-loading-overlay--over-scene {
+  background: transparent;
+}
 .planet-loading-card {
   width: min(440px, 100%);
   display: flex;

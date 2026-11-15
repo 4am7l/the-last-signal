@@ -44,6 +44,17 @@ test("equipment selection paints the destination loader before committing the sc
   assert.match(indicator, /Preparing \$\{mission \?\? name\}/);
 });
 
+test("equipment changes keep the previous scene visible behind the loading card", () => {
+  const main = file("src/main.tsx");
+  const space = file("src/Space.tsx");
+  const css = file("src/planet-loader.css");
+  assert.match(main, /overScene=\{loadingOverScene\}/);
+  assert.match(css, /\.planet-loading-overlay--over-scene\s*\{\s*background: transparent;/);
+  assert.match(space, /deferredScene = useDeferredValue\(props\)/);
+  assert.match(space, /deferredScene\.sceneKey === props\.sceneKey \? props : deferredScene/);
+  assert.match(space, /<SceneAssetsGate \{\.\.\.visibleScene\}/);
+});
+
 test("Material 3 Expressive morph stays accessible and respects reduced motion", () => {
   const indicator = file("src/PlanetLoadingIndicator.tsx");
   const css = file("src/planet-loader.css");

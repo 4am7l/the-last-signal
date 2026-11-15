@@ -170,6 +170,7 @@ function App() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [approaching, setApproaching] = useState(false);
   const [sceneSelection, setSceneSelection] = useState<SceneSelection | null>(null);
+  const [cardLoadingKey, setCardLoadingKey] = useState<string | null>(null);
   useEffect(() => {
     if (!sceneSelection) return;
     let commitFrame = 0;
@@ -182,6 +183,7 @@ function App() {
         }
         setReadySceneKey(null);
         setFailedSceneKey(null);
+        setCardLoadingKey(sceneId(sceneSelection.mode, missions[sceneSelection.index], sceneAttempt));
         setMode(sceneSelection.mode);
         setIndex(sceneSelection.index);
         if (sceneSelection.resetFilm) setFilm(0);
@@ -195,7 +197,7 @@ function App() {
       cancelAnimationFrame(paintFrame);
       cancelAnimationFrame(commitFrame);
     };
-  }, [sceneSelection]);
+  }, [sceneSelection, sceneAttempt]);
   const [compactDrawer, setCompactDrawer] = useState(() => window.matchMedia("(max-width: 900px)").matches);
   useEffect(() => {
     const media = window.matchMedia("(max-width: 900px)");
@@ -356,6 +358,12 @@ function App() {
   const loadingMission = sceneSelection ? missions[sceneSelection.index] : m;
   const loadingMode = sceneSelection?.mode ?? mode;
   const loadingKey = sceneId(loadingMode, loadingMission, sceneAttempt);
+  const loadingOverScene = Boolean(sceneSelection) || cardLoadingKey === loadingKey;
+  useEffect(() => {
+    if (cardLoadingKey && (!sceneLoading || route.page !== "explore" || cardLoadingKey !== loadingKey)) {
+      setCardLoadingKey(null);
+    }
+  }, [cardLoadingKey, loadingKey, route.page, sceneLoading]);
   const years = Object.keys(annualStories(m)).map(Number);
   return (
     <ExplorerLanguage.Provider value={language}>
@@ -573,6 +581,7 @@ function App() {
             </div>
             {sceneLoading && (
               <PlanetLoadingIndicator key={loadingKey} body={loadingMission.body}
+                overScene={loadingOverScene}
                 mission={loadingMode === "planet" ? undefined : (english ? loadingMission.en : loadingMission.name)} />
             )}
             <MobileControls

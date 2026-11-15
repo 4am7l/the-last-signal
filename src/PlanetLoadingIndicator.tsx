@@ -6,9 +6,11 @@ type Destination = "moon" | "mars";
 export function PlanetLoadingIndicator({
   body,
   mission,
+  overScene = false,
 }: {
   body: Destination;
   mission?: string;
+  overScene?: boolean;
 }) {
   const [elapsed, setElapsed] = useState(0);
   useEffect(() => {
@@ -23,7 +25,8 @@ export function PlanetLoadingIndicator({
   const t = useExplorerText();
   const name = body === "moon" ? t("القمر", "Moon") : t("المريخ", "Mars");
   return (
-    <div className="planet-loading-overlay" role="status" aria-live="polite" aria-atomic="true">
+    <div className={`planet-loading-overlay${overScene ? " planet-loading-overlay--over-scene" : ""}`}
+      role="status" aria-live="polite" aria-atomic="true">
       <div className="planet-loading-card">
         <div className="m3-expressive-loading-container">
           <span
