@@ -15,7 +15,7 @@ import {useTrekPatch,type TrekPatch} from './useTrekPatch';
 import {missions} from './data';
 import {dimensions} from './journey';
 import {SUN_DIRECTION,SCENE_SUN_DIRECTION} from './solar';
-import {marsRelief,mountains,surfaceDetail,noise3,cameraTuning} from './sceneMath';
+import {marsRelief,mountains,surfaceDetail,noise3,cameraTuning,fissureMask,FISSURE_GLSL} from './sceneMath';
 import {Model,type Space} from './Space';
 import {createMarsRelief,marsApproachMask,marsLandingRadius,marsLandingTransition,marsRoverRoadYaw} from './marsGeology';
 import {MarsRocks,MarsGroundMarks} from './MarsSurfaceDetails';
@@ -82,7 +82,7 @@ export function SurfaceWorld({mode,m,reset,onMission,language="ar"}:Parameters<t
      noise3(x*10.5,59,z*10.5)*.006)*
      T.MathUtils.smoothstep(distance,pad+2,pad+10)*
      (1-T.MathUtils.smoothstep(distance,170,480));
-    return localRelief(x,z)+surfaceDetail(x,z,'moon')*.36+soil*.45+closeMicro;
+    return localRelief(x,z)+surfaceDetail(x,z,'moon')*.36+soil*.45+closeMicro-fissureMask(x,z)*.26;
    }
    const nearBlend=T.MathUtils.smoothstep(distance,landingRadius,landingRadius+marsLandingTransition(m.id));
    // Resolve metre- and decimetre-scale rock chips geometrically near the
@@ -98,7 +98,7 @@ export function SurfaceWorld({mode,m,reset,onMission,language="ar"}:Parameters<t
     T.MathUtils.smoothstep(distance,pad+2,pad+10)*
     (1-T.MathUtils.smoothstep(distance,180,530))*
     (1-.55*marsApproachMask(x,z,landingRadius));
-   return marsReliefAt(x,z)+
+   return marsReliefAt(x,z)-fissureMask(x,z)*.48+
     (surfaceDetail(x,z,'mars')*.33+soil*.31)*nearBlend+stoneGrain+closeMicro;
   };
   // Quality-aware, bounded tessellation. This raises angular detail around both
@@ -191,7 +191,7 @@ export function SurfaceWorld({mode,m,reset,onMission,language="ar"}:Parameters<t
  useEffect(()=>()=>{camera.up.set(0,1,0);SCENE_SUN_DIRECTION.copy(SUN_DIRECTION);delete scene.userData.skyRotation;scene.userData.skyVisibility=1},[scene]);
  useEffect(()=>{scene.userData.skyVisibility=1;scene.fog=null;if(scene.background instanceof T.Color)scene.background.copy(sky);return()=>{scene.fog=null;if(scene.background instanceof T.Color)scene.background.set('#eef3fc')}},[scene,sky]);
  useFrame((_,dt)=>{const ctl=controls.current;if(!ctl)return;
-  scene.userData.terrainSource=dem?dem.source:'تعذّر تحميل DEM — سطح تقريبي';
+  scene.userData.terrainSource=dem?dem.source:'ØªØ¹Ø°Ù‘Ø± ØªØ­Ù…ÙŠÙ„ DEM â€” Ø³Ø·Ø­ ØªÙ‚Ø±ÙŠØ¨ÙŠ';
   scene.userData.altitude=Math.max(0,(camera.position.y-surface.ground(camera.position.x/UNIT,camera.position.z/UNIT))/UNIT);
   // Tile downloads may finish at any time: reveal new NASA detail gently
   // so an asynchronous image never produces another visual pop.
@@ -261,7 +261,7 @@ export function SurfaceWorld({mode,m,reset,onMission,language="ar"}:Parameters<t
   {moon&&mode==='planet'&&lunarSites.map(({mission,index},slot)=>(
    <SitePin key={mission.id} m={mission} rotation={surface.rotation} center={surface.center} radius={R+2}
     selected={mission.id===m.id} label={language==='en'?mission.en:mission.name}
-    landingLabel={language==='en'?`Land at ${mission.en}`:`اهبط عند ${mission.name}`}
+    landingLabel={language==='en'?`Land at ${mission.en}`:`Ø§Ù‡Ø¨Ø· Ø¹Ù†Ø¯ ${mission.name}`}
     persistentSlot={slot} onClick={()=>onMission(index)}/>
   ))}
   {!moon&&!close&&missions.map((item,i)=>item.body===m.body&&(
@@ -275,14 +275,14 @@ export function SurfaceWorld({mode,m,reset,onMission,language="ar"}:Parameters<t
 function RegolithMaterial({map,nasaPatch,nasaPatchFade,unit,moon,centerY,rotation,landingRadius}:{map:T.Texture;nasaPatch:TrekPatch|null;nasaPatchFade:{value:number};unit:number;moon:boolean;centerY:number;rotation:T.Quaternion;landingRadius:number}){
  const material=useMemo(()=>{
   const mat=new T.MeshStandardMaterial({map,roughness:1,metalness:0});
-  mat.customProgramCacheKey=()=>moon?('moon-continuous-v7-'+Boolean(nasaPatch)):('mars-continuous-v7-'+landingRadius.toFixed(2)+'-'+Boolean(nasaPatch));
+  mat.customProgramCacheKey=()=>moon?('moon-continuous-v8-'+Boolean(nasaPatch)):('mars-continuous-v8-'+landingRadius.toFixed(2)+'-'+Boolean(nasaPatch));
   mat.onBeforeCompile=shader=>{
    if(!moon){
     shader.uniforms.marsCenterY={value:centerY};
     shader.uniforms.marsToPlanet={value:new T.Matrix3().setFromMatrix4(new T.Matrix4().makeRotationFromQuaternion(rotation.clone().invert()))};
    }
    shader.vertexShader='varying vec3 lunarPosition;\n'+(moon?'':'uniform float marsCenterY;\nvarying vec3 marsFaceView;\nvarying vec3 marsRadialView;\n')+shader.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nlunarPosition=position;'+(moon?'':`\nmarsFaceView=normalize(normalMatrix*normal);\nmarsRadialView=normalize(normalMatrix*normalize(position-vec3(0.,marsCenterY,0.)));`));
-   shader.fragmentShader='varying vec3 lunarPosition;\n'+(moon?'':'uniform float marsCenterY;\nuniform mat3 marsToPlanet;\nvarying vec3 marsFaceView;\nvarying vec3 marsRadialView;\n')+'float lunarHash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123); }\nfloat soilNoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(lunarHash(i),lunarHash(i+vec2(1.,0.)),f.x),mix(lunarHash(i+vec2(0.,1.)),lunarHash(i+vec2(1.)),f.x),f.y);}\n'+shader.fragmentShader.replace('#include <map_fragment>',moon?'#include <map_fragment>':`#ifdef USE_MAP
+   shader.fragmentShader=FISSURE_GLSL+'\n'+'varying vec3 lunarPosition;\n'+(moon?'':'uniform float marsCenterY;\nuniform mat3 marsToPlanet;\nvarying vec3 marsFaceView;\nvarying vec3 marsRadialView;\n')+'float lunarHash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123); }\nfloat soilNoise(vec2 p){vec2 i=floor(p),f=fract(p);f=f*f*(3.-2.*f);return mix(mix(lunarHash(i),lunarHash(i+vec2(1.,0.)),f.x),mix(lunarHash(i+vec2(0.,1.)),lunarHash(i+vec2(1.)),f.x),f.y);}\n'+shader.fragmentShader.replace('#include <map_fragment>',moon?'#include <map_fragment>':`#ifdef USE_MAP
  // Per-fragment global equirectangular UV. The landing-site ring vertices
  // cross longitude seams and cannot safely interpolate their baked UV values.
  vec3 nativeMars=normalize(marsToPlanet*(lunarPosition-vec3(0.,marsCenterY,0.)));
@@ -302,6 +302,8 @@ float macroTone=macroFade>0.?soilNoise(metres*.00045+vec2(29.,13.))-.5:0.;
 diffuseColor.rgb*=1.+macroTone*.12*macroFade;
 // Distant fragments have zero local detail weight: skip its noise work.
 if(localFade>0.){
+float groundSeam=fissureMask(metres)*(1.-smoothstep(.25,2.,footprint));
+diffuseColor.rgb*=1.-groundSeam*.34*localFade;
 float grain=soilNoise(metres*48.)-.5;
 float strata=(soilNoise(metres*.7)-.5)*2.;
 float dust=soilNoise(metres*5.)-.5;
@@ -375,7 +377,8 @@ vec2 detailMetres=lunarPosition.xz / ${unit.toFixed(12)};
 float detailFootprint=max(length(dFdx(detailMetres)),length(dFdy(detailMetres)));
 float relief=0.;
 if(detailFootprint<12.){
-relief=(soilNoise(detailMetres*48.)-.5)*${moon?'.006':'.0045'}*(1.-smoothstep(.008,.045,detailFootprint));
+relief-=fissureMask(detailMetres)*${moon?'.26':'.48'}*(1.-smoothstep(.25,2.,detailFootprint));
+relief+=(soilNoise(detailMetres*48.)-.5)*${moon?'.006':'.0045'}*(1.-smoothstep(.008,.045,detailFootprint));
 relief+=(soilNoise(detailMetres*9.)-.5)*${moon?'.025':'.017'}*(1.-smoothstep(.04,.22,detailFootprint));
  ${moon?`relief+=(soilNoise(detailMetres*27.+vec2(4.,-9.))-.5)*.007*(1.-smoothstep(.015,.09,detailFootprint));
 relief+=(soilNoise(detailMetres*3.3+vec2(8.,11.))-.5)*.025*(1.-smoothstep(.12,.55,detailFootprint));`:''}

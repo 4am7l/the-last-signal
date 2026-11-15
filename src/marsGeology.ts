@@ -73,11 +73,13 @@ export function marsRoverRoadClearance(x:number,z:number,site:string,margin:numb
 export type MarsCrater={x:number;z:number;radius:number};
 export function marsCraterField(lat:number,lon:number,landingRadius:number):MarsCrater[]{
  const random=seededRandom(marsSiteSeed(lat,lon)^0x426ac17);
- return Array.from({length:62},()=>{
-  const radius=5+Math.pow(random(),1.65)*125;
+ return Array.from({length:80},(_,i)=>{
+  const nearby=i<18;
+  const radius=nearby?3+random()*13:5+Math.pow(random(),1.65)*125;
   const angle=random()*Math.PI*2;
   // Keep impact bowls away from equipment and the nearby walking landscape.
-  const distance=landingRadius+470+radius*1.7+Math.pow(random(),1.15)*3200;
+  const distance=nearby?landingRadius+40+radius*2+random()*340:
+   landingRadius+470+radius*1.7+Math.pow(random(),1.15)*3200;
   return {x:Math.cos(angle)*distance,z:Math.sin(angle)*distance,radius};
  });
 }
@@ -177,7 +179,7 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
   const warped=noise3(x0*.0019,29,z0*.0019)*72;
   // Fade only the distant sharp ridge crests; preserve the existing nearby soil.
   const sharpRidge=Math.pow(1-Math.abs(noise3((x0+warped)*.005,41,(z0-warped)*.005)),2.2)*55;
-  const ridged=sharpRidge*(1-.52*smooth(500,1100,distance));
+  const ridged=sharpRidge*.55*(1-.52*smooth(500,1100,distance));
   // Distant eroded hills: broad rounded crowns, low shoulders and no knife peaks.
   let cliffs=0;
   for(const m of mesas){
@@ -221,7 +223,8 @@ export function createMarsRelief(lat:number,lon:number,landingRadius:number,site
    const u=Math.hypot(dx,dz)/crater.radius;
    const bowl=u<1?-.15*crater.radius*Math.pow(1-u*u,2):0;
    const rim=.054*crater.radius*Math.exp(-Math.pow((u-1)/.16,2));
-   impacts+=(bowl+rim)*(1-smooth(1.27,1.55,u));
+   // Keep the visitor approach low-gradient even when a small crater is nearby.
+   impacts+=(bowl+rim)*(1-smooth(1.27,1.55,u))*(1-.9*marsApproachMask(x,z,landingRadius));
   }
   return (nearGround+(broad+ridged+cliffs+canyons)*ruggedness*landing+
    (dunes+ripples)*landing+impacts)*falloff;

@@ -20,5 +20,9 @@ assert.ok(craterHeight(0,20)<0);
 assert.ok(craterHeight(20,20)>0);
 assert.equal(craterHeight(30,20),0);
 for(const c of craters){assert.ok(Math.hypot(c.x,c.z)-1.5*c.radius>9);assert.ok(Number.isFinite(localRelief(c.x,c.z)));}
-for(let i=0;i<1000;i++){const x=Math.sin(i)*1600,z=Math.cos(i*.7)*1600;assert.ok(Math.abs(localRelief(x,z))<20);}
+for(let i=0;i<1000;i++){
+ const x=Math.sin(i)*1600,z=Math.cos(i*.7)*1600;
+ assert.ok(Math.abs(localRelief(x,z))<40,'rounded highlands stay within local metre-scale relief');
+ assert.ok(Math.abs(localRelief(x+.05,z)-localRelief(x-.05,z))<.15,'highland slopes stay gradual');
+}
 console.log('Passed: physical scale, equipment ratio, complete globe rings, crater bowls/rims, clear landing pad, and bounded local relief.');

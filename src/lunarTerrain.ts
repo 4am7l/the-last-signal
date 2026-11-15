@@ -9,10 +9,10 @@ const smooth = (a:number,b:number,x:number) => {const t=Math.max(0,Math.min(1,(x
 // Low mare basalt plains around Apollo 11, with small softened impact
 // craters and distant rolling regolith. This is illustrative microterrain,
 // not a metre-accurate Apollo site survey.
-export const craters=Array.from({length:28},(_,i)=>{
+export const craters=Array.from({length:44},(_,i)=>{
  const angle=i*2.399963229728653+.25*Math.sin(i*1.7);
- const distance=i<7?145+i*101:36+Math.pow((i-6)/22,1.18)*1010;
- const radius=i<7?25+(i*19%62):4+(i*11%21);
+ const distance=i<7?145+i*101:42+Math.pow((i-6)/38,1.18)*1010;
+ const radius=i<7?25+(i*19%62):3+(i*11%17);
  return {x:Math.cos(angle)*distance,z:Math.sin(angle)*distance,radius};
 });
 export function craterHeight(distance:number,radius:number){
@@ -30,7 +30,18 @@ export function localRelief(x:number,z:number){
  // Wide, broad shouldered rises, not pointed mountain cones.
  const broad=(noise3(x*.006,19,z*.006)-moonNoiseOrigin)*2.35+
   (noise3(x*.021,37,z*.021)-fineNoiseOrigin)*.51;
- const ridge=(noise3(x*.0035,53,z*.0035)-ridgeOrigin)*4.2;
+ const ridge=(noise3(x*.0035,53,z*.0035)-ridgeOrigin)*6.2;
+ // Overlapping tilted elliptical shoulders give low, rounded highlands.
+ // A separate fade preserves the quiet mare at the lander and the globe seam.
+ let highlands=0;
+ for(let i=0;i<5;i++){
+  const a=i*2.399963+.7,r=420+i*155;
+  const dx=x-Math.cos(a)*r,dz=z-Math.sin(a)*r;
+  const u=dx*Math.cos(a+.5)+dz*Math.sin(a+.5);
+  const v=-dx*Math.sin(a+.5)+dz*Math.cos(a+.5);
+  highlands+=(14+i*2.5)*Math.exp(-(u*u/(190*190)+v*v/(310*310)));
+ }
+ highlands*=smooth(90,300,d);
  const shoulder=(Math.exp(-((x-215)**2/(2*180**2)+(z+110)**2/(2*260**2)))-
   Math.exp(-((215)**2/(2*180**2)+(110)**2/(2*260**2))))*2.9;
  const smallRubble=(noise3(x*.095,67,z*.095)-rubbleOrigin)*.075;
@@ -39,7 +50,7 @@ export function localRelief(x:number,z:number){
   const dx=x-c.x,dz=z-c.z,range=c.radius*1.5;
   if(Math.abs(dx)<range&&Math.abs(dz)<range)impacts+=craterHeight(Math.hypot(dx,dz),c.radius);
  }
- return (broad+ridge+shoulder+smallRubble+impacts)*pad*edge;
+ return (broad+ridge+highlands+shoulder+smallRubble+impacts)*pad*edge;
 }
 // Preserve fine rings at the equipment AND adequate coverage on the far hemisphere.
 export function ringAngle(index:number,nearRings=160,farRings=320,radiusMetres=MOON_RADIUS_METRES){

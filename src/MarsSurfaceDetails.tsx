@@ -2,6 +2,7 @@ import {useEffect,useMemo} from 'react';
 import * as T from 'three';
 import {marsApproachMask,marsCraterField,marsSiteSeed,marsRoverRoadPoint,marsRoverRoadYaw,marsRoverRoadClearance} from './marsGeology';
 import {noise3} from './sceneMath';
+import {stoneMaterial} from './stoneMaterial';
 
 // Distinct, high-detail eroded rock shapes rather than a few low-poly icosahedrons.
 // These are site-seeded illustrative formations, not surveyed NASA rock meshes.
@@ -59,19 +60,6 @@ function rockGeometry(shape:RockShape,variant:number){
  geo.computeBoundingBox();
  return geo;
 }
-function rockMaterial(){
- const mat=new T.MeshStandardMaterial({color:'#ffffff',vertexColors:true,roughness:1,metalness:0});
- mat.onBeforeCompile=shader=>{
-  shader.vertexShader='varying vec3 vStone;\n'+shader.vertexShader.replace(
-   '#include <begin_vertex>','#include <begin_vertex>\nvStone=position;');
-  shader.fragmentShader='varying vec3 vStone;\n'+shader.fragmentShader.replace(
-   '#include <color_fragment>',
-   '#include <color_fragment>\nfloat coarseSpeck=fract(sin(dot(floor(vStone*41.),vec3(18.93,74.37,31.73)))*43758.54)-.5;\nfloat fineSpeck=fract(sin(dot(floor(vStone*140.),vec3(12.41,92.78,48.93)))*12542.19)-.5;\nfloat darkGrain=step(.30,coarseSpeck);\ndiffuseColor.rgb*=1.+coarseSpeck*.14+fineSpeck*.085-darkGrain*.07;');
- };
- mat.customProgramCacheKey=()=> 'mars-rock-mottled-v4';
- return mat;
-}
-
 type PlacedRock={x:number;z:number;radius:number};
 // Support is measured under the *whole* intended footprint, not just the
 // rock centre. Distances are metres; ground() returns render-space elevation.
@@ -109,7 +97,7 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
   });
   const totals:Record<RockShape,number>={
    // The huge isolated monoliths looked like floating fantasy rocks. Terrain
-   // itself now carries the cliffs; site-scale debris stays below human scale.
+   // itself carries the cliffs; a limited set of larger boulders anchors outcrops.
    monolith:0,
    boulder:Math.max(155,Math.round(count*.32)),
    slab:Math.max(250,Math.round(count*.56)),
@@ -130,11 +118,12 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
     const extent=Math.max(
      Math.abs(bounds.min.x),Math.abs(bounds.max.x),
      Math.abs(bounds.min.z),Math.abs(bounds.max.z));
-    const material=rockMaterial();
+    const material=stoneMaterial();
     const mesh=new T.InstancedMesh(geometry,material,total);
     for(let i=0;i<total;i++){
-     const size=giant?5+Math.pow(rand(),1.5)*24:
-      shape==='boulder'?.15+Math.pow(rand(),2.25)*1.85:
+     const hero=shape==='boulder'&&i<3;
+     const size=hero?2.4+rand()*3.3:giant?5+Math.pow(rand(),1.5)*24:
+      shape==='boulder'?.18+Math.pow(rand(),2.25)*2.3:
       shape==='slab'?.08+Math.pow(rand(),2.2)*.96:
       .023+Math.pow(rand(),2.25)*.24;
      const ysize=size*(giant?.72+rand()*.40:.72+rand()*.48);
@@ -220,7 +209,7 @@ export function MarsRocks({ground,unit,clearance,count,lat,lon,landingRadius,sit
      dummy.updateMatrix();
      const lowest=lowestVertexAfterTransform(geometry,dummy.matrix);
      const support=fit??{mean:ground(x,z),spread:0};
-     // Embed the bottom 10–18% of the rock into local terrain, also accounting
+     // Embed the bottom 10â€“18% of the rock into local terrain, also accounting
      // for the mild slope across the entire footprint.
      // Sink an irregular lower band into the regolith, not just one pointed
      // vertex touching the surface. This avoids apparently hovering stones.
