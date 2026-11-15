@@ -29,6 +29,9 @@
   transform: none;
 }
 
+.exploration-page.fullscreen-explorer .universe.overview { background: #fff; }
+:root[data-theme="dark"] .exploration-page.fullscreen-explorer .universe.overview { background: #000; }
+
 .fullscreen-explorer .universe .error {
   z-index: 15;
   white-space: normal;
@@ -237,7 +240,6 @@
 
 @media (max-width: 850px) {
   .fullscreen-explorer .fullscreen-toolbar { --explorer-gap: 8px; }
-  .fullscreen-explorer .theme-toggle__label { display: none; }
   .fullscreen-explorer .theme-toggle { width: 44px; padding: 8px; }
   .fullscreen-explorer .planet .welcome {
     width: max-content;

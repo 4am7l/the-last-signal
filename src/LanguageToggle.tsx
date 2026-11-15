@@ -11,7 +11,7 @@ export function LanguageToggle({ onToggle }: { onToggle: () => void }) {
       aria-label={t("Switch to English", "التبديل إلى العربية")}
       lang={language === "en" ? "ar" : "en"}
     >
-      {t("EN", "عربي")}
+      {t("EN", "AR")}
     </button>
   );
 }

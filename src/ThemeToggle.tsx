@@ -57,7 +57,7 @@ export function ThemeToggle() {
   return (
     <button
       type="button"
-      className="theme-toggle"
+      className="theme-toggle theme-toggle--icon"
       aria-label={dark ? t("فعّل الوضع الفاتح", "Switch to light mode") : t("فعّل الوضع الداكن", "Switch to dark mode")}
       title={dark ? t("الوضع الفاتح", "Light mode") : t("الوضع الداكن", "Dark mode")}
       aria-pressed={dark}
@@ -66,7 +66,6 @@ export function ThemeToggle() {
       <span className="material-symbols-rounded" aria-hidden="true">
         {dark ? "light_mode" : "dark_mode"}
       </span>
-      <span className="theme-toggle__label">{dark ? t("فاتح", "Light") : t("داكن", "Dark")}</span>
     </button>
   );
 }

@@ -152,6 +152,7 @@ img { max-width: 100%; }
   white-space: nowrap;
 }
 .theme-toggle:hover, .source-link:hover { background: var(--md-sys-color-secondary-container); color: var(--ink); }
+.theme-toggle--icon { width: 44px; height: 44px; padding: 0; }
 .theme-toggle .material-symbols-rounded { font-size: 21px; }
 .signal-mark i, .pulse-dot, .arrival-line { background: var(--accent); box-shadow: none; }
 
@@ -525,7 +526,6 @@ select, input[type=search], input[type=date] {
   .site-header nav a { flex: 0 0 auto; padding: 9px 14px; white-space: nowrap; }
   .source-link { font-size: 0; width: 46px; padding: 10px; }
   .source-link svg { width: 19px; height: 19px; }
-  .theme-toggle__label { display: none; }
   .theme-toggle { width: 46px; padding: 9px; }
 }
 @media (max-width: 850px) {
