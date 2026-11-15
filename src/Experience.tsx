@@ -155,15 +155,18 @@ export function Home() {
         </a>
       </section>
       <ScienceIntroduction />
-      <section className="page-section">
-        <div className="section-heading">
+      <section className="page-section destinations-section" aria-labelledby="destinations-title">
+        <div className="section-heading destinations-heading">
           <div>
-            <div className="kicker">02 / الموقع الجغرافي</div>
-            <h2>أين توجد هذه المعدات؟</h2>
+            <div className="kicker destinations-kicker">
+              <span className="material-symbols-rounded" aria-hidden="true">travel_explore</span>
+              02 / أطلس المواقع العلمية
+            </div>
+            <h2 id="destinations-title">أين توجد هذه المعدات؟</h2>
           </div>
           <p>
-            ابدأ من المدار، اختر علامة المهمة، ثم اقترب حتى تصل إلى المعدات على
-            السطح.
+            لكل معدّة مكان وقصة. اختَر القمر أو المريخ، ثم انتقل من المدار إلى
+            موقع المهمة داخل المحاكاة.
           </p>
         </div>
         <div className="destinations">
@@ -173,35 +176,50 @@ export function Home() {
               title: "القمر",
               en: "THE MOON",
               id: "apollo",
-              text: "موقع أبولو 11 ومعدات الهبوط على سطح القمر.",
+              text: "تعرّف إلى موقع أبولو 11 والمعدات التي بقيت على سطح القمر.",
               img: "apollo",
+              count: "مهمة واحدة",
+              icon: "brightness_2",
             },
             {
               body: "mars",
               title: "المريخ",
               en: "MARS",
               id: "opportunity",
-              text: "عربات ومسبار ثابت ومروحية في مواقع مختلفة.",
+              text: "استكشف مواقع العربات والمسبار الثابت والمروحية على المريخ.",
               img: "opportunity",
+              count: "أربع مهمات",
+              icon: "public",
             },
           ].map((d) => (
             <a
-              className={`destination ${d.body}`}
+              className={`destination destination--expressive ${d.body}`}
               href={exploreHref(d.id, "planet")}
               key={d.body}
             >
-              <img src={`/photos/${d.img}.jpg`} alt="" loading="lazy" />
-              <div>
-                <span>{d.en}</span>
-                <h3>{d.title}</h3>
-                <p>{d.text}</p>
-                <b>
-                  ابدأ الاستكشاف <Arrow />
-                </b>
+              <div className="destination__media">
+                <img
+                  src={`/photos/${d.img}.jpg`}
+                  alt={`صورة أرشيفية توثق مهمة على ${d.title} — NASA`}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <span className="destination__media-icon material-symbols-rounded" aria-hidden="true">
+                  {d.icon}
+                </span>
               </div>
-              <small>
-                {d.body === "moon" ? "01 مهمة" : "04 مهمات"} / أطلس المواقع
-              </small>
+              <div className="destination__content">
+                <span className="destination__overline">{d.en} / NASA MISSIONS</span>
+                <div className="destination__title-row">
+                  <h3>{d.title}</h3>
+                  <span className="destination__count">{d.count}</span>
+                </div>
+                <p>{d.text}</p>
+                <span className="destination__cta">
+                  استكشف المواقع
+                  <span className="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+                </span>
+              </div>
             </a>
           ))}
         </div>
