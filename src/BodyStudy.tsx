@@ -10,7 +10,7 @@ export function BodyStudy({
   body,
   reset,
 }: {
-  body: "earth" | "moon" | "mars";
+  body: "moon" | "mars";
   reset: number;
 }) {
   const { camera, scene } = useThree();
