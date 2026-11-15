@@ -32,15 +32,28 @@ test("Theme control exposes accessible toggling and follows the visitor preferen
   assert.match(index, /Material\+Symbols\+Rounded/);
 });
 
-test("the empty archive and explorer do not load the removed mission media", () => {
+test("NASA galleries exist across editorial routes and the explorer", () => {
   const editorial = file("src/Experience.tsx");
   const explorer = file("src/main.tsx");
-  const space = file("src/Space.tsx");
   assert.match(editorial, /<ThemeToggle\s*\/>/);
-  assert.match(editorial, /The archive is currently empty/);
-  for (const source of [editorial, explorer, space]) {
-    assert.doesNotMatch(source, /NasaGallery|\/photos\/|\/models\/|useGLTF/);
+  assert.match(editorial, /<NasaGallery mission="apollo"/);
+  assert.match(editorial, /<NasaGallery mission="insight"/);
+  assert.match(editorial, /<NasaGallery mission=\{chosen\.id\}/);
+  assert.match(explorer, /<NasaGallery mission=\{m\.id\}/);
+});
+
+test("NASA media endpoints are restricted to official hosts and lazy high-res requests", () => {
+  const search = file("functions/api/nasa-gallery.ts");
+  const asset = file("functions/api/nasa-asset.ts");
+  const gallery = file("src/NasaGallery.tsx");
+  for (const id of ["apollo", "spirit", "opportunity", "insight", "ingenuity"]) {
+    assert.ok(search.includes(id + ":"), "Missing NASA mission " + id);
   }
+  assert.match(search, /hostname\.endsWith\("\.nasa\.gov"\)/);
+  assert.match(asset, /hostname\.endsWith\("\.nasa\.gov"\)/);
+  assert.match(gallery, /IntersectionObserver/);
+  assert.match(gallery, /nasa-asset\?id=/);
+  assert.match(gallery, /loading=\{index > 1 \? "lazy" : "eager"\}/);
 });
 
 test("The local Samsung font supplies Arabic and English text while Material icons keep their font", () => {
@@ -61,13 +74,15 @@ test("The local Samsung font supplies Arabic and English text while Material ico
   assert.match(polish, /\.destinations-heading/);
   assert.match(polish, /\.destination--expressive/);
   assert.match(polish, /--tls-shape-card:/);
-  assert.ok(entry.includes('import "./expressive-polish.css";'));
+  assert.ok(entry.indexOf('import "./expressive-polish.css";') > entry.indexOf('import "./nasa-gallery.css";'));
 });
 
 test("Moon and Mars destination cards retain functional exploration links", () => {
   const page = file("src/Experience.tsx");
   assert.match(page, /aria-labelledby="destinations-title"/);
-  assert.match(page, /id="destinations-title"/);
+  assert.match(page, /id="destinations-title">\{t\("أين توجد هذه المعدات؟", "Where is the equipment\?"/);
   assert.match(page, /destination--expressive/);
-  assert.match(page, /href=\{exploreHref\(body\)\}/);
+  assert.match(page, /href=\{exploreHref\(d\.id, "planet"\)\}/);
+  assert.match(page, /destination__media/);
+  assert.match(page, /destination__cta/);
 });

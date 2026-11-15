@@ -12,7 +12,7 @@ test("only Moon and Mars can be selected or rendered", () => {
   const space = file("src/Space.tsx");
   const surface = file("src/SurfaceWorld.tsx");
 
-  assert.match(main, /body=\{body\}/);
+  assert.match(main, /overviewBody=\{m\.body\}/);
   assert.doesNotMatch(main, /\["earth", "الأرض"\]/);
   assert.doesNotMatch(main, /overviewBody === "earth"/);
   assert.match(body, /body: "moon" \| "mars"/);
@@ -30,8 +30,9 @@ test("loader waits for the current scene assets and first visible render frames"
   const main = file("src/main.tsx");
   assert.match(space, /function SceneAssetsGate/);
   assert.match(space, /useLoader\(T.TextureLoader, body === "mars" \? "\/mars-nasa-viking.jpg" : "\/moon.jpg"\)/);
-  assert.match(space, /frames\.current === 2/);
-  assert.match(space, /onReady\(sceneKey\)/);
+  assert.match(space, /useGLTF\(\x60\/models\/\$\{props\.m\.model\}\.glb\x60\)/);
+  assert.match(space, /frames\.current >= 2/);
+  assert.match(space, /onReady\?\.\(sceneKey\)/);
   assert.match(main, /readySceneKey !== sceneKey/);
   assert.match(main, /<PlanetLoadingIndicator key=\{sceneKey\}/);
   assert.match(main, /aria-busy=\{sceneLoading\}/);
