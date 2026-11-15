@@ -34,6 +34,8 @@ export function NasaGallery({
   const [open, setOpen] = useState<NasaPhoto | null>(null);
   const [fullImage, setFullImage] = useState<string | null>(null);
   const ref = useRef<HTMLElement | null>(null);
+  const lastTrigger = useRef<HTMLButtonElement | null>(null);
+  const lightboxRef = useRef<HTMLDivElement | null>(null);
   const heading = useId();
 
   useEffect(() => {
@@ -103,12 +105,39 @@ export function NasaGallery({
   }, [open]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      // Return keyboard users to the photo they were viewing.
+      lastTrigger.current?.focus({ preventScroll: true });
+      return;
+    }
+    const oldOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(null);
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setOpen(null);
+      }
+      if (event.key === "Tab") {
+        const focusables = lightboxRef.current?.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+        );
+        if (!focusables?.length) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
     };
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      document.body.style.overflow = oldOverflow;
+    };
   }, [open]);
 
   return (
@@ -149,7 +178,10 @@ export function NasaGallery({
               <button
                 className="nasa-photo-card__open"
                 type="button"
-                onClick={() => setOpen(photo)}
+                onClick={(event) => {
+                  lastTrigger.current = event.currentTarget;
+                  setOpen(photo);
+                }}
                 aria-label={"تكبير صورة: " + photo.title}
               >
                 <img
@@ -195,7 +227,7 @@ export function NasaGallery({
             onClick={() => setOpen(null)}
             aria-label="إغلاق عرض الصورة"
           />
-          <div className="nasa-lightbox__content">
+          <div className="nasa-lightbox__content" ref={lightboxRef}>
             <button className="nasa-lightbox__close" type="button" onClick={() => setOpen(null)} autoFocus>
               <span className="material-symbols-rounded" aria-hidden="true">close</span>
               إغلاق
