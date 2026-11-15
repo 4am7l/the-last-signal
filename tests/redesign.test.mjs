@@ -77,12 +77,15 @@ test("The local Samsung font supplies Arabic and English text while Material ico
   assert.ok(entry.indexOf('import "./expressive-polish.css";') > entry.indexOf('import "./nasa-gallery.css";'));
 });
 
-test("Moon and Mars destination cards retain functional exploration links", () => {
+test("Moon and Mars cards disclose equipment in place before linking to the selected simulation", () => {
   const page = file("src/Experience.tsx");
   assert.match(page, /aria-labelledby="destinations-title"/);
   assert.match(page, /id="destinations-title">\{t\("أين توجد هذه المعدات؟", "Where is the equipment\?"/);
   assert.match(page, /destination--expressive/);
-  assert.match(page, /href=\{exploreHref\(d\.id, "planet"\)\}/);
+  assert.match(page, /aria-controls="destination-equipment"/);
+  assert.match(page, /mission\.body === body/);
+  assert.match(page, /aria-controls="destination-mission-details"/);
+  assert.match(page, /href=\{exploreHref\(selected\.id, "location"\)\}/);
   assert.match(page, /destination__media/);
   assert.match(page, /destination__cta/);
 });

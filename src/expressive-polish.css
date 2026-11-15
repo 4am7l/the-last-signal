@@ -247,7 +247,7 @@ input[type="search"], input[type="date"], select, textarea,
   justify-content: space-between;
   margin: 0 0 2px;
 }
-.destination--expressive h3 {
+.destination--expressive .destination__title {
   font-size: clamp(30px, 3vw, 43px);
   font-weight: 700 !important;
   color: var(--md-sys-color-on-surface);
@@ -260,7 +260,7 @@ input[type="search"], input[type="date"], select, textarea,
   font-size: 13px;
   color: var(--muted);
 }
-.destination--expressive p {
+.destination--expressive .destination__description {
   max-width: 55ch;
   margin: 10px 0 19px;
   font-size: 14px;
@@ -292,8 +292,108 @@ input[type="search"], input[type="date"], select, textarea,
   background: var(--md-sys-color-primary);
   color: var(--md-sys-color-on-primary);
 }
-.destination--expressive:hover .destination__cta > .material-symbols-rounded {
-  transform: translateX(-3px);
+.destination--expressive[aria-expanded="true"] {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.destination--expressive[aria-expanded="true"] .destination__cta > .material-symbols-rounded {
+  transform: rotate(180deg);
+}
+
+.destination-equipment {
+  margin-block-start: 22px;
+  padding: clamp(16px, 3vw, 30px);
+  border: 1px solid var(--line);
+  border-radius: var(--tls-shape-card);
+  background: var(--surface);
+}
+.destination-equipment h3 {
+  margin: 0 0 16px;
+  font-size: clamp(22px, 2.6vw, 30px);
+}
+.destination-equipment :is(h3, h4) { scroll-margin-block-start: 92px; }
+.destination-equipment__layout {
+  display: grid;
+  gap: 16px;
+}
+.destination-equipment__layout.has-selection {
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 1.6fr);
+}
+.destination-missions {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.destination-missions button {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 12px 7px 7px;
+  padding-inline: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--tls-shape-field);
+  background: var(--paper);
+  color: var(--ink);
+  text-align: start;
+}
+.destination-missions button:is(:hover, :focus-visible, [aria-expanded="true"]) {
+  border-color: var(--accent);
+  background: var(--md-sys-color-primary-container);
+  color: var(--md-sys-color-on-primary-container);
+}
+.destination-missions img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.destination-missions small {
+  display: block;
+  margin-block-start: 4px;
+  font-weight: 400;
+}
+.destination-mission {
+  padding: clamp(14px, 2.5vw, 24px);
+  border: 1px solid var(--line);
+  border-radius: var(--tls-shape-field);
+  background: var(--paper);
+}
+.destination-mission__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.destination-mission h4 {
+  margin: 0;
+  font-size: clamp(20px, 2.4vw, 28px);
+}
+.destination-mission__close {
+  display: grid;
+  place-items: center;
+  flex: 0 0 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--md-sys-color-surface-container-high);
+  color: var(--ink);
+}
+.destination-mission__site { color: var(--muted); }
+@media (min-width: 761px) {
+  .destination-equipment__layout:not(.has-selection) .destination-missions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 760px) {
+  .destination-equipment__layout.has-selection { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .destination-equipment:not([hidden]), .destination-mission {
+    animation: panel-enter 260ms var(--md-sys-motion-easing) both;
+  }
 }
 
 /* Use ruled sections for reading and reserve filled surfaces for controls. */
@@ -334,7 +434,7 @@ input[type="search"], input[type="date"], select, textarea,
   }
   .destination--expressive.mars > .destination__media { border-radius: var(--tls-shape-media); }
   .destination--expressive > .destination__content { padding: 16px 13px 14px; }
-  .destination--expressive h3 { font-size: 32px; }
+  .destination--expressive .destination__title { font-size: 32px; }
   .destination--expressive .destination__cta { width: 100%; }
   .hero-copy h1 { font-size: clamp(34px, 8vw, 46px); }
   .page-intro h1 { font-size: clamp(33px, 8vw, 48px); }
