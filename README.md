@@ -21,7 +21,7 @@
 - تحميل كل أصل منفصلاً حتى لا يختفي المشهد بالكامل أثناء تحميل مجسّم.
 
 ## تحديث أطلس الكواكب
-خرائط ناسا للقمر، ارتفاعات LOLA، غلاف جوي بصري للمريخ والأرض وغيوم أرضية، 12 ألف نجمة، وعلامات بإحداثيات الهبوط مع إخفائها خلف الجرم. اختيار الموقع ثم زر النزول يفتح المعدات وسط تضاريس ممتدة 24 كم بدلاً من المنصة السابقة. لا يمثل هذا انتقال LOD جغرافي متصلاً أو مسحاً حقيقياً للتضاريس المحلية.
+يتيح الأطلس الآن **القمر والمريخ فقط**؛ أزيلت الأرض ومجسّمها وملفات خامتها السحابية. تُعرض خرائط الكواكب وارتفاعات القمر وغلاف المريخ مع علامات مواقع الهبوط. عند اختيار جرم أو مهمة جديدة يظهر مؤشر تحميل بأسلوب Material 3 Expressive إلى أن تُحمّل الخرائط ومجسّم المهمة وتُرسم الإطارات الأولى؛ لا يعتمد الاختفاء على عدّاد وهمي. قد تستمر التحسينات الاختيارية للصور والتضاريس بعد ظهور المشهد. الحفر والصخور المحلية إعادة بناء تعليمية وليست مسحًا دقيقًا.
 
 التفاصيل والمقارنة بين المكتبات ومصادر الأصول في [وثيقة البنية](docs/PLANET-ARCHITECTURE.md).
 
@@ -38,7 +38,8 @@
 https://www.jpl.nasa.gov/news/press_kits/merlandings.pdf
 https://www.jpl.nasa.gov/news/press_kits/insight/landing/mission/spacecraft/
 https://www.jpl.nasa.gov/news/press_kits/ingenuity/landing/mission/spacecraft/
-المريخ والأرض: Solar System Scope — CC BY 4.0.
-https://www.solarsystemscope.com/textures/
-القمر: NASA CGI Moon Kit / LROC / LOLA. الغيوم: NASA Blue Marble.
+المريخ: NASA/JPL-Caltech/USGS Viking planetary mosaic.
+https://science.nasa.gov/3d-resources/mars/
+القمر: NASA CGI Moon Kit / LROC / LOLA.
+https://svs.gsfc.nasa.gov/4720/
 الصور والمجسمات الأصلية: NASA/JPL، الاعتمادات في الواجهة.
