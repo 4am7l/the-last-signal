@@ -91,6 +91,12 @@ const homeMissions = [{
 export function Home() {
   const t = useExplorerText();
   const cover = eagleImages[0];
+  const formatCount = new Intl.NumberFormat(useLanguage() === "ar" ? "ar-JO" : "en");
+  const counts = [
+    [t("وجهات المحاكاة", "Destinations"), destinations.length],
+    [t("المهمات في الأرشيف", "Archived missions"), homeMissions.length],
+    [t("الصور والرسوم", "Photos and diagrams"), homeMissions.reduce((total, mission) => total + mission.images.length, 0)],
+  ] as const;
   return (
     <main id="main-content" className="editorial-page" tabIndex={-1}>
       <section className="signal-hero">
@@ -101,7 +107,7 @@ export function Home() {
             <a className="action action-solid" href="#/explore">
               {t("افتح المحاكاة", "Open simulation")} <Arrow />
             </a>
-            <a className="text-link" href="#/archive">{t("أرشيف المهمات", "Mission archive")}</a>
+            <a className="action action-line home-action" href="#/archive">{t("أرشيف المهمات", "Mission archive")}</a>
           </div>
         </div>
         <figure className="hero-figure">
@@ -111,6 +117,19 @@ export function Home() {
             <a href={cover.source} target="_blank" rel="noreferrer">NASA · {cover.id} <Arrow /></a>
           </figcaption>
         </figure>
+      </section>
+      <section className="page-section home-stat-section" aria-labelledby="home-counts-title">
+        <div className="section-heading">
+          <h2 id="home-counts-title">{t("المشروع بالأرقام", "Project in numbers")}</h2>
+        </div>
+        <dl className="home-stats">
+          {counts.map(([label, count]) => (
+            <div key={label}>
+              <dt>{label}</dt>
+              <dd>{formatCount.format(count)}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
       <section className="page-section destinations-section" aria-labelledby="destinations-title">
         <div className="section-heading destinations-heading">
@@ -133,7 +152,7 @@ export function Home() {
                     <a href={exploreHref(body)} aria-label={t("افتح المعاينة", "Open preview") + " · " + bodyLabel}><Arrow /></a>
                   </div>
                   {bodyCover && (
-                    <a className="text-link" href={bodyCover.source} target="_blank" rel="noreferrer">NASA · {bodyCover.id}</a>
+                    <a className="home-source-link" href={bodyCover.source} target="_blank" rel="noreferrer">NASA · {bodyCover.id}</a>
                   )}
                   {missions.length > 0 && (
                     <ul className="eagle-mission-list">
@@ -149,7 +168,7 @@ export function Home() {
       <section className="page-section featured-section" aria-labelledby="home-missions-title">
         <div className="section-heading">
           <h2 id="home-missions-title">{t("من أرشيف المهمات", "From the mission archive")}</h2>
-          <a className="text-link" href="#/archive">{t("الأرشيف الكامل", "Full archive")} <Arrow /></a>
+          <a className="action action-line home-action" href="#/archive">{t("الأرشيف الكامل", "Full archive")} <Arrow /></a>
         </div>
         {homeMissions.map((mission) => (
           <article className="home-mission" key={mission.id}>
@@ -158,12 +177,34 @@ export function Home() {
               <p>{t(...mission.intro)}</p>
               <div className="hero-actions">
                 <a className="action action-solid" href={mission.simulationHref}>{t("شغّل المحاكاة", "Open simulation")} <Arrow /></a>
-                <a className="text-link" href={mission.catalog} target="_blank" rel="noreferrer">{t("سجل المهمة · ناسا", "Mission record · NASA")} <Arrow /></a>
+                <a className="action action-line home-action" href={mission.catalog} target="_blank" rel="noreferrer">{t("سجل المهمة · ناسا", "Mission record · NASA")} <Arrow /></a>
               </div>
             </header>
             <EagleGallery images={mission.images} />
           </article>
         ))}
+      </section>
+      <section className="page-section home-stat-section home-apollo-facts" aria-labelledby="home-apollo-facts-title">
+        <div className="section-heading">
+          <h2 id="home-apollo-facts-title">{t("أبولو 11 بالأرقام", "Apollo 11 in numbers")}</h2>
+        </div>
+        <dl className="home-stats">
+          <div>
+            <dt>{t("وقت هبوط إيغل", "Eagle touchdown time")}</dt>
+            <dd><time dateTime="1969-07-20T20:17:40Z"><bdi>20:17:40 UTC</bdi></time></dd>
+            <a className="home-source-link" href={eagle.missionSource} target="_blank" rel="noreferrer">NASA NSSDCA <Arrow /></a>
+          </div>
+          <div>
+            <dt>{t("عينات القمر اللي رجعت للأرض", "Lunar samples returned")}</dt>
+            <dd><bdi>{formatCount.format(21.55)} {t("كغ", "kg")}</bdi></dd>
+            <a className="home-source-link" href="https://nssdc.gsfc.nasa.gov/planetary/lunar/apolloland.html" target="_blank" rel="noreferrer">NASA NSSDCA <Arrow /></a>
+          </div>
+          <div>
+            <dt>{t("المسافة بين قدمي هبوط متقابلتين", "Span across opposite landing pads")}</dt>
+            <dd><bdi>{formatCount.format(eagle.footpadSpan)} {t("م", "m")}</bdi></dd>
+            <a className="home-source-link" href={eagle.catalog} target="_blank" rel="noreferrer">NASA NSSDCA <Arrow /></a>
+          </div>
+        </dl>
       </section>
     </main>
   );

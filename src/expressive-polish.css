@@ -336,3 +336,56 @@ input[type="search"], input[type="date"], select, textarea,
     transform: none !important;
   }
 }
+
+.editorial-page .home-action,
+.editorial-page .home-mission .hero-actions > .action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  gap: 8px;
+  min-height: 44px;
+  padding: 8px 16px;
+  line-height: 1.3;
+  text-align: center;
+}
+.editorial-page .home-action svg,
+.editorial-page .home-source-link svg {
+  flex: none;
+  width: 14px;
+  height: 14px;
+}
+.home-source-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--md-sys-color-primary);
+  text-underline-offset: .22em;
+  text-decoration: underline;
+  font-size: .875rem;
+}
+.home-stat-section { padding-block: clamp(20px, 3vw, 36px); }
+.home-apollo-facts { padding-block-end: clamp(32px, 5vw, 64px); }
+.home-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.home-stats > div {
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: clamp(14px, 2.5vw, 24px);
+  border: 1px solid var(--md-sys-color-outline-variant);
+  border-radius: var(--tls-shape-card);
+  background: var(--md-sys-color-surface-container-low);
+}
+.home-stats dt { color: var(--md-sys-color-on-surface-variant); }
+.home-stats dd {
+  margin: 0;
+  color: var(--md-sys-color-on-surface);
+  font-size: clamp(1.3rem, 2.6vw, 2rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
