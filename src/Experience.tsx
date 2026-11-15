@@ -189,7 +189,7 @@ export function Home() {
               text: "استكشف مواقع العربات والمسبار الثابت والمروحية على المريخ.",
               img: "opportunity",
               count: "أربع مهمات",
-              icon: "public",
+              icon: "travel_explore",
             },
           ].map((d) => (
             <a
@@ -200,7 +200,7 @@ export function Home() {
               <div className="destination__media">
                 <img
                   src={`/photos/${d.img}.jpg`}
-                  alt={`صورة أرشيفية توثق مهمة على ${d.title} — NASA`}
+                  alt={`مادة بصرية مرتبطة بمهمة على ${d.title} — NASA`}
                   loading="lazy"
                   decoding="async"
                 />
