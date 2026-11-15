@@ -29,7 +29,8 @@ test("Theme control exposes accessible toggling and follows the visitor preferen
   assert.match(toggle, /aria-pressed=\{dark\}/);
   assert.match(toggle, /localStorage\.setItem\("tls-theme", next\)/);
   assert.match(toggle, /prefers-color-scheme: dark/);
-  assert.match(index, /Material\+Symbols\+Rounded/);
+  assert.match(toggle, /<Icon name=/);
+  assert.doesNotMatch(index, /Material\+Symbols\+Rounded/);
 });
 
 test("NASA galleries exist across editorial routes and the explorer", () => {
@@ -61,8 +62,12 @@ test("Scientific typography loads once and applies heavy bilingual headings", ()
   const legacy = file("src/science-theme.css");
   const polish = file("src/expressive-polish.css");
   const entry = file("src/main.tsx");
-  assert.match(index, /IBM\+Plex\+Sans\+Arabic/);
-  assert.match(index, /Space\+Grotesk/);
+  const fonts = file("src/fonts.css");
+  assert.match(fonts, /IBM Plex Sans Arabic/);
+  assert.match(fonts, /Space Grotesk/);
+  assert.match(fonts, /format\("woff2"\)/);
+  assert.match(entry, /import "\.\/fonts\.css"/);
+  assert.doesNotMatch(index, /fonts\.googleapis/);
   assert.doesNotMatch(legacy, /@import url\("https:\/\/fonts\.googleapis/);
   assert.match(polish, /--tls-title-weight:\s*700/);
   assert.match(polish, /\.destinations-heading/);
@@ -74,7 +79,7 @@ test("Scientific typography loads once and applies heavy bilingual headings", ()
 test("Moon and Mars destination cards retain functional exploration links", () => {
   const page = file("src/Experience.tsx");
   assert.match(page, /aria-labelledby="destinations-title"/);
-  assert.match(page, /id="destinations-title">أين توجد هذه المعدات؟/);
+  assert.match(page, /id="destinations-title">إلى أين نذهب اليوم؟/);
   assert.match(page, /destination--expressive/);
   assert.match(page, /href=\{exploreHref\(d\.id, "planet"\)\}/);
   assert.match(page, /destination__media/);

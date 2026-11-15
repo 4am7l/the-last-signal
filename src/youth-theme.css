@@ -1,0 +1,296 @@
+/* Shared colours and reading scale for explorers aged 8–16. */
+:root,
+:root[data-theme="light"] {
+  --md-sys-color-primary: #6242c2;
+  --md-sys-color-on-primary: #ffffff;
+  --md-sys-color-primary-container: #eae2ff;
+  --md-sys-color-on-primary-container: #402374;
+  --md-sys-color-secondary: #346b70;
+  --md-sys-color-secondary-container: #e1f2ee;
+  --md-sys-color-surface: #fcfaf7;
+  --md-sys-color-surface-container-low: #ffffff;
+  --md-sys-color-surface-container: #f1ecf8;
+  --md-sys-color-surface-container-high: #e9e2f2;
+  --md-sys-color-surface-container-highest: #dfd6ed;
+  --md-sys-color-on-surface: #29233f;
+  --md-sys-color-on-surface-variant: #625c71;
+  --md-sys-color-outline: #8d829e;
+  --md-sys-color-outline-variant: #e2dce9;
+  --youth-teal: #286b62;
+  --youth-orange: #a84722;
+  --youth-mint: #e1f2ee;
+  --youth-peach: #fff0e4;
+}
+
+:root[data-theme="dark"] {
+  --md-sys-color-primary: #cab6ff;
+  --md-sys-color-on-primary: #2e185c;
+  --md-sys-color-primary-container: #493475;
+  --md-sys-color-on-primary-container: #f0e7ff;
+  --md-sys-color-secondary: #9edbd0;
+  --md-sys-color-secondary-container: #243e3e;
+  --md-sys-color-surface: #181626;
+  --md-sys-color-surface-container-low: #211e33;
+  --md-sys-color-surface-container: #2c2640;
+  --md-sys-color-surface-container-high: #37304a;
+  --md-sys-color-surface-container-highest: #433951;
+  --md-sys-color-on-surface: #f6f0ff;
+  --md-sys-color-on-surface-variant: #cac1d8;
+  --md-sys-color-outline: #a99cbb;
+  --md-sys-color-outline-variant: #494059;
+  --youth-teal: #9edbd0;
+  --youth-orange: #ffb694;
+  --youth-mint: #243e3e;
+  --youth-peach: #41302e;
+}
+
+html { scroll-padding-top: 24px; }
+body { font-size: 16px; }
+button, input, select, summary { font-size: 15px; }
+.ui-icon { display: inline-block; flex: none; vertical-align: middle; }
+.adventure-tags .ui-icon { width: 18px; height: 18px; color: var(--youth-teal); }
+.destinations-kicker > .ui-icon { color: var(--accent); }
+.site-header {
+  max-width: 1320px;
+  margin: 18px auto 0;
+  padding: 16px 26px;
+  background: var(--surface);
+  box-shadow: none;
+  border-radius: 24px !important;
+}
+.site-header .brand { gap: 12px; font-size: 20px; }
+.site-header .brand small { letter-spacing: 0; font-size: 12px; font-weight: 400; }
+.site-header .signal-mark {
+  background: var(--md-sys-color-primary-container);
+  border-radius: 16px;
+  width: 48px;
+  height: 48px;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px;
+}
+.site-header nav a { font-size: 14px; padding-inline: 15px; }
+.source-link { font-size: 13px; }
+.action, .primary, .play { min-height: 52px; font-size: 16px; padding: 13px 24px; gap: 14px; }
+.action-solid { box-shadow: 0 5px 0 color-mix(in srgb, var(--accent) 55%, var(--ink)); }
+.action-solid:active { box-shadow: none; transform: translateY(3px); }
+.action-line { background: var(--surface); }
+.text-link { display: inline-flex; align-items: center; gap: 12px; padding: 10px 18px; font-size: 14px; }
+.kicker { letter-spacing: 0; font-size: 13px; font-weight: 600; color: var(--accent); }
+
+.adventure-hero {
+  max-width: 1320px;
+  margin: 26px auto 0;
+  padding: 16px 26px 30px;
+  display: grid;
+  grid-template-columns: 1fr 1.03fr;
+  gap: 30px;
+  align-items: center;
+}
+.adventure-hero .hero-copy { position: relative; inset: auto; width: 100%; max-width: 590px; padding: 0; }
+.adventure-eyebrow {
+  color: var(--youth-teal);
+  background: var(--youth-mint);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 15px;
+  border-radius: 30px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.adventure-eyebrow > span { font-size: 21px; line-height: 1; }
+.adventure-hero h1 { margin: 22px 0 16px; font-size: clamp(37px, 4.1vw, 61px); line-height: 1.48; }
+.adventure-hero h1 em { font-style: normal; color: var(--accent); }
+.adventure-hero .hero-copy > p { max-width: 47ch; margin: 0; font-size: 17px; line-height: 1.95; }
+.adventure-hero .hero-actions { margin-top: 26px; }
+.adventure-art { position: relative; margin: 0; min-width: 0; }
+.adventure-art img { display: block; width: 100%; height: auto; }
+.adventure-art figcaption { text-align: center; color: var(--muted); font-size: 11px; margin-top: 7px; }
+.adventure-tags { display: flex; flex-wrap: wrap; gap: 10px 20px; margin-top: 25px; color: var(--muted); font-size: 13px; }
+.adventure-tags span { display: inline-flex; gap: 6px; align-items: center; }
+.adventure-tags i { font-style: normal; font-size: 18px; color: var(--youth-teal); }
+.youth-home .mission-strip {
+  max-width: 1268px;
+  margin: 8px auto 12px;
+  padding: 23px 30px;
+  grid-template-columns: 1fr 1fr 1.4fr auto;
+  gap: 24px;
+  background: var(--surface);
+  border-radius: 24px !important;
+}
+.youth-home .mission-strip > div { gap: 16px; }
+.youth-home .mission-strip strong { font-size: 38px; font-weight: 700; color: var(--accent); }
+.youth-home .mission-strip > div:nth-child(2) strong { color: var(--youth-orange); }
+.youth-home .mission-strip > div:nth-child(3) strong { color: var(--youth-teal); font-size: 40px; }
+.youth-home .mission-strip span { font-size: 15px; font-weight: 600; }
+.youth-home .mission-strip small { font-size: 12px; font-weight: 400; }
+.youth-home .mission-strip a { font-size: 14px; min-height: 44px; display: inline-flex; align-items: center; gap: 10px; }
+.youth-home .page-section { max-width: 1320px; margin: 0 auto; padding: 52px 26px; }
+.youth-home .section-heading { margin-bottom: 24px; }
+.youth-home .section-heading h2 { font-size: clamp(28px, 3vw, 38px); margin-top: 10px; }
+.youth-home .destinations-heading { padding: 0; background: none; border: 0; border-radius: 0 !important; }
+.youth-home .destinations-kicker { min-height: 0; padding: 0; background: none; color: var(--accent); }
+.youth-home .destinations-heading > p { max-width: 380px; font-size: 15px; }
+.youth-home .destination.destination--expressive { border-radius: 28px !important; min-height: 0; padding: 10px; }
+.youth-home .destination__media, .youth-home .destination.mars > .destination__media { height: auto; aspect-ratio: 600/280; border-radius: 20px; }
+.youth-home .destination__media img { object-fit: cover; }
+.youth-home .destination__media-icon { display: none; }
+.youth-home .destination__content { padding: 18px 18px 12px; }
+.youth-home .destination__overline { font-family: var(--tls-font-ar) !important; letter-spacing: 0; font-size: 13px; color: var(--accent); }
+.youth-home .mars .destination__overline { color: var(--youth-orange); }
+.youth-home .destination__title-row { margin-top: 0; }
+.youth-home .destination h3 { font-size: 34px; }
+.youth-home .destination p { font-size: 15px; margin: 6px 0 18px; }
+.youth-home .destination__count { font-size: 13px; background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); border: 0; }
+.youth-home .mars .destination__count, .youth-home .mars .destination__cta { background: var(--youth-peach); color: var(--youth-orange); }
+.youth-home .destination__cta { width: 100%; min-height: 48px; font-size: 15px; }
+.youth-home .feature-card { border-radius: 25px !important; padding: 10px; }
+.youth-home .feature-image { height: 220px; border-radius: 18px !important; }
+.youth-home .feature-image img { border-radius: 18px !important; }
+.youth-home .feature-image > span { font-size: 12px; }
+.youth-home .feature-copy { padding: 16px 12px 10px; }
+.youth-home .feature-copy p { font-size: 15px; margin-bottom: 6px; }
+.youth-home .feature-copy h3 { font-size: 25px; }
+.youth-home .featured-section { padding-top: 15px; }
+
+.science-reading { gap: 22px; }
+.science-reading article { border-radius: 25px !important; padding: 26px; }
+.science-reading article:first-child { background: var(--youth-mint); }
+.science-reading article:nth-child(2) { background: var(--md-sys-color-primary-container); }
+.science-reading .reading-number { width: 45px; height: 45px; border-radius: 14px; background: var(--surface); display: inline-grid; place-items: center; font-size: 23px; }
+.science-reading h3 { font-size: 25px; margin: 15px 0 10px; }
+.science-reading p { font-size: 16px; line-height: 1.95; }
+.science-reading .reading-conclusion { font-size: 15px; background: var(--surface); border-radius: 18px !important; padding: 16px; }
+.science-reading a { font-size: 14px; display: inline-block; min-height: 44px; padding-block: 8px; }
+.science-reading details > p { margin-top: 10px; }
+.science-reading summary { color: var(--accent); }
+.reading-note { border-radius: 25px !important; padding: 26px; }
+.reading-note p { font-size: 16px; }
+.reading-note a { font-size: 14px; }
+.gallery-discovery { max-width: 1268px; margin: 0 auto 40px; background: var(--surface); border: 1px solid var(--line); border-radius: 24px; overflow: hidden; }
+.gallery-discovery > summary { padding: 22px 26px; font-size: 19px; }
+.gallery-discovery > summary > span:first-child { color: var(--accent); margin-inline-end: 8px; }
+.discovery-hint { font-size: 13px; color: var(--muted); margin-inline-start: 12px; font-weight: 400; }
+details > summary { cursor: pointer; min-height: 48px; padding: 10px 0; line-height: 1.8; }
+details[open] > summary { margin-bottom: 8px; }
+.mission-deep-dive, .mission-ending { margin: 20px 0; border: 1px solid var(--line); padding: 8px 18px; border-radius: 18px; background: var(--md-sys-color-surface-container); }
+.mission-deep-dive > summary, .mission-ending > summary { font-size: 16px; color: var(--accent); }
+.youth-home .closing-section { max-width: 1268px; margin: 0 auto 40px; padding: 46px 30px; background: #302654; border-color: #302654 !important; border-radius: 30px !important; }
+.youth-home .closing-section h2 { color: #fff6ec; font-size: clamp(26px, 3vw, 38px); margin: 15px 0; }
+.youth-home .closing-section .kicker { color: #b5e7d8; }
+.youth-home .closing-section > p { max-width: 64ch; color: #e0d6ee; font-size: 16px; margin: 0 auto 24px; }
+.youth-home .closing-section .action { background: #e0d5ff; color: #332653; border: 0; }
+
+.page-intro p { font-size: 17px; }
+.record-copy p, .dossier p, .mission-timeline p, .guide-steps p, .guide-notes p { font-size: 16px; line-height: 1.95; }
+.record-copy > small, .record-site, .record-year, .record-body, .photo-credit { font-size: 12px; }
+.record-read, .record-actions a { font-size: 14px; }
+.search-field, .sort-field, .results-line, .results-line small { font-size: 14px; }
+.search-field input, .sort-field select, .filter-group button { font-size: 15px; min-height: 48px; }
+.guide-steps > article { border-radius: 25px !important; }
+.guide-steps > article:nth-child(2n) { background: var(--youth-mint); }
+.guide-steps > article > span { background: var(--md-sys-color-primary-container); color: var(--md-sys-color-on-primary-container); border-radius: 16px; width: 52px; height: 52px; display: grid; place-items: center; font-size: 24px; flex: none; }
+.space-glossary { max-width: 1160px; margin: 0 auto 35px; padding: 0 26px; }
+.space-glossary h2 { font-size: 28px; }
+.space-glossary dl { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.space-glossary dl > div { border: 1px solid var(--line); border-radius: 20px; padding: 20px; background: var(--surface); }
+.space-glossary dt { color: var(--accent); font-weight: 700; font-size: 18px; }
+.space-glossary dd { margin: 8px 0 0; color: var(--muted); line-height: 1.9; font-size: 16px; }
+.explore-toolbar { font-size: 15px; }
+.explore-toolbar nav a { font-size: 14px; min-height: 44px; }
+.exploration-page .welcome p, .exploration-page .information p { font-size: 15px; line-height: 1.9; }
+.exploration-page .information small, .exploration-page .information .disclosure { font-size: 12px; line-height: 1.85; }
+.exploration-page .welcome .hint { font-size: 12px !important; }
+.exploration-page .welcome .eyebrow, .exploration-page .information .eyebrow { font-size: 12px; }
+.exploration-page .information a { font-size: 14px; }
+.exploration-page .missionList button { font-size: 14px; min-height: 48px; }
+.exploration-page .missionList small { font-size: 11px; }
+.exploration-page .tabs button { font-size: 15px; min-height: 48px; }
+.exploration-page .breadcrumb { font-size: 12px; }
+.exploration-page .breadcrumb button { min-height: 44px; font-size: 13px; }
+.exploration-page .missionMessage p { font-size: 15px; }
+.planet-loading-card p { font-size: 15px; }
+.site-footer { max-width: 1320px; margin: 30px auto 20px; padding: 30px; background: var(--surface); border-radius: 24px !important; }
+.site-footer a, .site-footer button, .site-footer span { font-size: 14px; }
+.site-footer a, .site-footer button { min-height: 44px; display: inline-flex; align-items: center; }
+.site-footer small { font-size: 12px; }
+
+@media (max-width: 1360px) {
+  .site-header, .site-footer { margin-inline: 20px; }
+  .youth-home .mission-strip, .gallery-discovery, .youth-home .closing-section { margin-inline: 26px; }
+}
+@media (max-width: 1050px) {
+  .site-header { flex-wrap: wrap; gap: 12px; }
+  .site-header nav { order: 3; justify-content: center; width: 100%; }
+  .site-header__actions { margin-inline-start: auto; }
+  .site-header .source-link { display: none; }
+  .adventure-hero { gap: 20px; }
+  .adventure-hero h1 { font-size: 42px; }
+  .adventure-hero .hero-copy > p { font-size: 16px; }
+  .adventure-hero .hero-actions { gap: 10px; }
+  .adventure-hero .action { padding-inline: 18px; font-size: 14px; }
+  .adventure-tags { gap: 8px 12px; font-size: 12px; }
+  .youth-home .mission-strip { grid-template-columns: repeat(3, 1fr); gap: 18px; padding: 22px; }
+  .youth-home .mission-strip > a { grid-column: 1 / -1; justify-self: center; }
+  .youth-home .mission-strip > div:nth-child(3) { border: 0; }
+}
+@media (max-width: 760px) {
+  .site-header { flex-direction: row; align-items: center; padding: 14px; margin: 12px 14px 0; border-radius: 20px !important; }
+  .site-header .brand { font-size: 17px; }
+  .site-header .brand small { font-size: 11px; }
+  .site-header .signal-mark { width: 42px; height: 42px; border-radius: 13px; }
+  .site-header nav { gap: 2px; justify-content: space-between; flex-wrap: wrap; }
+  .site-header nav a { display: inline-flex; flex: 1; justify-content: center; white-space: nowrap; padding: 10px 7px; font-size: 13px; }
+  .site-header__actions { gap: 4px; }
+  .site-header .source-link { display: none; }
+  .theme-toggle { min-width: 44px; padding: 9px; }
+  .adventure-hero { grid-template-columns: 1fr; gap: 20px; padding: 18px 22px 12px; margin-top: 14px; }
+  .adventure-hero h1 { font-size: clamp(34px, 8.5vw, 48px); margin-top: 18px; }
+  .adventure-hero .hero-copy { max-width: none; }
+  .adventure-hero .hero-copy > p { font-size: 16px; max-width: none; }
+  .adventure-eyebrow { font-size: 12px; }
+  .adventure-hero .hero-actions { display: flex; margin-top: 20px; }
+  .adventure-hero .action { flex: 1 1 150px; justify-content: center; font-size: 14px; min-height: 52px; }
+  .adventure-tags { margin-top: 20px; font-size: 12px; gap: 8px 14px; }
+  .adventure-art { max-width: 530px; width: 100%; justify-self: center; }
+  .adventure-art figcaption { font-size: 11px; }
+  .youth-home .mission-strip { grid-template-columns: 1fr 1fr; padding: 20px; margin: 14px; gap: 16px; }
+  .youth-home .mission-strip > div:nth-child(2) { border: 0; }
+  .youth-home .mission-strip > div:nth-child(3) { grid-column: 1 / -1; border-top: 1px solid var(--line); padding-top: 14px; }
+  .youth-home .mission-strip span { font-size: 14px; }
+  .youth-home .mission-strip small { font-size: 11px; }
+  .youth-home .mission-strip strong { font-size: 32px; }
+  .youth-home .page-section { padding: 35px 16px; }
+  .youth-home .section-heading { gap: 18px; flex-wrap: wrap; align-items: start; }
+  .youth-home .destinations-heading { flex-direction: column; padding: 0; }
+  .youth-home .destination__media, .youth-home .destination.mars > .destination__media { aspect-ratio: 600/280; height: auto; }
+  .youth-home .destination__content { padding: 16px 12px 10px; }
+  .youth-home .destination h3 { font-size: 30px; }
+  .youth-home .feature-grid { grid-template-columns: 1fr; }
+  .youth-home .feature-card { display: block; }
+  .youth-home .feature-image { height: 230px; }
+  .science-reading { grid-template-columns: 1fr; gap: 16px; }
+  .science-reading article, .reading-note { padding: 22px; }
+  .gallery-discovery { margin: 0 16px 30px; }
+  .gallery-discovery > summary { padding: 20px; font-size: 17px; }
+  .discovery-hint { display: block; margin-inline-start: 24px; }
+  .youth-home .closing-section { margin: 0 16px 30px; padding: 30px 22px; }
+  .space-glossary { padding: 0 20px; }
+  .space-glossary dl { grid-template-columns: 1fr; }
+  .record-copy p, .dossier p, .mission-timeline p, .guide-steps p, .guide-notes p { font-size: 15px; }
+  .exploration-page .overview .welcome { max-width: min(335px, calc(100% - 24px)); padding: 14px; }
+  .exploration-page .welcome p { font-size: 13px; line-height: 1.8; }
+  .exploration-page .information p { font-size: 14px; }
+  .exploration-page .missionList button { font-size: 13px; }
+  .exploration-page .overview .welcome .hint { max-height: none; }
+  .site-footer { grid-template-columns: 1fr; gap: 24px; margin: 20px 14px; padding: 24px; }
+}
+@media (max-width: 420px) {
+  .site-header nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: visible; gap: 4px; }
+  .site-header nav a { min-width: 0; width: auto; white-space: normal; text-align: center; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .action-solid:active { transform: none; }
+}

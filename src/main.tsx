@@ -10,6 +10,7 @@ import { missions } from "./data";
 import type { Mode } from "./Space";
 import type { CameraCommand } from "./CameraCommands";
 import { shotsFor, annualStories, dimensions } from "./journey";
+import "./fonts.css";
 import "./style.css";
 import "./mobile.css";
 import "./experience.css";
@@ -18,6 +19,7 @@ import "./material-theme.css";
 import "./nasa-gallery.css";
 import "./expressive-polish.css";
 import "./planet-loader.css";
+import "./youth-theme.css";
 const Space = lazy(() => import("./Space").then((m) => ({ default: m.Space })));
 class Boundary extends React.Component<
   { children: React.ReactNode; onError?: () => void },
@@ -291,7 +293,7 @@ function App() {
               </small>
               <strong>
                 {mode === "overview"
-                  ? "استكشف جرمًا واحدًا"
+                  ? "اختر عالمك وابدأ"
                   : mode === "planet"
                     ? m.body === "moon"
                       ? "في مدار القمر"
@@ -327,16 +329,16 @@ function App() {
             {mode === "overview" ? (
               <section className="welcome body-study-panel">
                 <div className="eyebrow">
-                  مختبر القمر والمريخ · نموذج ثلاثي الأبعاد
+                  مستعد للاستكشاف؟ · مجسّم ثلاثي الأبعاد
                 </div>
                 <h1>
                   {overviewBody === "moon" ? "القمر" : "المريخ"}
                 </h1>
-                <p>جرم واحد، بتفاصيله. اسحب لتدوير النموذج وقرّب لفحص السطح.</p>
+                <p>اسحب لتدوير عالمك. استخدم + للتقريب، أو باعد بين إصبعين على الهاتف.</p>
                 <div
                   className="body-picker"
                   role="group"
-                  aria-label="اختر الجرم"
+                  aria-label="اختر عالمك"
                 >
                   {(
                     [
@@ -377,7 +379,7 @@ function App() {
                 </div>
                 {mode === "planet" ? (
                   <section className="welcome">
-                    <div className="eyebrow">أطلس المعدات البشرية</div>
+                    <div className="eyebrow">محطتك التالية: اختر مهمة</div>
                     <h1>{m.body === "mars" ? "المريخ" : "القمر"}</h1>
                     <p>
                       اسحب للدوران، وقرّب بإصبعين أو بعجلة الفأرة. اختر موقع مهمة

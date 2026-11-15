@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Icon } from "./Icon";
 
 export type ThemeMode = "light" | "dark";
 
@@ -29,7 +30,7 @@ export function ThemeToggle() {
     document.documentElement.style.colorScheme = theme;
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", theme === "dark" ? "#12151c" : "#f8f9ff");
+      ?.setAttribute("content", theme === "dark" ? "#181626" : "#fcfaf7");
   }, [theme]);
 
   useEffect(() => {
@@ -61,9 +62,7 @@ export function ThemeToggle() {
       aria-pressed={dark}
       onClick={toggle}
     >
-      <span className="material-symbols-rounded" aria-hidden="true">
-        {dark ? "light_mode" : "dark_mode"}
-      </span>
+      <Icon name={dark ? "sun" : "moon"} />
       <span className="theme-toggle__label">{dark ? "فاتح" : "داكن"}</span>
     </button>
   );

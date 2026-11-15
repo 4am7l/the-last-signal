@@ -1,3 +1,4 @@
+import { Icon } from "./Icon";
 import { useEffect, useId, useRef, useState } from "react";
 
 type NasaPhoto = {
@@ -162,12 +163,12 @@ export function NasaGallery({
           rel="noopener noreferrer"
         >
           افتح أرشيف NASA
-          <span className="material-symbols-rounded" aria-hidden="true">open_in_new</span>
+          <Icon name="external" />
         </a>
       </div>
       {loading && (
         <div className="nasa-gallery__loading" role="status">
-          <span className="material-symbols-rounded" aria-hidden="true">image_search</span>
+          <Icon name="image" />
           جارٍ جلب الصور من مكتبة ناسا…
         </div>
       )}
@@ -190,16 +191,14 @@ export function NasaGallery({
                   loading={index > 1 ? "lazy" : "eager"}
                   decoding="async"
                 />
-                <span className="nasa-photo-card__zoom material-symbols-rounded" aria-hidden="true">
-                  zoom_out_map
-                </span>
+                <span className="nasa-photo-card__zoom"><Icon name="expand" /></span>
               </button>
               <div className="nasa-photo-card__caption">
                 <h3 title={photo.title}>{photo.title}</h3>
                 <p>{photo.center} {photo.date ? "· " + photo.date : ""}</p>
                 <a href={photo.source} target="_blank" rel="noopener noreferrer">
                   بيانات الصورة الأصلية
-                  <span className="material-symbols-rounded" aria-hidden="true">north_east</span>
+                  <Icon name="external" />
                 </a>
               </div>
             </article>
@@ -229,7 +228,7 @@ export function NasaGallery({
           />
           <div className="nasa-lightbox__content" ref={lightboxRef}>
             <button className="nasa-lightbox__close" type="button" onClick={() => setOpen(null)} autoFocus>
-              <span className="material-symbols-rounded" aria-hidden="true">close</span>
+              <Icon name="close" />
               إغلاق
             </button>
             <img src={fullImage ?? open.thumbnail} alt={open.title} />
@@ -238,7 +237,7 @@ export function NasaGallery({
               {open.description && <p>{open.description}</p>}
               <a className="action action-solid" href={open.source} target="_blank" rel="noopener noreferrer">
                 اعرض الصورة وبياناتها لدى NASA
-                <span className="material-symbols-rounded" aria-hidden="true">open_in_new</span>
+                <Icon name="external" />
               </a>
             </div>
           </div>
