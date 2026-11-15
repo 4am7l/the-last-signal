@@ -1,3 +1,4 @@
+import { WebGLUnavailableError } from "./scene-errors";
 import { eagle } from "./eagle";
 import { LanguageToggle } from "./LanguageToggle";
 import { ExplorerLanguage, type Language } from "./explorer-language";
@@ -9,7 +10,6 @@ import { SimulationPanel } from "./simulation";
 import { MobileControls } from "./MobileControls";
 import React, { useState, useEffect, Suspense, lazy } from "react";
 import { createRoot } from "react-dom/client";
-import type { Mode } from "./Space";
 import type { CameraCommand } from "./CameraCommands";
 import "./style.css";
 import "./mobile.css";
@@ -22,31 +22,21 @@ import "./fullscreen-explorer.css";
 const Space = lazy(() => import("./Space").then((m) => ({ default: m.Space })));
 
 class Boundary extends React.Component<
-  { children: React.ReactNode; onError?: () => void; language: Language; view: Mode },
-  { error: boolean }
+  { children: React.ReactNode; onError: () => void; fallback: (webglUnavailable: boolean) => React.ReactNode },
+  { error: Error | null }
 > {
-  state = { error: false };
-  static getDerivedStateFromError() {
-    return { error: true };
+  state = { error: null as Error | null };
+  static getDerivedStateFromError(error: Error) {
+    return { error };
   }
-  componentDidCatch() {
-    this.props.onError?.();
-  }
-  componentDidUpdate(previous: Readonly<{ view: Mode }>) {
-    if (this.state.error && previous.view !== this.props.view) {
-      this.setState({ error: false });
-    }
+  componentDidCatch(error: Error) {
+    console.error("The Last Signal scene failed to start", error);
+    this.props.onError();
   }
   render() {
-    return this.state.error ? (
-      <div className="error">
-        {this.props.language === "en"
-          ? "This browser could not start the 3D scene. Try a browser with WebGL and graphics acceleration."
-          : "لم يتمكن المتصفح من تشغيل المشهد ثلاثي الأبعاد. جرّب متصفحًا يدعم WebGL مع تسريع الرسومات."}
-      </div>
-    ) : (
-      this.props.children
-    );
+    return this.state.error
+      ? this.props.fallback(this.state.error instanceof WebGLUnavailableError)
+      : this.props.children;
   }
 }
 function App() {
@@ -155,7 +145,8 @@ function App() {
     return () => window.removeEventListener("keydown", close);
   }, []);
 
-  const sceneLoading = readySceneKey !== sceneKey && failedSceneKey !== sceneKey;
+  const sceneFailed = failedSceneKey === sceneKey;
+  const sceneLoading = readySceneKey !== sceneKey && !sceneFailed;
   const bodyName = body === "moon" ? t("القمر", "Moon") : t("المريخ", "Mars");
 
   return (
@@ -218,41 +209,56 @@ function App() {
           </div>
           <main id="main-content" tabIndex={-1} className={`universe ${mode}`}>
             <div className="canvas" aria-busy={sceneLoading}>
-              <Boundary key={sceneKey} view={mode} language={language} onError={() => setFailedSceneKey(sceneKey)}>
+              <Boundary key={sceneKey} onError={() => setFailedSceneKey(sceneKey)} fallback={(webglUnavailable) => (
+                <section className="error scene-error" role="alert">
+                  <h2>{webglUnavailable ? t("تعذّر تشغيل WebGL 2", "WebGL 2 could not start") : t("تعذّر تحميل المشهد", "The scene could not load")}</h2>
+                  <p>{webglUnavailable
+                    ? t("فعّل تسريع الرسومات في إعدادات المتصفح وأعد تشغيله، أو افتح المحاكاة بمتصفح يدعم WebGL 2.", "Turn on graphics acceleration and restart your browser, or open the simulation in a browser that supports WebGL 2.")
+                    : t("أعد تحميل الصفحة للمحاولة مرة ثانية.", "Reload the page to try loading the scene again.")}</p>
+                  <div className="scene-error-actions">
+                    <button className="action action-solid" onClick={() => window.location.reload()}>{t("إعادة المحاولة", "Try again")}</button>
+                    {body === "moon" && <a className="action action-line" href={eagle.archiveHref}>{t("صور أبولو 11 وتفاصيلها", "Apollo 11 photos and details")}</a>}
+                  </div>
+                </section>
+              )}>
                 <Suspense fallback={null}>
                   <Space mode={mode} body={body} reset={reset} cameraCommand={cameraCommand} sceneKey={sceneKey} onSceneReady={setReadySceneKey} />
                 </Suspense>
               </Boundary>
             </div>
             {sceneLoading && <PlanetLoadingIndicator key={sceneKey} body={body} />}
-            <MobileControls mode={mode} onCamera={cameraMove} onReset={() => setReset((v) => v + 1)} />
-            {mode === "surface" && <SimulationPanel />}
-            <div className="sceneTools">
-              <div
-                className="cameraButtons"
-                role="group"
-                aria-label={t("تحكم الكاميرا", "Camera controls")}
-              >
-                <button
-                  aria-label={t("تقريب الكاميرا", "Zoom in")}
-                  title={t("تقريب · + بعد اختيار المشهد", "Zoom in · + with the scene focused")}
-                  onClick={() => cameraMove("in")}
-                >
-                  ＋
-                </button>
-                <button
-                  aria-label={t("إبعاد الكاميرا", "Zoom out")}
-                  title={t("إبعاد · − بعد اختيار المشهد", "Zoom out · − with the scene focused")}
-                  onClick={() => cameraMove("out")}
-                >
-                  −
-                </button>
-                <button onClick={() => cameraMove("stop")}>{t("إيقاف الحركة", "Stop camera")}</button>
-              </div>
-              <button onClick={() => setReset((v) => v + 1)}>
-                {t("إعادة ضبط الكاميرا ⤾", "Reset camera ⤾")}
-              </button>
-            </div>
+            {!sceneFailed && (
+              <>
+                <MobileControls mode={mode} onCamera={cameraMove} onReset={() => setReset((v) => v + 1)} />
+                {mode === "surface" && <SimulationPanel />}
+                <div className="sceneTools">
+                  <div
+                    className="cameraButtons"
+                    role="group"
+                    aria-label={t("تحكم الكاميرا", "Camera controls")}
+                  >
+                    <button
+                      aria-label={t("تقريب الكاميرا", "Zoom in")}
+                      title={t("تقريب · + بعد اختيار المشهد", "Zoom in · + with the scene focused")}
+                      onClick={() => cameraMove("in")}
+                    >
+                      ＋
+                    </button>
+                    <button
+                      aria-label={t("إبعاد الكاميرا", "Zoom out")}
+                      title={t("إبعاد · − بعد اختيار المشهد", "Zoom out · − with the scene focused")}
+                      onClick={() => cameraMove("out")}
+                    >
+                      −
+                    </button>
+                    <button onClick={() => cameraMove("stop")}>{t("إيقاف الحركة", "Stop camera")}</button>
+                  </div>
+                  <button onClick={() => setReset((v) => v + 1)}>
+                    {t("إعادة ضبط الكاميرا ⤾", "Reset camera ⤾")}
+                  </button>
+                </div>
+              </>
+            )}
           </main>
         </div>
       )}

@@ -308,3 +308,20 @@
 .eagle-explorer-link bdi {
   font-size: .8em;
 }
+
+.fullscreen-explorer .universe .scene-error {
+  width: min(100% - 32px, 560px);
+  max-height: 65vh;
+  overflow: auto;
+  padding: 24px;
+  font-size: 1rem;
+}
+.scene-error h2 {
+  margin-block: 0 .5rem;
+}
+.scene-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
