@@ -483,7 +483,16 @@
   gap: 7px;
   margin-block-start: 12px;
 }
-.sceneError__actions .action { min-height: 44px; }
+.sceneError__actions .action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin: 0;
+}
+.fullscreen-explorer .sceneError__actions .action-line {
+  color: var(--md-sys-color-on-secondary-container);
+}
 
 .explorer-panels .simulationPanel .inspection-toggle {
   justify-content: flex-start;
