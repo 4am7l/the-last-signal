@@ -460,8 +460,13 @@
   border-radius: var(--tls-shape-chip);
 }
 
-.fullscreen-explorer .sitePin[data-off-globe] {
+.fullscreen-explorer .sitePin {
+  /* Anchor the label independently of the global pressed-button transform. */
+  top: -35px;
   transform: none;
+}
+.fullscreen-explorer .sitePin[data-off-globe] {
+  top: 0;
   border-style: dashed !important;
 }
 .fullscreen-explorer .sitePin[data-off-globe]::after { display: none; }
