@@ -83,13 +83,15 @@ export function lunarPinPlacement(
  width: number,
  height: number,
  slot: number,
+ visibleLeft = 0,
+ visibleRight = width,
 ) {
  const x=(projected.x+1)*width/2;
  const y=(1-projected.y)*height/2;
- const inset=Math.min(92,width/2);
+ const inset=Math.min(92,(visibleRight-visibleLeft)/2);
  const onGlobe=facing&&projected.z>=-1&&projected.z<=1
-  &&x>=inset&&x<=width-inset&&y>=54&&y<=height-16;
+  &&x>=visibleLeft+inset&&x<=visibleRight-inset&&y>=54&&y<=height-16;
  return onGlobe
   ? {x,y,onGlobe}
-  : {x:width-inset,y:Math.min(height-16,145+slot*68),onGlobe};
+  : {x:visibleRight-inset,y:Math.min(height-16,145+slot*68),onGlobe};
 }

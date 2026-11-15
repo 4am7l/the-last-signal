@@ -39,3 +39,15 @@ test('lunar landing buttons stay available when the camera loses their anchors',
   assert.ok(second.y-first.y>=44);
  }
 });
+
+test('landing buttons stay inside the visible canvas when Details covers the right edge',()=>{
+ const viewportWidth=1360, drawerWidth=460, offset=drawerWidth/2;
+ const visibleRight=viewportWidth-offset;
+ const hiddenSite={x:.8,y:0,z:0};
+ assert.deepEqual(lunarPinPlacement(hiddenSite,true,viewportWidth,900,0,offset,visibleRight),{
+  x:visibleRight-92,y:145,onGlobe:false,
+ });
+ assert.deepEqual(lunarPinPlacement({x:0,y:0,z:0},true,viewportWidth,900,0,offset,visibleRight),{
+  x:viewportWidth/2,y:450,onGlobe:true,
+ });
+});

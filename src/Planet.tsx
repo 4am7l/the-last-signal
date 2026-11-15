@@ -61,6 +61,10 @@ export function SitePin({
 }) {
  const group = useRef<T.Group>(null);
  const button = useRef<HTMLButtonElement>(null);
+ const lastPlacement = useRef<{ x: number; y: number; onGlobe: boolean } | null>(null);
+ const pressedPlacement = useRef<typeof lastPlacement.current>(null);
+ const pressedPointer = useRef<number | null>(null);
+ const gl = useThree((state) => state.gl);
  const normal = useMemo(() => point(m.lat, m.lon, 1).applyQuaternion(rotation), [m.lat, m.lon, rotation]);
  const position = useMemo(() => normal.clone().multiplyScalar(radius).add(center), [normal, radius, center]);
  const scratch = useMemo(() => new T.Vector3(), []);
@@ -68,18 +72,31 @@ export function SitePin({
  const facesCamera = (camera: T.Camera) =>
   normal.dot(scratch.copy(camera.position).sub(position).normalize()) > .04;
  const calculatePosition = (_: T.Object3D, camera: T.Camera, size: {width:number;height:number}) => {
+  const pressed = pressedPlacement.current;
+  if (pressed) return [pressed.x, pressed.y];
   const facing = facesCamera(camera);
   const projected = scratch.copy(position).project(camera);
-  const placement = lunarPinPlacement(projected, facing, size.width, size.height, persistentSlot ?? 0);
-  if (button.current) button.current.toggleAttribute('data-off-globe', !placement.onGlobe);
+  if (!persistent) {
+   const placement = { x: (projected.x + 1) * size.width / 2, y: (1 - projected.y) * size.height / 2, onGlobe: facing };
+   lastPlacement.current = placement;
+   return [placement.x, placement.y];
+  }
+  const canvas = gl.domElement.getBoundingClientRect();
+  const stage = gl.domElement.closest('.explorer-stage')?.getBoundingClientRect();
+  const visibleLeft = stage ? Math.max(0, stage.left - canvas.left) : 0;
+  const visibleRight = stage ? Math.min(size.width, stage.right - canvas.left) : size.width;
+  const placement = lunarPinPlacement(projected, facing, size.width, size.height, persistentSlot ?? 0, visibleLeft, visibleRight);
+  lastPlacement.current = placement;
+  button.current?.toggleAttribute('data-off-globe', !placement.onGlobe);
   return [placement.x, placement.y];
  };
  useFrame(({ camera }) => {
   const visible = (center !== terrainCenter || camera.position.distanceTo(center) < 1600) && facesCamera(camera);
   if (group.current) group.current.visible = visible;
   if (!persistent && button.current) {
-   button.current.style.visibility = visible ? "visible" : "hidden";
-   button.current.tabIndex = visible ? 0 : -1;
+   const available = visible || pressedPlacement.current !== null;
+   button.current.style.visibility = available ? "visible" : "hidden";
+   button.current.tabIndex = available ? 0 : -1;
   }
  });
  return (
@@ -89,9 +106,27 @@ export function SitePin({
     <meshBasicMaterial color="#e6f5bd" />
    </mesh>
    {onClick && <Html center zIndexRange={[8, 1]} style={{ pointerEvents: "none" }}
-    calculatePosition={persistent ? calculatePosition : undefined}
+    calculatePosition={calculatePosition}
     onOcclude={persistent ? keepPinVisible : undefined}>
-    <button ref={button} type="button" aria-label={landingLabel} className={selected ? "sitePin chosen" : "sitePin"} style={{ pointerEvents: "auto" }} onClick={onClick}>
+    <button ref={button} type="button" aria-label={landingLabel} className={selected ? "sitePin chosen" : "sitePin"} style={{ pointerEvents: "auto" }}
+     onPointerDown={(event) => {
+      if (event.button !== 0) return;
+      event.stopPropagation();
+      pressedPointer.current = event.pointerId;
+      pressedPlacement.current = lastPlacement.current;
+     }}
+     onPointerUp={(event) => {
+      if (pressedPointer.current !== event.pointerId) return;
+      event.stopPropagation();
+      pressedPointer.current = null;
+      pressedPlacement.current = null;
+     }}
+     onPointerCancel={() => { pressedPointer.current = null; pressedPlacement.current = null; }}
+     onPointerLeave={() => { pressedPointer.current = null; pressedPlacement.current = null; }}
+     onClick={(event) => {
+      event.stopPropagation();
+      onClick();
+     }}>
      <span className="pinDot" aria-hidden="true" />{label}
      <small dir="ltr">{Math.abs(m.lat)}° {m.lat < 0 ? "S" : "N"} · {m.lon}° E</small>
     </button>

@@ -15,7 +15,7 @@
 }
 :is(.action, .primary, .play, .source-link, .theme-toggle, .language-toggle,
  .filter-group button, .record-actions a, .body-picker a, .camera-dock button,
- .equipment-details-toggle, .explorer-panels summary)::before {
+ .equipment-details-toggle, .explorer-panels summary, .sitePin, .equipment-details .missionList button)::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -39,7 +39,7 @@
   }
   :is(.action, .primary, .play, .source-link, .theme-toggle, .language-toggle,
    .filter-group button, .record-actions a, .body-picker a, .camera-dock button,
-   .equipment-details-toggle, .explorer-panels summary)::before { transition: opacity 180ms ease; }
+   .equipment-details-toggle, .explorer-panels summary, .sitePin, .equipment-details .missionList button)::before { transition: opacity 180ms ease; }
   :is(.action, .camera-dock button, .source-link, .text-link) :is(.arrow-icon, .material-symbols-rounded) {
     transition: translate 220ms ease, scale 220ms ease;
   }
@@ -126,7 +126,7 @@
   .sitePin .pinDot {
     animation: marker-arrival 650ms var(--md-sys-motion-easing) backwards;
   }
-  .sitePin { transition: background-color 180ms ease, border-color 180ms ease, scale 160ms ease; }
+  .sitePin { transition: background-color 180ms ease, border-color 180ms ease; }
 
   .overlay, .nasa-lightbox {
     animation: backdrop-enter 210ms ease-out both;
@@ -140,7 +140,7 @@
 
   :is(.action, .theme-toggle, .language-toggle, .source-link, .cameraButtons button,
     .camera-dock button, .explorer-panels summary, .mobileControls button, .missionList button, .filter-group button,
-    .body-picker a, .record-open, .nasa-photo-card__open, .sitePin):active {
+    .body-picker a, .record-open, .nasa-photo-card__open):active {
     scale: .97;
   }
   :is(.body-picker a, .missionList button, .filter-group button, .cameraButtons button) {
@@ -158,6 +158,15 @@
       animation: none;
     }
   }
+}
+
+.fullscreen-explorer :is(.explorer-route-actions button, .equipment-actions button, .equipment-details .missionList button):is(:hover, :active) {
+  translate: none;
+  scale: none;
+}
+.fullscreen-explorer :is(.sitePin, .explorer-route-actions button, .equipment-actions button, .equipment-details .missionList button):active::before {
+  opacity: .18;
+  transition-duration: 60ms;
 }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {

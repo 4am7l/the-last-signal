@@ -29,7 +29,7 @@ import "./fullscreen-explorer.css";
 import "./motion.css";
 const Space = lazy(() => import("./Space").then((m) => ({ default: m.Space })));
 class Boundary extends React.Component<
-  { children: React.ReactNode; onError?: () => void; onRetry: () => void; language: Language; view: Mode },
+  { children: React.ReactNode; onError?: () => void; onRetry: () => void; language: Language; view: Mode; sceneKey: string },
   { error: boolean }
 > {
   state = { error: false };
@@ -39,8 +39,8 @@ class Boundary extends React.Component<
   componentDidCatch() {
     this.props.onError?.();
   }
-  componentDidUpdate(previous: Readonly<{ view: Mode }>) {
-    if (this.state.error && previous.view !== this.props.view) {
+  componentDidUpdate(previous: Readonly<{ view: Mode; sceneKey: string }>) {
+    if (this.state.error && (previous.view !== this.props.view || previous.sceneKey !== this.props.sceneKey)) {
       this.setState({ error: false });
     }
   }
@@ -198,7 +198,7 @@ function App() {
   const isFalcon = m.id === "apollo15";
 
   function select(i: number, next: Mode = "model") {
-    if (approaching && i === index && (next === "model" || next === "location")) return;
+    if (approaching && i === index && mode === next) return;
     window.location.hash = exploreHref(missions[i].id, next);
     setIndex(i);
     setFilm(0);
@@ -207,7 +207,7 @@ function App() {
     setReset((v) => v + 1);
   }
   function change(next: Mode) {
-    if (approaching && (next === "model" || next === "location")) return;
+    if (approaching && mode === next) return;
     window.location.hash = exploreHref(missions[index].id, next);
     setMode(next);
     setPlaying(false);
@@ -305,7 +305,8 @@ function App() {
     window.addEventListener("keydown", esc);
     return () => window.removeEventListener("keydown", esc);
   }, []);
-  const sceneKey = `${mode === "story" ? "story" : "surface"}:${m.body}:${m.id}:${sceneAttempt}`;
+  const sceneMountKey = `${mode === "story" ? "story" : "surface"}:${m.body}:${sceneAttempt}`;
+  const sceneKey = `${sceneMountKey}:${m.id}`;
   const sceneLoading = readySceneKey !== sceneKey && failedSceneKey !== sceneKey;
   const years = Object.keys(annualStories(m)).map(Number);
   return (
@@ -501,7 +502,7 @@ function App() {
             className={`universe ${mode}`}
           >
             <div className="canvas" aria-busy={sceneLoading}>
-              <Boundary key={sceneKey} view={mode} language={language} onError={() => setFailedSceneKey(sceneKey)}
+              <Boundary key={sceneMountKey} sceneKey={sceneKey} view={mode} language={language} onError={() => setFailedSceneKey(sceneKey)}
                 onRetry={() => setSceneAttempt((attempt) => attempt + 1)}>
                 <Suspense fallback={null}>
                   <Space
