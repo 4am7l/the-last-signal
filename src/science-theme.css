@@ -1,6 +1,6 @@
 /* Public Sans and Newsreader match the inspected reference's type families.
    Arabic glyphs use Noto Sans Arabic and Noto Naskh Arabic respectively. */
-@import url("https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Public+Sans:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&family=Noto+Naskh+Arabic:wght@400;500;600&display=swap");
+/* Primary typography is loaded once in index.html (IBM Plex Sans Arabic + Space Grotesk). */
 :root {
   --ink: #202b30;
   --muted: #566165;
