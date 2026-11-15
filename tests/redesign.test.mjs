@@ -32,21 +32,15 @@ test("Theme control exposes accessible toggling and follows the visitor preferen
   assert.match(index, /Material\+Symbols\+Rounded/);
 });
 
-test("the Eagle archive includes the supplied and historical photographs", () => {
+test("the empty archive and explorer do not load the removed mission media", () => {
   const editorial = file("src/Experience.tsx");
-  const data = file("src/eagle.ts");
+  const explorer = file("src/main.tsx");
+  const space = file("src/Space.tsx");
   assert.match(editorial, /<ThemeToggle\s*\/>/);
-  assert.match(editorial, /<EagleGallery \/>/);
-  const details = file("src/EagleDetails.tsx");
-  assert.match(details, /images\.map/);
-  assert.match(details, /<EagleGallery onSelect=\{setSelected\} \/>/);
-  assert.match(editorial, /id="moon-archive-title"/);
-  assert.match(editorial, /href=\{eagle.archiveHref\}/);
-  assert.match(editorial, /href=\{eagle.simulationHref\}/);
-  assert.match(data, /1969-059C/);
-  assert.match(data, /AS11-40-5927/);
-  assert.match(data, /apollo_lm_diagram\.gif/);
-  assert.match(data, /body=moon&view=surface&mission=apollo/);
+  assert.match(editorial, /The archive is currently empty/);
+  for (const source of [editorial, explorer, space]) {
+    assert.doesNotMatch(source, /NasaGallery|\/photos\/|\/models\/|useGLTF/);
+  }
 });
 
 test("The local Samsung font supplies Arabic and English text while Material icons keep their font", () => {
@@ -76,17 +70,4 @@ test("Moon and Mars destination cards retain functional exploration links", () =
   assert.match(page, /id="destinations-title"/);
   assert.match(page, /destination--expressive/);
   assert.match(page, /href=\{exploreHref\(body\)\}/);
-  assert.match(page, /homeMissions\.filter\(\(mission\) => mission.body === body\)/);
-  assert.match(page, /className="hero-photo" src=\{cover.src\}/);
-  assert.match(page, /<EagleGallery images=\{mission.images\} \/>/);
-});
-
-test("Apollo uses the complete historical NASA module with both original stages", () => {
-  const glb = readFileSync(new URL("../public/models/apollo.glb", import.meta.url));
-  const { nodes } = JSON.parse(glb.subarray(20, 20 + glb.readUInt32LE(12)));
-  assert.ok(nodes.some((node) => node.name === "group31 15"));
-  assert.ok(nodes.some((node) => node.name === "group51 g1"));
-  const model = file("src/EagleModel.tsx");
-  assert.match(model, /scene\.clone\(true\)/);
-  assert.doesNotMatch(model, /removeFromParent/);
 });

@@ -1,9 +1,7 @@
-import { eagle, eagleImages } from "./eagle";
-import { EagleGallery, EagleSummary } from "./EagleDetails";
 import { LanguageToggle } from "./LanguageToggle";
 import { ThemeToggle } from "./ThemeToggle";
 import { useLanguage, useExplorerText } from "./explorer-language";
-import { destinations, exploreHref, type Destination, type Page } from "./navigation";
+import { destinations, exploreHref, type Page } from "./navigation";
 
 function Arrow() {
   return (
@@ -74,29 +72,8 @@ export function SiteHeader({
     </header>
   );
 }
-const homeMissions = [{
-  id: "apollo",
-  body: "moon" as Destination,
-  name: ["أبولو 11", "Apollo 11"] as const,
-  intro: [
-    "صور مركبة إيغل في بحر السكون وتفاصيل مرحلة الهبوط التي بقيت على القمر.",
-    "See Eagle at Tranquility Base and the descent stage left on the Moon.",
-  ] as const,
-  archiveHref: eagle.archiveHref,
-  simulationHref: eagle.simulationHref,
-  catalog: eagle.catalog,
-  images: eagleImages,
-}];
-
 export function Home() {
   const t = useExplorerText();
-  const cover = eagleImages[0];
-  const formatCount = new Intl.NumberFormat(useLanguage() === "ar" ? "ar-JO" : "en");
-  const counts = [
-    [t("وجهات المحاكاة", "Destinations"), destinations.length],
-    [t("المهمات في الأرشيف", "Archived missions"), homeMissions.length],
-    [t("الصور والرسوم", "Photos and diagrams"), homeMissions.reduce((total, mission) => total + mission.images.length, 0)],
-  ] as const;
   return (
     <main id="main-content" className="editorial-page" tabIndex={-1}>
       <section className="signal-hero">
@@ -107,161 +84,37 @@ export function Home() {
             <a className="action action-solid" href="#/explore">
               {t("افتح المحاكاة", "Open simulation")} <Arrow />
             </a>
-            <a className="action action-line home-action" href="#/archive">{t("أرشيف المهمات", "Mission archive")}</a>
           </div>
         </div>
-        <figure className="hero-figure">
-          <img className="hero-photo" src={cover.src} alt={t(cover.ar, cover.en)} fetchPriority="high" />
-          <figcaption className="hero-caption">
-            <span>{t("باز ألدرين عند إيغل · أبولو 11", "Buzz Aldrin at Eagle · Apollo 11")}</span>
-            <a href={cover.source} target="_blank" rel="noreferrer">NASA · {cover.id} <Arrow /></a>
-          </figcaption>
-        </figure>
-      </section>
-      <section className="page-section home-stat-section" aria-labelledby="home-counts-title">
-        <div className="section-heading">
-          <h2 id="home-counts-title">{t("المشروع بالأرقام", "Project in numbers")}</h2>
-        </div>
-        <dl className="home-stats">
-          {counts.map(([label, count]) => (
-            <div key={label}>
-              <dt>{label}</dt>
-              <dd>{formatCount.format(count)}</dd>
-            </div>
-          ))}
-        </dl>
       </section>
       <section className="page-section destinations-section" aria-labelledby="destinations-title">
         <div className="section-heading destinations-heading">
           <h2 id="destinations-title">{t("وجهات الاستكشاف", "Explore a destination")}</h2>
         </div>
         <div className="destinations">
-          {destinations.map((body) => {
-            const moon = body === "moon";
-            const bodyLabel = moon ? t("القمر", "The Moon") : t("المريخ", "Mars");
-            const bodyCover = moon ? eagleImages[1] : null;
-            const missions = homeMissions.filter((mission) => mission.body === body);
-            return (
-              <article className={`destination destination--expressive ${body}`} key={body}>
-                <a className="destination__media" href={exploreHref(body)} aria-label={bodyLabel}>
-                  <img src={bodyCover?.src ?? "/mars-nasa-viking.jpg"} alt="" loading="lazy" />
-                </a>
-                <div className="destination__content">
-                  <div className="destination__title-row">
-                    <h3><a href={exploreHref(body)}>{bodyLabel}</a></h3>
-                    <a href={exploreHref(body)} aria-label={t("افتح المعاينة", "Open preview") + " · " + bodyLabel}><Arrow /></a>
-                  </div>
-                  {bodyCover && (
-                    <a className="home-source-link" href={bodyCover.source} target="_blank" rel="noreferrer">NASA · {bodyCover.id}</a>
-                  )}
-                  {missions.length > 0 && (
-                    <ul className="eagle-mission-list">
-                      {missions.map((mission) => <li key={mission.id}><a href={mission.archiveHref}>{t(...mission.name)}</a></li>)}
-                    </ul>
-                  )}
+          {destinations.map((body) => (
+            <a className={`destination destination--expressive ${body}`} href={exploreHref(body)} key={body}>
+              <div className="destination__content">
+                <div className="destination__title-row">
+                  <h3>{body === "moon" ? t("القمر", "Moon") : t("المريخ", "Mars")}</h3>
+                  <Arrow />
                 </div>
-              </article>
-            );
-          })}
-        </div>
-      </section>
-      <section className="page-section featured-section" aria-labelledby="home-missions-title">
-        <div className="section-heading">
-          <h2 id="home-missions-title">{t("من أرشيف المهمات", "From the mission archive")}</h2>
-          <a className="action action-line home-action" href="#/archive">{t("الأرشيف الكامل", "Full archive")} <Arrow /></a>
-        </div>
-        {homeMissions.map((mission) => (
-          <article className="home-mission" key={mission.id}>
-            <header className="home-mission-copy">
-              <h3><a href={mission.archiveHref}>{t(...mission.name)} <Arrow /></a></h3>
-              <p>{t(...mission.intro)}</p>
-              <div className="hero-actions">
-                <a className="action action-solid" href={mission.simulationHref}>{t("شغّل المحاكاة", "Open simulation")} <Arrow /></a>
-                <a className="action action-line home-action" href={mission.catalog} target="_blank" rel="noreferrer">{t("سجل المهمة · ناسا", "Mission record · NASA")} <Arrow /></a>
               </div>
-            </header>
-            <EagleGallery images={mission.images} />
-          </article>
-        ))}
-      </section>
-      <section className="page-section home-stat-section home-apollo-facts" aria-labelledby="home-apollo-facts-title">
-        <div className="section-heading">
-          <h2 id="home-apollo-facts-title">{t("أبولو 11 بالأرقام", "Apollo 11 in numbers")}</h2>
+            </a>
+          ))}
         </div>
-        <dl className="home-stats">
-          <div>
-            <dt>{t("وقت هبوط إيغل", "Eagle touchdown time")}</dt>
-            <dd><time dateTime="1969-07-20T20:17:40Z"><bdi>20:17:40 UTC</bdi></time></dd>
-            <a className="home-source-link" href={eagle.missionSource} target="_blank" rel="noreferrer">NASA NSSDCA <Arrow /></a>
-          </div>
-          <div>
-            <dt>{t("عينات القمر اللي رجعت للأرض", "Lunar samples returned")}</dt>
-            <dd><bdi>{formatCount.format(21.55)} {t("كغ", "kg")}</bdi></dd>
-            <a className="home-source-link" href="https://nssdc.gsfc.nasa.gov/planetary/lunar/apolloland.html" target="_blank" rel="noreferrer">NASA NSSDCA <Arrow /></a>
-          </div>
-          <div>
-            <dt>{t("المسافة بين قدمي هبوط متقابلتين", "Span across opposite landing pads")}</dt>
-            <dd><bdi>{formatCount.format(eagle.footpadSpan)} {t("م", "m")}</bdi></dd>
-            <a className="home-source-link" href={eagle.catalog} target="_blank" rel="noreferrer">NASA NSSDCA <Arrow /></a>
-          </div>
-        </dl>
       </section>
     </main>
   );
 }
 
-export function Archive({ mission }: { mission?: string }) {
+export function Archive() {
   const t = useExplorerText();
-  if (mission !== "apollo") {
-    return (
-      <main id="main-content" className="editorial-page" tabIndex={-1}>
-        <section className="page-intro">
-          <h1>{t("أرشيف المهمات", "Mission archive")}</h1>
-        </section>
-        <section className="page-section" aria-labelledby="moon-archive-title">
-          <h2 id="moon-archive-title">{t("القمر", "The Moon")}</h2>
-          <ul className="eagle-mission-list">
-            <li><a href={eagle.archiveHref}>{t("أبولو 11", "Apollo 11")}</a></li>
-          </ul>
-        </section>
-      </main>
-    );
-  }
   return (
     <main id="main-content" className="editorial-page" tabIndex={-1}>
       <section className="page-intro">
-        <a className="text-link" href="#/archive">{t("القمر · أرشيف المهمات", "The Moon · Mission archive")}</a>
-        <p>{t("أبولو 11 · 20 تموز 1969", "Apollo 11 · July 20, 1969")}</p>
-        <h1>{t("إيغل — الوحدة القمرية", "Eagle — Lunar Module")}</h1>
-        <EagleSummary />
-        <div className="hero-actions">
-          <a className="action action-solid" href={eagle.simulationHref}>
-            {t("شغّل محاكاة أبولو 11", "Open Apollo 11 simulation")} <Arrow />
-          </a>
-        </div>
-        <ul className="eagle-sources">
-          <li><a href={eagle.catalog} target="_blank" rel="noreferrer">NASA NSSDCA · 1969-059C</a></li>
-          <li><a href={eagle.coordinateSource} target="_blank" rel="noreferrer">{t("مرجع الإحداثيات · LROC", "Coordinate reference · LROC")}</a></li>
-          <li><a href={eagle.modelSource} target="_blank" rel="noreferrer">{t("المجسّم الأصلي · NASA", "Original model · NASA")}</a></li>
-          <li><a href={eagle.photoArchive} target="_blank" rel="noreferrer">{t("أرشيف صور أبولو 11 · NASA", "Apollo 11 photo archive · NASA")}</a></li>
-        </ul>
-      </section>
-      <section className="page-section" aria-labelledby="eagle-timeline-title">
-        <div className="section-heading">
-          <h2 id="eagle-timeline-title">{t("مراحل الرحلة", "Mission timeline")}</h2>
-          <a className="text-link" href={eagle.missionSource} target="_blank" rel="noreferrer">{t("سجل المهمة · ناسا", "Mission record · NASA")}</a>
-        </div>
-        <ol>
-          {eagle.missionEvents.map(([date, ar, en]) => (
-            <li key={date}><time dateTime={date}><bdi>{date}</bdi></time> · {t(ar, en)}</li>
-          ))}
-        </ol>
-      </section>
-      <section className="page-section" aria-labelledby="eagle-gallery-title">
-        <div className="section-heading">
-          <h2 id="eagle-gallery-title">{t("صور إيغل والرسم الهندسي", "Eagle photographs and technical diagram")}</h2>
-        </div>
-        <EagleGallery />
+        <h1>{t("أرشيف المهمات", "Mission archive")}</h1>
+        <p>{t("الأرشيف فارغ حاليًا.", "The archive is currently empty.")}</p>
       </section>
     </main>
   );
