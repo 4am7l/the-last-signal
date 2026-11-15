@@ -115,11 +115,12 @@ const archiveEventCopy: Record<string, [string, string]> = {
 };
 
 export function englishEvent(event: Mission["events"][number]) {
-  const falconEvent = falconTimeline.find((item) => item.date === event.date && item.title === event.title);
-  if (falconEvent) return [falconEvent.enTitle, falconEvent.enText];
+  const translated = [...intrepidTimeline, ...falconTimeline].find((item) => item.date === event.date && item.title === event.title);
+  if (translated) return [translated.enTitle, translated.enText];
   return archiveEventCopy[event.date]
     ?? eventCopy[`${event.date}:${event.stage}`]
-    ?? eventCopy[event.date];
+    ?? eventCopy[event.date]
+    ?? [event.title, event.text];
 }
 
 export const englishExplanations: Record<string, { goal: string; finding: string; ending: string }> = {
