@@ -56,3 +56,21 @@ export function zoomDistance(distance:number,min:number,max:number,inward:boolea
  const clearance=inward?Math.max(0,distance-min):Math.max(distance-min,min*.015,1e-7);
  return Math.max(min,Math.min(max,min+clearance*(inward?.72:1.38)));
 }
+
+// Keep the landing action available at the edge while its anchor is out of view.
+export function lunarPinPlacement(
+ projected: {x:number;y:number;z:number},
+ facing: boolean,
+ width: number,
+ height: number,
+ slot: number,
+) {
+ const x=(projected.x+1)*width/2;
+ const y=(1-projected.y)*height/2;
+ const inset=Math.min(92,width/2);
+ const onGlobe=facing&&projected.z>=-1&&projected.z<=1
+  &&x>=inset&&x<=width-inset&&y>=54&&y<=height-16;
+ return onGlobe
+  ? {x,y,onGlobe}
+  : {x:width-inset,y:Math.min(height-16,145+slot*68),onGlobe};
+}

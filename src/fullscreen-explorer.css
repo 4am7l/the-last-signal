@@ -392,3 +392,9 @@
 .fullscreen-explorer :is(.action, .cameraButtons button, .sceneTools > button, .mobileControls button, .tabs button) {
   border-radius: var(--tls-shape-chip);
 }
+
+.fullscreen-explorer .sitePin[data-off-globe] {
+  transform: none;
+  border-style: dashed !important;
+}
+.fullscreen-explorer .sitePin[data-off-globe]::after { display: none; }

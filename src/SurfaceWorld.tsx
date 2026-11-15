@@ -9,7 +9,7 @@ import {useFrame,useLoader,useThree} from '@react-three/fiber';
 import {OrbitControls,Html} from '@react-three/drei';
 import type {OrbitControls as Controls} from 'three-stdlib';
 import * as T from 'three';
-import {Atmosphere,lunarSiteDirection,SitePin,point} from './Planet';
+import {Atmosphere,lunarSiteDirection,lunarSites,SitePin,point} from './Planet';
 import {usePlanetTexture} from './usePlanetTexture';
 import {useTrekPatch,type TrekPatch} from './useTrekPatch';
 import {missions} from './data';
@@ -171,6 +171,7 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
  const nightDirection=useMemo(()=>new T.Vector3(-.35,.82,.45).normalize(),[]);
  const flight=useRef<{from:T.Vector3;target:T.Vector3;to:T.Vector3;look:T.Vector3;t:number;stage:'overview'|'orbit'|'align'|'descent'}|null>(null),guided=useRef(false);
  const descentArmed=useRef(true);
+ const hasFramedCamera=useRef(false);
  const previousDistance=useRef(Infinity),sky=useMemo(()=>new T.Color('#05070d'),[]),marsDaySky=useMemo(()=>new T.Color('#a17c69'),[]),marsTwilight=useMemo(()=>new T.Color('#74616b'),[]),marsNightSky=useMemo(()=>new T.Color('#111522'),[]),marsFog=useMemo(()=>new T.Color(),[]);
  useEffect(()=>{
   const ctl=controls.current;if(!ctl)return;
@@ -191,6 +192,12 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
   // Frame both lunar sites after returning from either local landing scene.
   const globeDirection=moon?lunarSiteDirection().applyQuaternion(surface.rotation):orbitOffset.normalize();
   const globePosition=globeDirection.multiplyScalar(globeDistance).add(surface.center);
+  if(!hasFramedCamera.current&&moon&&mode==='planet'){
+   camera.position.copy(globePosition);
+   ctl.target.copy(surface.center);
+   ctl.update();
+  }
+  hasFramedCamera.current=true;
   flight.current={from:camera.position.clone(),target:ctl.target.clone(),to:mode==='overview'?overviewPosition:reframe?focusPosition:near?new T.Vector3(0,150,250):globePosition,look:mode==='overview'?overviewTarget:reframe?focusTarget:surface.center.clone(),t:0,stage:mode==='overview'?'overview':reframe?'descent':near?'align':'orbit'};
   previousDistance.current=Infinity;descentArmed.current=true;
   ctl.enabled=false;ctl.minDistance=.000001;ctl.maxDistance=Math.max(1800,globeDistance);
@@ -268,7 +275,13 @@ export function SurfaceWorld({mode,m,reset,onMission,onWorld,physicalDistances=f
    </>
   )}
   <SurfaceNavigation active={close&&!flight.current&&mode!=='story'} body={m.body} unit={UNIT} ground={surface.ground} center={surface.center} equipmentRadius={dimensions[m.model].span*.6}/><OrbitControls ref={controls} makeDefault enabled={settings.navigation==='orbit'||!close||!!flight.current} enableDamping dampingFactor={.085} rotateSpeed={coarsePointer?.65:.4} enablePan={close} screenSpacePanning={false} panSpeed={.4} minPolarAngle={.04} maxPolarAngle={close?Math.PI/2-.035:Math.PI-.02} minDistance={Math.max(1.2,dimensions[m.model].span*.85)*UNIT} maxDistance={Math.max(1800,950*orbitFraming)} zoomSpeed={.6} onStart={()=>{if(flight.current){descentArmed.current=false;guided.current=flight.current.stage==='descent';}flight.current=null;}}/>{/* Uniform bounced light lifts the unlit terrain without introducing a second shadow direction. */}<ambientLight intensity={daylight*(moon?.26:.34)+night*(settings.inspection&&mode!=='overview'?.3:moon?.028:.045)} color={moon?'#c3d0e5':'#e6c6ae'}/><hemisphereLight args={[moon?'#c8d6ee':'#e9c6aa',moon?'#798295':'#9b7360',daylight*(moon?.14:.19)+night*.018]}/>{night>.001&&<directionalLight castShadow position={nightDirection.clone().multiplyScalar(350*UNIT)} color={moon?'#a8c5ee':'#b4c5dc'} intensity={night*(moon?.13:.095)} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-normalBias={.004*UNIT} shadow-bias={-.000015} shadow-radius={0}/>}<directionalLight castShadow position={localSun.clone().multiplyScalar(350*UNIT)} color={moon?'#fff8ee':'#fff0dc'} intensity={4.0*solarIrradiance(ephemeris[m.body])/1361} shadow-mapSize={[preset.shadows,preset.shadows]} shadow-camera-left={-90*UNIT} shadow-camera-right={90*UNIT} shadow-camera-top={90*UNIT} shadow-camera-bottom={-90*UNIT} shadow-camera-near={10*UNIT} shadow-camera-far={900*UNIT} shadow-bias={-.000015} shadow-normalBias={.004*UNIT} shadow-radius={0}/><mesh geometry={surface.geometry} receiveShadow onClick={e=>{if(mode==='overview'&&e.delta<4){e.stopPropagation();onWorld(m.body)}}}><RegolithMaterial map={map} nasaPatch={nasaPatch} nasaPatchFade={nasaPatchFade} unit={UNIT} moon={moon} centerY={surface.center.y} rotation={surface.rotation} landingRadius={landingRadius}/></mesh>{globeOnly?null:moon?<ApolloRocks ground={surface.ground} unit={UNIT} clearance={Math.max(3,dimensions[m.model].span*.70)} count={preset.rocks}/>:<><MarsRocks ground={surface.ground} unit={UNIT} clearance={Math.max(3,dimensions[m.model].span*.7)} count={preset.rocks} lat={m.lat} lon={m.lon} landingRadius={landingRadius} site={m.id}/><MarsGroundMarks ground={surface.ground} unit={UNIT} model={m.model} lat={m.lat} lon={m.lon} site={m.id}/></>}{!moon&&<group position={surface.center}><Atmosphere r={R}/></group>}{mode!=='overview'&&<group scale={UNIT} rotation={[0,m.model==='rover'?Math.PI/2+marsRoverRoadYaw(m.id):0,0]}><Model name={m.model}/></group>}{mode==='overview'&&<Html position={[0,100,0]} center><button className="worldLabel" onClick={()=>onWorld(m.body)}>{language === "en" ? (moon ? "Moon" : "Mars") : (moon ? "القمر" : "المريخ")} ↗</button></Html>}
-  {mode!=='overview'&&!close&&missions.map((item,i)=>item.body===m.body&&(
+  {moon&&mode==='planet'&&lunarSites.map(({mission,index},slot)=>(
+   <SitePin key={mission.id} m={mission} rotation={surface.rotation} center={surface.center} radius={R+2}
+    selected={mission.id===m.id} label={language==='en'?mission.en:mission.name}
+    landingLabel={language==='en'?`Land at ${mission.en}`:`اهبط عند ${mission.name}`}
+    persistentSlot={slot} onClick={()=>onMission(index)}/>
+  ))}
+  {!moon&&mode!=='overview'&&!close&&missions.map((item,i)=>item.body===m.body&&(
    <SitePin key={item.id} m={item} rotation={surface.rotation} center={surface.center} radius={R+2}
     selected={item.id===m.id} label={language==='en'?item.en:item.name} onClick={()=>onMission(i)}/>
   ))}

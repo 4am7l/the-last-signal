@@ -1,8 +1,9 @@
 import assert from 'node:assert/strict';
+import test from 'node:test';
 import {readFileSync} from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
 const source=stripTypeScriptTypes(readFileSync(new URL('../src/sceneMath.ts',import.meta.url),'utf8'));
-const {RADII_KM,EARTH_MOON_KM,EXAMPLE_EARTH_MARS_KM,systemLayout,mountains,marsRelief,noise3,starDirections}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
+const {RADII_KM,EARTH_MOON_KM,EXAMPLE_EARTH_MARS_KM,systemLayout,mountains,marsRelief,noise3,starDirections,lunarPinPlacement}=await import('data:text/javascript;base64,'+Buffer.from(source).toString('base64'));
 const distance=(a,b)=>Math.hypot(...a.map((v,i)=>v-b[i]));
 for(const actual of [false,true]){
  const layout=systemLayout(actual),em=distance(layout.earth,layout.moon),mars=distance(layout.earth,layout.mars);
@@ -24,3 +25,17 @@ for(let i=0;i<300;i++){
 const stars=starDirections(5000);assert.deepEqual(stars,starDirections(5000));
 let north=0;for(let i=0;i<stars.length;i+=3){assert.ok(Math.abs(Math.hypot(stars[i],stars[i+1],stars[i+2])-1)<1e-6);if(stars[i+1]>0)north++}assert.equal(north,2500);
 console.log('Passed: Earth–Moon grouping, non-overlap, physical distances, local mountains, Mars continuity, and stable all-sky star directions.');
+
+
+test('lunar landing buttons stay available when the camera loses their anchors',()=>{
+ const center={x:0,y:0,z:0};
+ assert.deepEqual(lunarPinPlacement(center,true,360,640,0),{x:180,y:320,onGlobe:true});
+ for(const [projection,facing] of [[center,false],[{...center,x:1.1},true],[{...center,z:1.1},true],[{...center,y:.95},true]]){
+  const first=lunarPinPlacement(projection,facing,360,640,0);
+  const second=lunarPinPlacement(projection,facing,360,640,1);
+  assert.equal(first.onGlobe,false);
+  assert.equal(second.onGlobe,false);
+  assert.ok(first.x>0&&first.x<360&&first.y>0&&second.y<640);
+  assert.ok(second.y-first.y>=44);
+ }
+});

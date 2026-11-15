@@ -7,7 +7,7 @@ import * as T from 'three';
 import {missions,type Mission} from './data';
 import {usePlanetTexture} from './usePlanetTexture';
 import {localRelief} from './lunarTerrain';
-import {mountains,surfaceDetail,marsRelief} from './sceneMath';
+import {mountains,surfaceDetail,marsRelief,lunarPinPlacement} from './sceneMath';
 import {SCENE_SUN_DIRECTION,solarShader,type Occluder} from './solar';
 // Equirectangular maps: Greenwich at u=.5, east-positive longitude.
 export function point(lat:number,lon:number,r=300){const a=T.MathUtils.degToRad(lat),b=T.MathUtils.degToRad(lon);return new T.Vector3(r*Math.cos(a)*Math.cos(b),r*Math.sin(a),-r*Math.cos(a)*Math.sin(b))}
@@ -66,8 +66,11 @@ export function lunarSiteDirection() {
  return direction.normalize();
 }
 
+// Persistent labels supply their own off-globe position even behind the camera.
+const keepPinVisible = () => {};
+
 export function SitePin({
- m, rotation, onClick, selected = false, center = terrainCenter, radius = 302, label = m.name,
+ m, rotation, onClick, selected = false, center = terrainCenter, radius = 302, label = m.name, landingLabel, persistentSlot,
 }: {
  m: Mission;
  rotation: T.Quaternion;
@@ -76,17 +79,28 @@ export function SitePin({
  center?: T.Vector3;
  radius?: number;
  label?: string;
+ landingLabel?: string;
+ persistentSlot?: number;
 }) {
  const group = useRef<T.Group>(null);
  const button = useRef<HTMLButtonElement>(null);
  const normal = useMemo(() => point(m.lat, m.lon, 1).applyQuaternion(rotation), [m.lat, m.lon, rotation]);
  const position = useMemo(() => normal.clone().multiplyScalar(radius).add(center), [normal, radius, center]);
  const scratch = useMemo(() => new T.Vector3(), []);
+ const persistent = persistentSlot !== undefined;
+ const facesCamera = (camera: T.Camera) =>
+  normal.dot(scratch.copy(camera.position).sub(position).normalize()) > .04;
+ const calculatePosition = (_: T.Object3D, camera: T.Camera, size: {width:number;height:number}) => {
+  const facing = facesCamera(camera);
+  const projected = scratch.copy(position).project(camera);
+  const placement = lunarPinPlacement(projected, facing, size.width, size.height, persistentSlot ?? 0);
+  if (button.current) button.current.toggleAttribute('data-off-globe', !placement.onGlobe);
+  return [placement.x, placement.y];
+ };
  useFrame(({ camera }) => {
-  const visible = (center !== terrainCenter || camera.position.distanceTo(center) < 1600)
-   && normal.dot(scratch.copy(camera.position).sub(position).normalize()) > .04;
+  const visible = (center !== terrainCenter || camera.position.distanceTo(center) < 1600) && facesCamera(camera);
   if (group.current) group.current.visible = visible;
-  if (button.current) {
+  if (!persistent && button.current) {
    button.current.style.visibility = visible ? "visible" : "hidden";
    button.current.tabIndex = visible ? 0 : -1;
   }
@@ -97,8 +111,10 @@ export function SitePin({
     <sphereGeometry args={[onClick ? (selected ? 2 : 1.4) : 3, 12, 8]} />
     <meshBasicMaterial color="#e6f5bd" />
    </mesh>
-   {onClick && <Html center zIndexRange={[8, 1]} style={{ pointerEvents: "none" }}>
-    <button ref={button} type="button" className={selected ? "sitePin chosen" : "sitePin"} style={{ pointerEvents: "auto" }} onClick={onClick}>
+   {onClick && <Html center zIndexRange={[8, 1]} style={{ pointerEvents: "none" }}
+    calculatePosition={persistent ? calculatePosition : undefined}
+    onOcclude={persistent ? keepPinVisible : undefined}>
+    <button ref={button} type="button" aria-label={landingLabel} className={selected ? "sitePin chosen" : "sitePin"} style={{ pointerEvents: "auto" }} onClick={onClick}>
      <span className="pinDot" aria-hidden="true" />{label}
      <small dir="ltr">{Math.abs(m.lat)}° {m.lat < 0 ? "S" : "N"} · {m.lon}° E</small>
     </button>
