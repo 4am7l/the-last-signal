@@ -45,26 +45,26 @@
   background: var(--paper);
   color-scheme: light;
 }
-/* Material 3 baseline dark color roles. */
+/* Google-inspired dark surfaces with blue accents and navy containers. */
 :root[data-theme="dark"] {
-  --md-sys-color-primary: #d0bcff;
-  --md-sys-color-on-primary: #381e72;
-  --md-sys-color-primary-container: #4f378b;
-  --md-sys-color-on-primary-container: #eaddff;
-  --md-sys-color-secondary: #ccc2dc;
-  --md-sys-color-secondary-container: #4a4458;
-  --md-sys-color-on-secondary-container: #e8def8;
-  --md-sys-color-surface: #141218;
-  --md-sys-color-surface-container-low: #1d1b20;
-  --md-sys-color-surface-container: #211f26;
-  --md-sys-color-surface-container-high: #2b2930;
-  --md-sys-color-surface-container-highest: #36343b;
-  --md-sys-color-on-surface: #e6e0e9;
-  --md-sys-color-on-surface-variant: #cac4d0;
-  --md-sys-color-outline: #938f99;
-  --md-sys-color-outline-variant: #49454f;
-  --md-sys-color-inverse-surface: #e6e0e9;
-  --md-sys-color-inverse-on-surface: #322f35;
+  --md-sys-color-primary: #a8c7fa;
+  --md-sys-color-on-primary: #062e6f;
+  --md-sys-color-primary-container: #0842a0;
+  --md-sys-color-on-primary-container: #d3e3fd;
+  --md-sys-color-secondary: #becbe0;
+  --md-sys-color-secondary-container: #283445;
+  --md-sys-color-on-secondary-container: #dce7f9;
+  --md-sys-color-surface: #11151c;
+  --md-sys-color-surface-container-low: #181e28;
+  --md-sys-color-surface-container: #1d2531;
+  --md-sys-color-surface-container-high: #263141;
+  --md-sys-color-surface-container-highest: #323e50;
+  --md-sys-color-on-surface: #e3e7ef;
+  --md-sys-color-on-surface-variant: #bdc7d7;
+  --md-sys-color-outline: #8b96a8;
+  --md-sys-color-outline-variant: #414c5e;
+  --md-sys-color-inverse-surface: #e3e7ef;
+  --md-sys-color-inverse-on-surface: #2b3340;
   --md-sys-color-scrim: #000000;
   --paper: var(--md-sys-color-surface);
   --surface: var(--md-sys-color-surface-container-low);

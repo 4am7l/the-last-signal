@@ -31,7 +31,7 @@ export function ThemeToggle() {
     document.documentElement.style.colorScheme = theme;
     document
       .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", theme === "dark" ? "#141218" : "#f8f9ff");
+      ?.setAttribute("content", theme === "dark" ? "#11151c" : "#f8f9ff");
   }, [theme]);
 
   useEffect(() => {
