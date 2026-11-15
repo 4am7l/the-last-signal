@@ -72,6 +72,12 @@ function App() {
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [readySceneKey, setReadySceneKey] = useState<string | null>(null);
   const [failedSceneKey, setFailedSceneKey] = useState<string | null>(null);
+  useEffect(() => {
+    if (route.page !== "explore") {
+      setReadySceneKey(null);
+      setFailedSceneKey(null);
+    }
+  }, [route.page]);
   const [mode, setMode] = useState<Mode>("overview"),
     [index, setIndex] = useState(0),
     [film, setFilm] = useState(0),
@@ -294,7 +300,7 @@ function App() {
               </strong>
               <span className="arrival-line" />
             </div>
-            <div className="canvas">
+            <div className="canvas" aria-busy={sceneLoading}>
               <Boundary key={sceneKey} onError={() => setFailedSceneKey(sceneKey)}>
                 <Suspense fallback={null}>
                   <Space
