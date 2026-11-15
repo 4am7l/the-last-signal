@@ -212,92 +212,95 @@ function DestinationBrowser() {
             img: "opportunity",
             count: t("أربع مهمات", "Four missions"),
           },
-        ].map((d) => (
-          <button
-            type="button"
-            className={`destination destination--expressive ${d.body}`}
-            aria-label={t(`معدات ${d.title}`, `Equipment on ${d.body === "moon" ? "the Moon" : "Mars"}`)}
-            aria-expanded={body === d.body}
-            aria-controls="destination-equipment"
-            onClick={() => {
-              setBody(body === d.body ? null : d.body);
-              setMissionId(null);
-            }}
-            key={d.body}
-          >
-            <span className="destination__media">
-              <img
-                src={`/photos/${d.img}.jpg`}
-                alt=""
-                loading="lazy"
-                decoding="async"
-              />
-            </span>
-            <span className="destination__content">
-              <span className="destination__title-row">
-                <span className="destination__title">{d.title}</span>
-                <span className="destination__count">{d.count}</span>
-              </span>
-              <span className="destination__description">{d.text}</span>
-              <span className="destination__cta">
-                {body === d.body ? t("أخفِ القائمة", "Hide equipment") : t("اعرض المعدات", "Browse equipment")}
-                <span className="material-symbols-rounded" aria-hidden="true">expand_more</span>
-              </span>
-            </span>
-          </button>
-        ))}
-      </div>
-      <div id="destination-equipment" className="destination-equipment" hidden={!body}>
-        {body && (
-          <>
-            <h3 ref={listHeading} tabIndex={-1} id="destination-equipment-title">
-              {body === "moon" ? t("معدات القمر", "Equipment on the Moon") : t("معدات المريخ", "Equipment on Mars")}
-            </h3>
-            <div className={`destination-equipment__layout${selected ? " has-selection" : ""}`}>
-              <ul className="destination-missions" aria-labelledby="destination-equipment-title">
-                {missions.filter((mission) => mission.body === body).map((mission) => (
-                  <li key={mission.id}>
-                    <button type="button" aria-expanded={selected?.id === mission.id} aria-controls="destination-mission-details"
-                      onClick={(event) => {
-                        missionTrigger.current = event.currentTarget;
-                        setMissionId(selected?.id === mission.id ? null : mission.id);
-                      }}>
-                      <img src={`/photos/${mission.id}.jpg`} alt="" loading="lazy" />
-                      <span>
-                        <strong>{missionName(mission)}</strong>
-                        <small>{copy(mission).site}</small>
-                      </span>
-                      <span className="material-symbols-rounded" aria-hidden="true">{t("chevron_left", "chevron_right")}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
-              <div id="destination-mission-details" hidden={!selected}>
-                {selected && (
-                  <article className="destination-mission" key={selected.id} aria-labelledby="destination-mission-title">
-                    <div className="destination-mission__heading">
-                      <h4 id="destination-mission-title" ref={missionHeading} tabIndex={-1}>{missionName(selected)}</h4>
-                      <button className="destination-mission__close" type="button" aria-label={t("إغلاق وصف المعدّة", "Close equipment details")}
-                        onClick={() => {
-                          setMissionId(null);
-                          missionTrigger.current?.focus();
-                        }}>
-                        <span className="material-symbols-rounded" aria-hidden="true">close</span>
-                      </button>
-                    </div>
-                    <p>{copy(selected).intro}</p>
-                    <p>{copy(selected).detail}</p>
-                    <p className="destination-mission__site">{copy(selected).site}</p>
-                    <a className="action action-solid" href={exploreHref(selected.id, "location")}>
-                      {t("اذهب للمحاكاة", "Go to simulation")}
-                      <span aria-hidden="true">{t("←", "→")}</span>
-                    </a>
-                  </article>
+        ].map((d) => {
+          const expanded = body === d.body;
+          const panelId = `destination-equipment-${d.body}`;
+          const headingId = `${panelId}-title`;
+          return (
+            <div className="destination-column" key={d.body}>
+              <button
+                type="button"
+                className={`destination destination--expressive ${d.body}`}
+                aria-label={t(`معدات ${d.title}`, `Equipment on ${d.body === "moon" ? "the Moon" : "Mars"}`)}
+                aria-expanded={expanded}
+                aria-controls={panelId}
+                onClick={() => {
+                  setBody(expanded ? null : d.body);
+                  setMissionId(null);
+                }}
+              >
+                <span className="destination__media">
+                  <img src={`/photos/${d.img}.jpg`} alt="" loading="lazy" decoding="async" />
+                </span>
+                <span className="destination__content">
+                  <span className="destination__title-row">
+                    <span className="destination__title">{d.title}</span>
+                    <span className="destination__count">{d.count}</span>
+                  </span>
+                  <span className="destination__description">{d.text}</span>
+                  <span className="destination__cta">
+                    {expanded ? t("أخفِ القائمة", "Hide equipment") : t("اعرض المعدات", "Browse equipment")}
+                    <span className="material-symbols-rounded" aria-hidden="true">expand_more</span>
+                  </span>
+                </span>
+              </button>
+              <div id={panelId} className="destination-equipment" hidden={!expanded}>
+                {expanded && (
+                  <>
+                    <h3 ref={listHeading} tabIndex={-1} id={headingId}>
+                      {d.body === "moon" ? t("معدات القمر", "Equipment on the Moon") : t("معدات المريخ", "Equipment on Mars")}
+                    </h3>
+                    <ul className="destination-missions" aria-labelledby={headingId}>
+                      {missions.filter((mission) => mission.body === d.body).map((mission) => {
+                        const isSelected = selected?.id === mission.id;
+                        const detailsId = `destination-mission-${mission.id}`;
+                        return (
+                          <li key={mission.id}>
+                            <button type="button" aria-expanded={isSelected} aria-controls={detailsId}
+                              onClick={(event) => {
+                                missionTrigger.current = event.currentTarget;
+                                setMissionId(isSelected ? null : mission.id);
+                              }}>
+                              <img src={`/photos/${mission.id}.jpg`} alt="" loading="lazy" />
+                              <span>
+                                <strong>{missionName(mission)}</strong>
+                                <small>{copy(mission).site}</small>
+                              </span>
+                              <span className="material-symbols-rounded" aria-hidden="true">expand_more</span>
+                            </button>
+                            <div id={detailsId} hidden={!isSelected}>
+                              {isSelected && (
+                                <article className="destination-mission" aria-labelledby={`${detailsId}-title`}>
+                                  <div className="destination-mission__heading">
+                                    <h4 id={`${detailsId}-title`} ref={missionHeading} tabIndex={-1}>{missionName(mission)}</h4>
+                                    <button className="destination-mission__close" type="button" aria-label={t("إغلاق وصف المعدّة", "Close equipment details")}
+                                      onClick={() => {
+                                        setMissionId(null);
+                                        missionTrigger.current?.focus();
+                                      }}>
+                                      <span className="material-symbols-rounded" aria-hidden="true">close</span>
+                                    </button>
+                                  </div>
+                                  <p>{copy(mission).intro}</p>
+                                  <p>{copy(mission).detail}</p>
+                                  <p className="destination-mission__site">{copy(mission).site}</p>
+                                  <a className="action action-solid" href={exploreHref(mission.id, "location")}>
+                                    {t("اذهب للمحاكاة", "Go to simulation")}
+                                    <span aria-hidden="true">{t("←", "→")}</span>
+                                  </a>
+                                </article>
+                              )}
+                            </div>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
                 )}
               </div>
             </div>
-          </>
-        )}
+          );
+        })}
       </div>
     </section>
   );

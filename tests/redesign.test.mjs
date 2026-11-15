@@ -82,10 +82,10 @@ test("Moon and Mars cards disclose equipment in place before linking to the sele
   assert.match(page, /aria-labelledby="destinations-title"/);
   assert.match(page, /id="destinations-title">\{t\("أين توجد هذه المعدات؟", "Where is the equipment\?"/);
   assert.match(page, /destination--expressive/);
-  assert.match(page, /aria-controls="destination-equipment"/);
-  assert.match(page, /mission\.body === body/);
-  assert.match(page, /aria-controls="destination-mission-details"/);
-  assert.match(page, /href=\{exploreHref\(selected\.id, "location"\)\}/);
+  assert.match(page, /aria-controls=\{panelId\}/);
+  assert.match(page, /mission\.body === d\.body/);
+  assert.match(page, /aria-controls=\{detailsId\}/);
+  assert.match(page, /href=\{exploreHref\(mission\.id, "location"\)\}/);
   assert.match(page, /destination__media/);
   assert.match(page, /destination__cta/);
 });
