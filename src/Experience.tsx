@@ -1,3 +1,4 @@
+import { IntrepidBrief } from "./IntrepidBrief";
 import { FalconBrief } from "./FalconBrief";
 import { ApolloBrief } from "./ApolloBrief";
 import { LanguageToggle } from "./LanguageToggle";
@@ -201,9 +202,9 @@ function DestinationBrowser() {
           {
             body: "moon" as const,
             title: t("القمر", "Moon"),
-            text: t("استكشف موقعي أبولو 11 وأبولو 15 والمعدات التي بقيت على القمر.", "Visit the Apollo 11 and Apollo 15 landing sites and the equipment left on the Moon."),
+            text: t("استكشف مواقع هبوط أبولو والمعدات التي بقيت على القمر.", "Explore the Apollo landing sites and the equipment left on the Moon."),
             img: "apollo",
-            count: t("مهمتان", "Two missions"),
+            count: t("ثلاث مهمات", "Three missions"),
           },
           {
             body: "mars" as const,
@@ -478,7 +479,7 @@ export function Archive({ initialMission }: { initialMission?: string }) {
                   alt={copy(chosen).photoCaption}
                 />
                 <small className="photo-credit">{copy(chosen).photoCaption}</small>
-                {chosen.id === "apollo" ? <ApolloBrief /> : chosen.id === "apollo15" ? <FalconBrief /> : <MissionExplanation mission={chosen} />}
+                {chosen.id === "apollo" ? <ApolloBrief /> : chosen.id === "apollo12" ? <IntrepidBrief /> : chosen.id === "apollo15" ? <FalconBrief /> : <MissionExplanation mission={chosen} />}
                 <NasaGallery mission={chosen.id} compact />
                 <h3>{t("كيف تعمل المعدات؟", "How does the equipment work?")}</h3>
                 <p>{copy(chosen).detail}</p>

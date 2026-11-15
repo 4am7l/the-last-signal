@@ -1,3 +1,4 @@
+import { IntrepidBrief } from "./IntrepidBrief";
 import { FalconBrief } from "./FalconBrief";
 import { ApolloBrief } from "./ApolloBrief";
 import { LanguageToggle } from "./LanguageToggle";
@@ -234,6 +235,7 @@ function App() {
     setDetailsOpen(false);
   };
   const isApollo = m.id === "apollo";
+  const isIntrepid = m.id === "apollo12";
   const isFalcon = m.id === "apollo15";
 
   function select(i: number, next: Mode = "model", resetFilm = true) {
@@ -647,6 +649,7 @@ function App() {
                           <NasaGallery mission={m.id} compact />
                         </details>
                         {isApollo && <ApolloBrief />}
+                        {isIntrepid && <IntrepidBrief />}
                         {isFalcon && <FalconBrief />}
                         <div className="equipment-mode-details">
                           {mode === "story" ? (
@@ -734,7 +737,7 @@ function App() {
                             <>
                               <h3>{t("المعدات وسط أفق الكوكب", "Equipment on the surface")}</h3>
                               <a
-                                href={dimensions[m.model].source}
+                                href={isIntrepid ? m.source : dimensions[m.model].source}
                                 target="_blank"
                                 rel="noreferrer"
                               >
@@ -742,7 +745,7 @@ function App() {
                               </a>
                               <p>{missionCopy.detail}</p>
                               <p className="disclosure">
-                                {t("اسحب لتدوير المجسّم، واستعمل عجلة الفأرة أو إصبعين للتقريب. المجسّم مضبوط على البعد المنشور. تعرض المجسّمات القمرية المركبات في هيئة الهبوط، بمرحلتي الهبوط والصعود. الصخور والأرضية بيئة توضيحية وليست مسحاً للموقع.", "Drag to rotate the model. Pinch or scroll to zoom. Equipment is scaled to published dimensions and local terrain is illustrative.")}
+                                {t("اسحب لتدوير المجسّم، واستعمل عجلة الفأرة أو إصبعين للتقريب. المجسّم مضبوط على البعد المنشور. الصخور والأرضية بيئة توضيحية وليست مسحاً للموقع.", "Drag to rotate the model. Pinch or scroll to zoom. Equipment is scaled to published dimensions and local terrain is illustrative.")}
                               </p>
                               <a
                                 href={m.modelSource}

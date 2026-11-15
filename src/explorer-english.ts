@@ -1,3 +1,4 @@
+import { intrepidEnglish, intrepidTimeline } from "./intrepid";
 import { falconEnglish, falconTimeline } from "./falcon";
 import { apolloPhoto } from "./apollo";
 import type { Mission } from "./data";
@@ -6,6 +7,7 @@ import type { Phase, Shot } from "./journey";
 type MissionCopy = Pick<Mission, "intro" | "site" | "frame" | "final" | "detail" | "photoCaption">;
 
 export const missionEnglish: Record<string, MissionCopy> = {
+  apollo12: intrepidEnglish,
   apollo15: falconEnglish,
   apollo: {
     intro: "Eagle made the first crewed lunar landing and carried the EASEP surface experiments.",
@@ -149,6 +151,7 @@ export const englishExplanations: Record<string, { goal: string; finding: string
 };
 
 export const englishAnnualStories: Record<string, Record<number, [string, string]>> = {
+  apollo12: { 1969: ["Ocean of Storms", "Intrepid landed near Surveyor 3 and the crew deployed ALSEP."] },
   apollo15: { 1971: ["Hadley–Apennine", "Falcon landed and the crew explored the area using the lunar rover."] },
   opportunity: {
     2003: ["Launch", "A Delta II rocket carried Opportunity inside its protective fairing."],
@@ -200,8 +203,9 @@ export const englishAnnualStories: Record<string, Record<number, [string, string
 };
 
 export function englishShot(shot: Shot, missionId: string) {
-  if (missionId === "apollo15") {
-    const event = falconTimeline.find((item) => item.date === shot.date && item.phase === shot.phase);
+  if (missionId === "apollo12" || missionId === "apollo15") {
+    const timeline = missionId === "apollo12" ? intrepidTimeline : falconTimeline;
+    const event = timeline.find((item) => item.date === shot.date && item.phase === shot.phase);
     if (event) return { ...shot, title: event.enTitle, text: event.enText };
   }
   const annual = shot.annual ? englishAnnualStories[missionId]?.[Number(shot.date.slice(0, 4))] : undefined;
