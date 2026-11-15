@@ -1,4 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
+import { ThemeToggle } from "./ThemeToggle";
+import { NasaGallery } from "./NasaGallery";
 import { missions, type Mission } from "./data";
 import { exploreHref, matchesMission, type Page } from "./navigation";
 const bodyName = (m: Mission) => (m.body === "moon" ? "القمر" : "المريخ");
@@ -59,9 +61,12 @@ export function SiteHeader({
           </a>
         ))}
       </nav>
-      <button className="source-link" onClick={onSources}>
-        المصادر والدقة <Arrow />
-      </button>
+      <div className="site-header__actions">
+        <ThemeToggle />
+        <button className="source-link" onClick={onSources}>
+          المصادر والدقة <Arrow />
+        </button>
+      </div>
     </header>
   );
 }
@@ -240,6 +245,8 @@ export function Home() {
           ))}
         </div>
       </section>
+      <NasaGallery mission="apollo" />
+      <NasaGallery mission="ingenuity" />
       <section className="closing-section">
         <div className="kicker">كيف تقرأ هذا الأرشيف؟</div>
         <h2>الصورة وثيقة. والمجسّم وسيلة للفهم.</h2>
@@ -434,6 +441,7 @@ export function Archive({ initialMission }: { initialMission?: string }) {
                 />
                 <small className="photo-credit">{chosen.photoCaption}</small>
                 <MissionExplanation mission={chosen} />
+                <NasaGallery mission={chosen.id} compact />
                 <h3>كيف تعمل المعدات؟</h3>
                 <p>{chosen.detail}</p>
                 <h3>ما الذي بقي في الموقع؟</h3>
@@ -566,6 +574,7 @@ export function Guide() {
           </p>
         </div>
       </section>
+      <NasaGallery mission="insight" compact />
       <div className="guide-start">
         <a className="action action-solid" href="#/explore">
           ابدأ الاستكشاف <Arrow />
