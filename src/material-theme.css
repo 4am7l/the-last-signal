@@ -44,25 +44,26 @@
   background: var(--paper);
   color-scheme: light;
 }
+/* Material 3 baseline dark color roles. */
 :root[data-theme="dark"] {
-  --md-sys-color-primary: #b4c5ff;
-  --md-sys-color-on-primary: #072c79;
-  --md-sys-color-primary-container: #29467e;
-  --md-sys-color-on-primary-container: #dce4ff;
-  --md-sys-color-secondary: #c0c9e5;
-  --md-sys-color-secondary-container: #3d4964;
-  --md-sys-color-surface: #12151c;
-  --md-sys-color-surface-container-low: #1c2029;
-  --md-sys-color-surface-container: #222732;
-  --md-sys-color-surface-container-high: #2a303c;
-  --md-sys-color-surface-container-highest: #343b48;
-  --md-sys-color-on-surface: #e5e8f3;
-  --md-sys-color-on-surface-variant: #c1c7d7;
-  --md-sys-color-outline: #8b93a4;
-  --md-sys-color-outline-variant: #464e5e;
-  --md-sys-color-inverse-surface: #e3e7f3;
-  --md-sys-color-inverse-on-surface: #20232d;
-  --md-sys-color-scrim: #05060a;
+  --md-sys-color-primary: #d0bcff;
+  --md-sys-color-on-primary: #381e72;
+  --md-sys-color-primary-container: #4f378b;
+  --md-sys-color-on-primary-container: #eaddff;
+  --md-sys-color-secondary: #ccc2dc;
+  --md-sys-color-secondary-container: #4a4458;
+  --md-sys-color-surface: #141218;
+  --md-sys-color-surface-container-low: #1d1b20;
+  --md-sys-color-surface-container: #211f26;
+  --md-sys-color-surface-container-high: #2b2930;
+  --md-sys-color-surface-container-highest: #36343b;
+  --md-sys-color-on-surface: #e6e0e9;
+  --md-sys-color-on-surface-variant: #cac4d0;
+  --md-sys-color-outline: #938f99;
+  --md-sys-color-outline-variant: #49454f;
+  --md-sys-color-inverse-surface: #e6e0e9;
+  --md-sys-color-inverse-on-surface: #322f35;
+  --md-sys-color-scrim: #000000;
   --paper: var(--md-sys-color-surface);
   --surface: var(--md-sys-color-surface-container-low);
   --ink: var(--md-sys-color-on-surface);
