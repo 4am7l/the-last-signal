@@ -1,7 +1,7 @@
 import {useEffect,useState} from 'react';
 import {useLoader,useThree} from '@react-three/fiber';
 import * as T from 'three';
-const urls:Record<string,string>={earth:'8k_earth_daymap.jpg',moon:'8k_moon.jpg',mars:'8k_mars.jpg'};
+const urls:Record<string,string>={moon:'8k_moon.jpg',mars:'8k_mars.jpg'};
 const cache=new Map<string,Promise<T.Texture>>();
 export function usePlanetTexture(body:string,detail=true){
  const base=useLoader(T.TextureLoader,body==='mars'?'/mars-nasa-viking.jpg':'/'+body+'.jpg'),{gl}=useThree();
