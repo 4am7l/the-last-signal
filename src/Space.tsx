@@ -15,25 +15,11 @@ import {FixedStars} from './FixedStars';
 
 import {SUN_DIRECTION} from './solar';
 import {CameraCommands,type CameraCommand} from './CameraCommands';
+import {keepApolloDescentStage} from './apolloDescentStage';
 export {point} from './Planet';
 const smooth=(x:number)=>{const t=T.MathUtils.clamp(x,0,1);return t*t*(3-2*t)};
-// Mesh names in NASA's Apollo GLB that form the base, landing gear and ladder.
-const descentParts = new Set([
-  "group13 p2", "group13 pC", "pCylinder1", "pCylinder3",
-  "pCylinder6", "pCylinder7", "polySurfa1", "pPlane1", "pPlane2",
-]);
-
 function ModelAsset({name,rotor=0,descentOnly=false}:{name:string;rotor?:number;descentOnly?:boolean}){const {scene}=useGLTF(`/models/${name}.glb`);const obj=useMemo(()=>{const o=scene.clone(true);
- if(descentOnly){
-  const ascentMeshes:T.Mesh[]=[];
-  o.traverse(node=>{
-   const sourceName=node.userData.name;
-   if(node instanceof T.Mesh && !descentParts.has(sourceName) && !sourceName?.startsWith("group31 ")){
-    ascentMeshes.push(node);
-   }
-  });
-  for(const mesh of ascentMeshes)mesh.removeFromParent();
- }
+ if(descentOnly)keepApolloDescentStage(o);
  const b=new T.Box3().setFromObject(o),size=b.getSize(new T.Vector3()),c=b.getCenter(new T.Vector3());const scale=dimensions[name].span/Math.max(size.x,size.z);o.position.set(-c.x*scale,-b.min.y*scale,-c.z*scale);o.scale.setScalar(scale);o.traverse(n=>{if(n instanceof T.Mesh){n.castShadow=true;n.receiveShadow=true}});return o},[scene,name,descentOnly]);useEffect(()=>{if(name!=='ingenuity')return;const a=obj.getObjectByName('rotors_01'),b=obj.getObjectByName('rotors_02');if(a)a.rotation.y=rotor*Math.PI*100;if(b)b.rotation.y=-rotor*Math.PI*100},[obj,name,rotor]);return <primitive object={obj}/>}
 export function Model({name,rotor=0,descentOnly=false}:{name:string;rotor?:number;descentOnly?:boolean}){return <Suspense fallback={<mesh position={[0,.2,0]}><boxGeometry args={[.4,.4,.4]}/><meshStandardMaterial wireframe color="#97a28a"/></mesh>}><ModelAsset name={name} rotor={rotor} descentOnly={descentOnly}/></Suspense>}
 function CameraRig({position,target,id,controls,manual}:{position:T.Vector3;target:T.Vector3;id:string;controls:React.RefObject<Controls|null>;manual:React.RefObject<boolean>}){const {camera}=useThree();const from=useRef(new T.Vector3()),look=useRef(new T.Vector3()),elapsed=useRef(0),active=useRef(false);useEffect(()=>{from.current.copy(camera.position);look.current.copy(controls.current?.target??new T.Vector3());elapsed.current=0;active.current=true;manual.current=false},[id]);useFrame((_,dt)=>{if(!active.current||manual.current||!controls.current)return;elapsed.current+=Math.min(dt,.05);const t=window.matchMedia('(prefers-reduced-motion: reduce)').matches?1:smooth(elapsed.current/3.2);camera.position.lerpVectors(from.current,position,t);controls.current.target.lerpVectors(look.current,target,t);controls.current.update();if(t===1)active.current=false});return null}

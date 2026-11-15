@@ -86,6 +86,27 @@ test("Intrepid has the LRO landing coordinates, its 1969 timeline and local gall
   }
 });
 
+test("Intrepid retains every primitive of its landing legs and braces", async () => {
+  const { keepApolloDescentStage } = await load("../src/apolloDescentStage.ts");
+  const scene = new THREE.Group();
+  const module = new THREE.Group();
+  module.name = "lunarlande";
+  scene.add(module);
+  const names = ["group31 15", "group31 16", "group31 g6", "group31 g7", "group31 19", "polySurfa1", "pCube2"];
+  const parts = names.map(name => {
+    const part = new THREE.Group();
+    part.userData.name = name;
+    part.add(new THREE.Mesh(), new THREE.Mesh());
+    module.add(part);
+    return part;
+  });
+  const descent = scene.clone(true);
+  keepApolloDescentStage(descent);
+  assert.deepEqual(descent.children[0].children.map(part => part.userData.name), names.slice(0, -1));
+  assert.ok(descent.children[0].children.every(part => part.children.length === 2));
+  assert.equal(module.children.length, parts.length);
+});
+
 test("Apollo markers face the camera when returning from each landing", () => {
   const planet = readFileSync(new URL("../src/Planet.tsx", import.meta.url), "utf8");
   const pointSource = planet.match(/export function point\([^\n]+/)[0];
