@@ -137,6 +137,15 @@ input[type="search"], input[type="date"], select, textarea,
   text-wrap: balance;
 }
 .hero-copy p { max-width: 48ch; }
+.hero-copy .hero-actions > .action {
+  min-block-size: 48px;
+  padding-block: 0;
+  line-height: 1.3;
+  justify-content: center;
+}
+.hero-copy .hero-actions > .action-line {
+  color: var(--md-sys-color-on-secondary-container);
+}
 .hero-figure { width: 100%; margin: 0; }
 .hero-media {
   aspect-ratio: 8 / 5;

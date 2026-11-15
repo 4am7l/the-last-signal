@@ -103,7 +103,7 @@ export function Home() {
             <a className="action action-solid" href="#/explore">
               {t("افتح المحاكاة", "Open simulation")} <span aria-hidden="true">{t("←", "→")}</span>
             </a>
-            <a className="text-link" href="#/archive">
+            <a className="action action-line" href="#/archive">
               {t("أرشيف المهمات", "Mission archive")}
             </a>
           </div>
