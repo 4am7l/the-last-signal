@@ -4,7 +4,7 @@ import {Suspense,useMemo,useRef,useEffect} from 'react';
 import {useFrame,useLoader,useThree} from '@react-three/fiber';
 import {Html} from '@react-three/drei';
 import * as T from 'three';
-import type {Mission} from './data';
+import {missions,type Mission} from './data';
 import {usePlanetTexture} from './usePlanetTexture';
 import {localRelief} from './lunarTerrain';
 import {mountains,surfaceDetail,marsRelief} from './sceneMath';
@@ -58,14 +58,21 @@ export function Planet({body,r=300,pos=[0,-300,0],rotation,click,occluders=NO_OC
  return <group position={pos} quaternion={rotation}><mesh geometry={geometry} onClick={e=>{if(e.delta>4)return;e.stopPropagation();click?.()}}><meshStandardMaterial color={body==='mars'?'#a76d48':'#929796'} roughness={1}/><Suspense fallback={null}>{body==='moon'?<LunarSurface r={dem?0:r} occluders={occluders}/>:<Surface body={body} occluders={occluders}/>}</Suspense></mesh>{body==='mars'&&<Atmosphere r={r}/>}</group>;
 }
 const terrainCenter = new T.Vector3(0, -300, 0);
+export const lunarSites = missions.flatMap((mission, index) => mission.body === 'moon' ? [{ mission, index }] : []);
+
+export function lunarSiteDirection() {
+ const direction = new T.Vector3();
+ for (const { mission } of lunarSites) direction.add(point(mission.lat, mission.lon, 1));
+ return direction.normalize();
+}
 
 export function SitePin({
- m, rotation, onClick, selected, center = terrainCenter, radius = 302, label = m.name,
+ m, rotation, onClick, selected = false, center = terrainCenter, radius = 302, label = m.name,
 }: {
  m: Mission;
  rotation: T.Quaternion;
- onClick: () => void;
- selected: boolean;
+ onClick?: () => void;
+ selected?: boolean;
  center?: T.Vector3;
  radius?: number;
  label?: string;
@@ -87,15 +94,15 @@ export function SitePin({
  return (
   <group ref={group} position={position}>
    <mesh>
-    <sphereGeometry args={[selected ? 2 : 1.4, 12, 8]} />
+    <sphereGeometry args={[onClick ? (selected ? 2 : 1.4) : 3, 12, 8]} />
     <meshBasicMaterial color="#e6f5bd" />
    </mesh>
-   <Html center zIndexRange={[8, 1]} style={{ pointerEvents: "none" }}>
+   {onClick && <Html center zIndexRange={[8, 1]} style={{ pointerEvents: "none" }}>
     <button ref={button} type="button" className={selected ? "sitePin chosen" : "sitePin"} style={{ pointerEvents: "auto" }} onClick={onClick}>
      <span className="pinDot" aria-hidden="true" />{label}
      <small dir="ltr">{Math.abs(m.lat)}° {m.lat < 0 ? "S" : "N"} · {m.lon}° E</small>
     </button>
-   </Html>
+   </Html>}
   </group>
  );
 }

@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { stripTypeScriptTypes } from "node:module";
+import * as THREE from "three";
 const asModule = (source) => "data:text/javascript;base64," + Buffer.from(source).toString("base64");
 const load = async (file, dependencies = {}) =>
   import(
@@ -66,5 +67,27 @@ test("Apollo 15 lands at the published Falcon site with its own timeline and loc
   assert.ok(shots.some((shot) => shot.phase === "ascent"));
   for (const image of falconGallery) {
     assert.ok(readFileSync(new URL("../public" + image.thumbnail, import.meta.url)).length > 0);
+  }
+});
+
+test("both Apollo markers face the camera when returning from either landing", () => {
+  const planet = readFileSync(new URL("../src/Planet.tsx", import.meta.url), "utf8");
+  const pointSource = planet.match(/export function point\([^\n]+/)[0];
+  const directionSource = planet.slice(planet.indexOf("export function lunarSiteDirection"), planet.indexOf("export function SitePin"));
+  const lunarSites = missions.filter((mission) => mission.body === "moon").map((mission) => ({ mission }));
+  const functions = stripTypeScriptTypes(pointSource + "\n" + directionSource).replaceAll("export ", "");
+  const { point, lunarSiteDirection } = new Function(
+    "T", "lunarSites", functions + ";return { point, lunarSiteDirection };",
+  )(THREE, lunarSites);
+  const center = new THREE.Vector3(0, -299, 0);
+  for (const { mission: landingSite } of lunarSites) {
+    const up = new THREE.Vector3(0, 1, 0);
+    const rotation = new THREE.Quaternion().setFromUnitVectors(point(landingSite.lat, landingSite.lon, 1), up);
+    const camera = lunarSiteDirection().applyQuaternion(rotation).multiplyScalar(800).add(center);
+    for (const { mission } of lunarSites) {
+      const normal = point(mission.lat, mission.lon, 1).applyQuaternion(rotation);
+      const pin = normal.clone().multiplyScalar(302).add(center);
+      assert.ok(normal.dot(camera.clone().sub(pin).normalize()) > .04, `${mission.id} after leaving ${landingSite.id}`);
+    }
   }
 });

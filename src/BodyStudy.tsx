@@ -3,12 +3,9 @@ import { useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import type { OrbitControls as Controls } from "three-stdlib";
 import { Quaternion, Vector3 } from "three";
-import { Planet, point, SitePin } from "./Planet";
-import { missions } from "./data";
+import { lunarSiteDirection, lunarSites, Planet, SitePin } from "./Planet";
 import { SUN_DIRECTION } from "./solar";
 
-const lunarSites = missions.flatMap((mission, index) => mission.body === "moon" ? [{ mission, index }] : []);
-const apollo = missions.find((mission) => mission.id === "apollo")!;
 const globeCenter = new Vector3();
 const globeRotation = new Quaternion();
 
@@ -16,13 +13,9 @@ const globeRotation = new Quaternion();
 export function BodyStudy({
   body,
   reset,
-  onMission,
-  language,
 }: {
   body: "moon" | "mars";
   reset: number;
-  onMission: (index: number) => void;
-  language?: "ar" | "en";
 }) {
   const { camera, scene, size } = useThree();
   // Keep the whole globe in view when a tall viewport limits the horizontal field of view.
@@ -31,8 +24,7 @@ export function BodyStudy({
   useEffect(() => {
     camera.up.set(0, 1, 0);
     if (body === "moon") {
-      camera.position.copy(point(apollo.lat, apollo.lon, 950));
-      camera.position.y += 100;
+      camera.position.copy(lunarSiteDirection()).multiplyScalar(950);
     } else {
       camera.position.set(0, 100, 950);
     }
@@ -62,10 +54,8 @@ export function BodyStudy({
         intensity={3}
       />
       <Planet key={body} body={body} r={300} pos={[0, 0, 0]} />
-      {body === "moon" && lunarSites.map(({ mission, index }) => (
-        <SitePin key={mission.id} m={mission} rotation={globeRotation} center={globeCenter} radius={300}
-          selected={mission.id === "apollo"} label={language === "en" ? mission.en : mission.name}
-          onClick={() => onMission(index)} />
+      {body === "moon" && lunarSites.map(({ mission }) => (
+        <SitePin key={mission.id} m={mission} rotation={globeRotation} center={globeCenter} />
       ))}
     </>
   );
